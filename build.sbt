@@ -25,7 +25,7 @@ fork in Test := true
 javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
 
 resolvers += "TDR Releases" at "s3://tdr-releases-mgmt"
-assemblyJarName in assembly := "scan-notifications.jar"
+assemblyJarName in assembly := "ecr-scan-notifications.jar"
 
 assemblyMergeStrategy in assembly := {
   case PathList("META-INF", xs@_*) => MergeStrategy.discard
