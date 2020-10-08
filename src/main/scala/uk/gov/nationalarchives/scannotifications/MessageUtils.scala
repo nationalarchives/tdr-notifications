@@ -46,7 +46,7 @@ class MessageUtils(scanEvent: ScanEvent) {
         )
       )
     ).toString()
-   Email("scanresults@tdr-management.nationalarchives.gov.uk", "aws_tdr_management@nationalarchives.gov.uk", s"ECR scan results for ${scanEvent.detail.repositoryName}", message)
+   Email("scanresults@tdr-management.nationalarchives.gov.uk", config.getString("ses.email.to"), s"ECR scan results for ${scanEvent.detail.repositoryName}", message)
   }
 
   def slackRequest: RequestT[Identity, Either[String, String], Nothing] = {
