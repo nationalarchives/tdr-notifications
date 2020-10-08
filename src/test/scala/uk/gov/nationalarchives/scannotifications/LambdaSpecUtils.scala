@@ -5,7 +5,7 @@ import com.github.tomakehurst.wiremock.client.WireMock.{ok, post, urlEqualTo}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.scalatest.prop.TableDrivenPropertyChecks
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor1}
 import uk.gov.nationalarchives.scannotifications.ScanResultDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 
 class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll with BeforeAndAfterEach with TableDrivenPropertyChecks {
@@ -18,7 +18,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     (critical, high, medium, low)
   }
 
-  val scanEvents =
+  val scanEvents: TableFor1[ScanEvent] =
     Table(
       "scanEvent",
       ScanEvent(ScanDetail("", ScanFindingCounts(Some(10), Some(100), Some(1000), Some(10000)))),
@@ -27,8 +27,6 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     )
 
   val wiremockSesEndpoint = new WireMockServer(9001)
-
-
   val wiremockSlackServer = new WireMockServer(9002)
 
   override def beforeEach(): Unit = {
@@ -61,6 +59,4 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     wiremockSlackServer.stop()
     wiremockSesEndpoint.stop()
   }
-
-
 }

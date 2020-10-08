@@ -18,7 +18,6 @@ class MessageUtils(scanEvent: ScanEvent) {
 
   private def countBlock(count: Option[Int], level: String) = slackBlock(s"${count.getOrElse(0)} $level severity vulnerabilities")
 
-
   def slackMessage: String = {
     val headerBlock = slackBlock(s"*ECR image scan complete on image ${scanEvent.detail.repositoryName}*")
     val severityCounts = scanEvent.detail.findingSeverityCounts
