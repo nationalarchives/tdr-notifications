@@ -1,8 +1,37 @@
 library("tdr-jenkinslib")
+pipeline {
+  agent {
+    label "master"
+  }
+  parameters {
+    string(name: "TO_DEPLOY", description: "The git tag, branch or commit reference to deploy, e.g. '1'")
+  }
+  stages {
+    stage("Deploy lambda") {
+      agent {
+        ecs {
+          inheritFrom "aws"
+          taskrole "arn:aws:iam::${env.MANAGEMENT_ACCOUNT}:role/TDRJenkinsNodeLambdaRoleMgmt"
+        }
+      }
+      steps {
+        script {
+          def accountNumber = tdr.getAccountNumberFromStage(env.MANAGEMENT_ACCOUNT)
+          sh "python3 /deploy_lambda_from_s3.py ${accountNumber} mgmt tdr-ecr-scan-notifications-mgmt tdr-backend-code-mgmt ${params.TO_DEPLOY}/ecr-scan-notifications.jar"
+        }
+      }
+    }
+    stage("Update release branch") {
+      steps {
+        script {
+          def releaseBranch = "release-mgmt"
 
-deployToLambda(
-  stage: "mgmt",
-  libraryName: "ecr-scan-notifications",
-  version: params.TO_DEPLOY,
-  deploymentPackageName: "scan-notifications.jar"
-)
+          sh "git branch -f ${releaseBranch} HEAD"
+          sshagent(['github-jenkins']) {
+            sh("git push -f origin ${releaseBranch}")
+          }
+        }
+      }
+    }
+  }
+}
