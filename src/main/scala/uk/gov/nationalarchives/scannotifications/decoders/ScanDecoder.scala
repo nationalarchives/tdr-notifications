@@ -1,10 +1,13 @@
-package uk.gov.nationalarchives.scannotifications
+package uk.gov.nationalarchives.scannotifications.decoders
 
 import io.circe.{Decoder, HCursor}
 
-object ScanResultDecoder {
-  case class ScanEvent(detail: ScanDetail)
+object ScanDecoder {
+
+  case class ScanEvent(detail: ScanDetail) extends IncomingEvent
+
   case class ScanDetail(repositoryName: String, findingSeverityCounts: ScanFindingCounts)
+
   case class ScanFindingCounts(critical: Option[Int], high: Option[Int], medium: Option[Int], low: Option[Int])
 
   implicit val decodeScanFindingCounts: Decoder[ScanFindingCounts] = (c: HCursor) => for {
@@ -19,7 +22,7 @@ object ScanResultDecoder {
     findingSeverityCounts <- c.downField("finding-severity-counts").as[ScanFindingCounts]
   } yield ScanDetail(repositoryName, findingSeverityCounts)
 
-  implicit val decodeScanEvent: Decoder[ScanEvent] = (c: HCursor) => for {
+  val decodeScanEvent: Decoder[IncomingEvent] = (c: HCursor) => for {
     detail <- c.downField("detail").as[ScanDetail]
   } yield ScanEvent(detail)
 }
