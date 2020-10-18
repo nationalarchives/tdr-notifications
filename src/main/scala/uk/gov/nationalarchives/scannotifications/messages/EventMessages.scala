@@ -18,7 +18,7 @@ object EventMessages {
 
   case class SlackMessage(blocks: List[SlackBlock])
 
-  val scanEventMessages: Messages[ScanEvent] = new Messages[ScanEvent] {
+  implicit val scanEventMessages: Messages[ScanEvent] = new Messages[ScanEvent] {
     private def slackBlock(text: String) = SlackBlock("section", SlackText("mrkdwn", text))
 
     private def countBlock(count: Option[Int], level: String) = slackBlock(s"${count.getOrElse(0)} $level severity vulnerabilities")
@@ -57,7 +57,7 @@ object EventMessages {
     }
   }
 
-  val maintenanceEventMessages: Messages[SSMMaintenanceEvent] = new Messages[SSMMaintenanceEvent] {
+  implicit val maintenanceEventMessages: Messages[SSMMaintenanceEvent] = new Messages[SSMMaintenanceEvent] {
     override def email(scanDetail: SSMMaintenanceEvent): Option[Email] = Option.empty
 
     override def slack(scanDetail: SSMMaintenanceEvent): Option[String] = SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", "The Jenkins backup has failed. Please check the maintenance window in systems manager")))).asJson.noSpaces.some

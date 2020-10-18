@@ -5,13 +5,11 @@ import com.typesafe.config.ConfigFactory
 import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client.{basicRequest, _}
 import sttp.model.MediaType
+import cats.implicits._
 import uk.gov.nationalarchives.aws.utils.Clients.ses
 import uk.gov.nationalarchives.aws.utils.SESUtils
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.scannotifications.decoders.IncomingEvent
-import uk.gov.nationalarchives.scannotifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
-import uk.gov.nationalarchives.scannotifications.decoders.ScanDecoder.ScanEvent
-import uk.gov.nationalarchives.scannotifications.messages.EventMessages._
 
 trait Messages[T <: IncomingEvent] {
   def email(incomingEvent: T): Option[Email]
@@ -21,42 +19,32 @@ trait Messages[T <: IncomingEvent] {
 
 object Messages {
 
-  implicit val incomingEventMessages: Messages[IncomingEvent] = new Messages[IncomingEvent] {
-
-    override def email(event: IncomingEvent): Option[Email] = event match {
-      case scanEvent: ScanEvent => scanEventMessages.email(scanEvent)
-      case ssMMaintenanceEvent: SSMMaintenanceEvent => maintenanceEventMessages.email(ssMMaintenanceEvent)
-    }
-
-    override def slack(event: IncomingEvent): Option[String] = event match {
-      case scanEvent: ScanEvent => scanEventMessages.slack(scanEvent)
-      case ssMMaintenanceEvent: SSMMaintenanceEvent => maintenanceEventMessages.slack(ssMMaintenanceEvent)
-    }
-
+  def sendMessages[T <: IncomingEvent](incomingEvent: T)(implicit messages: Messages[T]): IO[String] = {
+    IO.fromOption (
+      sendEmailMessage(incomingEvent) |+| sendSlackMessage(incomingEvent)
+    )(new RuntimeException(s"No recipients configured for event $incomingEvent")).flatten
   }
 
-  implicit class IncomingEventHelpers(incomingEvent: IncomingEvent)(implicit messages: Messages[IncomingEvent]) {
-    def shouldSendEmail: Boolean = messages.email(incomingEvent).isDefined
+  def sendEmailMessage[T <: IncomingEvent](incomingEvent: T)(implicit messages: Messages[T]): Option[IO[String]] = {
+    messages.email(incomingEvent).map(email => {
+      IO.fromTry(SESUtils(ses).sendEmail(email).map(_.messageId()))
+    })
+  }
 
-    def shouldSendSlack: Boolean = messages.slack(incomingEvent).isDefined
-
-    def sendEmailMessage: IO[String] = {
-      IO.fromTry(SESUtils(ses).sendEmail(messages.email(incomingEvent).get).map(_.messageId()))
-    }
-
-    def sendSlackMessage: IO[String] = {
+  def sendSlackMessage[T <: IncomingEvent](incomingEvent: T)(implicit messages: Messages[T]): Option[IO[String]] = {
+    messages.slack(incomingEvent).map(slackMessage => {
       implicit val cs: ContextShift[IO] = IO.contextShift(scala.concurrent.ExecutionContext.global)
 
       AsyncHttpClientCatsBackend[IO]().flatMap { backend =>
         val request = basicRequest
           .post(uri"${ConfigFactory.load.getString("slack.webhook.url")}")
-          .body(messages.slack(incomingEvent).get)
+          .body(slackMessage)
           .contentType(MediaType.ApplicationJson)
         for {
           response <- backend.send(request)
           body <- IO.fromEither(response.body.left.map(e => new RuntimeException(e)))
         } yield body
       }
-    }
+    })
   }
 }
