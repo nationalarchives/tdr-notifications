@@ -34,8 +34,8 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
       (scanEventInputText(scanEvent2), scanEventBody(scanEvent2), scanEventBodyJson(scanEvent2)),
       (scanEventInputText(scanEvent3), List(), List()),
       (scanEventInputText(scanEvent4), List(), List()),
-//      (maintenanceEventInputText(maintenanceResult1), List(), List()),
-//      (maintenanceEventInputText(maintenanceResult2), List(), maintenanceEventBodyJson)
+      (maintenanceEventInputText(maintenanceResult1), List(), List()),
+      (maintenanceEventInputText(maintenanceResult2), List(), maintenanceEventBodyJson)
     )
 
   val wiremockSesEndpoint = new WireMockServer(9001)
