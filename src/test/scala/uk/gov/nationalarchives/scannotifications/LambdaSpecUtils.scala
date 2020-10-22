@@ -19,9 +19,11 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     (critical, high, medium, low)
   }
 
-  val scanEvent1: ScanEvent = ScanEvent(ScanDetail("", ScanFindingCounts(Some(10), Some(100), Some(1000), Some(10000))))
-  val scanEvent2: ScanEvent = ScanEvent(ScanDetail("", ScanFindingCounts(Option.empty, Some(0), Option.empty, Some(10))))
-  val scanEvent3: ScanEvent = ScanEvent(ScanDetail("", ScanFindingCounts(Option.empty, Option.empty, Option.empty, Option.empty)))
+  val scanEvent1: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Some(10), Some(100), Some(1000), Some(10000))))
+  val scanEvent2: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Option.empty, Some(0), Option.empty, Some(10))))
+  val scanEvent3: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Option.empty, Option.empty, Option.empty, Option.empty)))
+  val scanEvent4: ScanEvent = ScanEvent(ScanDetail("", List("anothertag"), ScanFindingCounts(Option.empty, Option.empty, Option.empty, Option.empty)))
+  val scanEvent5: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Some(0), Some(0), Some(0), Some(0))))
   val maintenanceResult1: SSMMaintenanceEvent = SSMMaintenanceEvent(true)
   val maintenanceResult2: SSMMaintenanceEvent = SSMMaintenanceEvent(false)
 
@@ -30,9 +32,10 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
       ("input", "emailBody", "slackBody"),
       (scanEventInputText(scanEvent1), scanEventBody(scanEvent1), scanEventBodyJson(scanEvent1)),
       (scanEventInputText(scanEvent2), scanEventBody(scanEvent2), scanEventBodyJson(scanEvent2)),
-      (scanEventInputText(scanEvent3), scanEventBody(scanEvent3), scanEventBodyJson(scanEvent3)),
-      (maintenanceEventInputText(maintenanceResult1), List(), List()),
-      (maintenanceEventInputText(maintenanceResult2), List(), maintenanceEventBodyJson)
+      (scanEventInputText(scanEvent3), List(), List()),
+      (scanEventInputText(scanEvent4), List(), List()),
+//      (maintenanceEventInputText(maintenanceResult1), List(), List()),
+//      (maintenanceEventInputText(maintenanceResult2), List(), maintenanceEventBodyJson)
     )
 
   val wiremockSesEndpoint = new WireMockServer(9001)
@@ -90,7 +93,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : "*ECR image scan complete on image yara-dependencies*"
+       |      "text" : "*ECR image scan complete on image yara-dependencies ${scanEvent.detail.tags.mkString(",")}*"
        |    }
        |  }, {
        |    "type" : "section",
@@ -128,6 +131,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
        |  "detail": {
        |    "scan-status": "COMPLETE",
        |    "repository-name": "yara-dependencies",
+       |    "image-tags" : ["${scanEvent.detail.tags.mkString("\",\"")}"],
        |    "finding-severity-counts": {
        |      "CRITICAL": $critical,
        |      "HIGH": $high,
