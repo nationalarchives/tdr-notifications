@@ -20,9 +20,8 @@ trait Messages[T <: IncomingEvent] {
 object Messages {
 
   def sendMessages[T <: IncomingEvent](incomingEvent: T)(implicit messages: Messages[T]): IO[String] = {
-    IO.fromOption (
-      sendEmailMessage(incomingEvent) |+| sendSlackMessage(incomingEvent)
-    )(new RuntimeException(s"No recipients configured for event $incomingEvent")).flatten
+    (sendEmailMessage(incomingEvent) |+| sendSlackMessage(incomingEvent))
+      .getOrElse(IO.pure("No messages have been sent"))
   }
 
   def sendEmailMessage[T <: IncomingEvent](incomingEvent: T)(implicit messages: Messages[T]): Option[IO[String]] = {
