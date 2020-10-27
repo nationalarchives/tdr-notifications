@@ -23,7 +23,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   val scanEvent2: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Option.empty, Some(0), Option.empty, Some(10))))
   val scanEvent3: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Option.empty, Option.empty, Option.empty, Option.empty)))
   val scanEvent4: ScanEvent = ScanEvent(ScanDetail("", List("anothertag"), ScanFindingCounts(Option.empty, Option.empty, Option.empty, Option.empty)))
-  val scanEvent5: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Some(0), Some(0), Some(0), Some(0))))
+  val scanEvent5: ScanEvent = ScanEvent(ScanDetail("", List("intg"), ScanFindingCounts(Some(0), Some(0), Some(0), Some(0))))
   val maintenanceResult1: SSMMaintenanceEvent = SSMMaintenanceEvent(true)
   val maintenanceResult2: SSMMaintenanceEvent = SSMMaintenanceEvent(false)
 
@@ -34,6 +34,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
       (scanEventInputText(scanEvent2), scanEventBody(scanEvent2), scanEventBodyJson(scanEvent2)),
       (scanEventInputText(scanEvent3), List(), List()),
       (scanEventInputText(scanEvent4), List(), List()),
+      (scanEventInputText(scanEvent5), List(), List()),
       (maintenanceEventInputText(maintenanceResult1), List(), List()),
       (maintenanceEventInputText(maintenanceResult2), List(), maintenanceEventBodyJson)
     )

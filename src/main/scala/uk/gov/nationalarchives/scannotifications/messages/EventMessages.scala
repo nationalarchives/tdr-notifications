@@ -19,7 +19,7 @@ object EventMessages {
   case class SlackMessage(blocks: List[SlackBlock])
 
   implicit val scanEventMessages: Messages[ScanEvent] = new Messages[ScanEvent] {
-    private val allowedTags = Set("latest", "intg", "staging", "prod")
+    private val allowedTags = Set("latest", "intg", "staging", "prod", "mgmt")
 
     private def slackBlock(text: String) = SlackBlock("section", SlackText("mrkdwn", text))
 
