@@ -13,12 +13,11 @@ class LambdaSpec extends LambdaSpecUtils {
       emailBody match {
         case Some(body) =>
           "the process method" should s"send an email message for event $input" in {
-            val expectedBody = Base64.getEncoder.encodeToString(body.getBytes(StandardCharsets.UTF_8))
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSesEndpoint.verify(1,
               postRequestedFor(urlEqualTo("/"))
-                .withRequestBody(binaryEqualTo(expectedBody))
+                .withRequestBody(equalTo(body))
             )
           }
         case None =>
