@@ -1,4 +1,4 @@
-@Library("tdr-jenkinslib@lambda-failure-alert") _
+@Library("tdr-jenkinslib@fix-library-copying") _
 
 lambdaTests(
   // Hard-code stage, since it is arbitrary in the lambdaTests
