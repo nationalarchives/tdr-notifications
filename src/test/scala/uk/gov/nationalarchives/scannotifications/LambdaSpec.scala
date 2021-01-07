@@ -10,23 +10,43 @@ class LambdaSpec extends LambdaSpecUtils {
 
   forAll(events) {
     (input, emailBody, slackBody) => {
-      "the process method" should s"send an email message for event $input" in {
-        val expectedBody = Base64.getEncoder.encodeToString(emailBody.headOption.getOrElse("").getBytes(StandardCharsets.UTF_8))
-        val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
-        new Lambda().process(stream, null)
-        wiremockSesEndpoint.verify(emailBody.size,
-          postRequestedFor(urlEqualTo("/"))
-            .withRequestBody(binaryEqualTo(expectedBody))
-        )
+      emailBody match {
+        case Some(body) =>
+          "the process method" should s"send an email message for event $input" in {
+            val expectedBody = Base64.getEncoder.encodeToString(body.getBytes(StandardCharsets.UTF_8))
+            val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
+            new Lambda().process(stream, null)
+            wiremockSesEndpoint.verify(1,
+              postRequestedFor(urlEqualTo("/"))
+                .withRequestBody(binaryEqualTo(expectedBody))
+            )
+          }
+        case None =>
+          "the process method" should s"not send an email message for event $input" in {
+            val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
+            new Lambda().process(stream, null)
+            wiremockSesEndpoint.verify(0, postRequestedFor(urlEqualTo("/")))
+          }
       }
 
-      "the process method" should s"send a slack message for event $input" in {
-        val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
-        new Lambda().process(stream, null)
-        wiremockSlackServer.verify(slackBody.size,
-          postRequestedFor(urlEqualTo("/webhook"))
-            .withRequestBody(equalToJson(slackBody.headOption.getOrElse("{}")))
-        )
+      slackBody match {
+        case Some(body) =>
+          "the process method" should s"send a slack message for event $input" in {
+            val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
+            new Lambda().process(stream, null)
+            wiremockSlackServer.verify(slackBody.size,
+              postRequestedFor(urlEqualTo("/webhook"))
+                .withRequestBody(equalToJson(body))
+            )
+          }
+        case None =>
+          "the process method" should s"not send a slack message for event $input" in {
+            val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
+            new Lambda().process(stream, null)
+            wiremockSlackServer.verify(0,
+              postRequestedFor(urlEqualTo("/webhook"))
+            )
+          }
       }
     }
   }
