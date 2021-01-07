@@ -38,7 +38,9 @@ object EventMessages {
         val highBlock = countBlock(severityCounts.high, "high")
         val mediumBlock = countBlock(severityCounts.medium, "medium")
         val lowBlock = countBlock(severityCounts.low, "low")
-        SlackMessage(List(headerBlock, criticalBlock, highBlock, mediumBlock, lowBlock))
+        val documentationBlock = slackBlock("See the TDR developer manual for guidance on fixing these vulnerabilities: " +
+          "https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/alerts/ecr-scans.md")
+        SlackMessage(List(headerBlock, criticalBlock, highBlock, mediumBlock, lowBlock, documentationBlock))
           .asJson.noSpaces.some
       } else {
         Option.empty
@@ -61,6 +63,10 @@ object EventMessages {
               p(s"$high high vulnerabilities"),
               p(s"$medium medium vulnerabilities"),
               p(s"$low low vulnerabilities")
+            ),
+            div(
+              p("See the TDR developer manual for guidance on fixing these vulnerabilities: " +
+                "https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/alerts/ecr-scans.md")
             )
           )
         ).toString()

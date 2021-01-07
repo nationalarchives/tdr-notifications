@@ -82,7 +82,12 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
       s"$critical+critical+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
       s"$high+high+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
       s"$medium+medium+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
-      s"$low+low+vulnerabilities%3C%2Fp%3E%3C%2Fdiv%3E%3C%2Fbody%3E%3C%2Fhtml%3E" +
+      s"$low+low+vulnerabilities%3C%2Fp%3E%3C%2Fdiv%3E" +
+      "%3Cdiv%3E%3Cp%3E" +
+      "See+the+TDR+developer+manual+for+guidance+on+fixing+these+vulnerabilities%3A+" +
+      "https%3A%2F%2Fgithub.com%2Fnationalarchives%2Ftdr-dev-documentation%2Fblob%2Fmaster%2Fmanual%2Falerts%2Fecr-scans.md" +
+      "%3C%2Fp%3E%3C%2Fdiv%3E" +
+      "%3C%2Fbody%3E%3C%2Fhtml%3E" +
       "&Message.Body.Html.Charset=UTF-8"
   }
 
@@ -119,6 +124,12 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
        |    "text" : {
        |      "type" : "mrkdwn",
        |      "text" : "$low low severity vulnerabilities"
+       |    }
+       |  }, {
+       |    "type" : "section",
+       |    "text" : {
+       |      "type" : "mrkdwn",
+       |      "text" : "See the TDR developer manual for guidance on fixing these vulnerabilities: https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/alerts/ecr-scans.md"
        |    }
        |  } ]
        |}
