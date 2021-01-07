@@ -74,6 +74,12 @@ object EventMessages {
   implicit val maintenanceEventMessages: Messages[SSMMaintenanceEvent] = new Messages[SSMMaintenanceEvent] {
     override def email(scanDetail: SSMMaintenanceEvent): Option[Email] = Option.empty
 
-    override def slack(scanDetail: SSMMaintenanceEvent): Option[String] = SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", "The Jenkins backup has failed. Please check the maintenance window in systems manager")))).asJson.noSpaces.some
+    override def slack(scanDetail: SSMMaintenanceEvent): Option[String] = {
+      if (scanDetail.success) {
+        None
+      } else {
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", "The Jenkins backup has failed. Please check the maintenance window in systems manager")))).asJson.noSpaces.some
+      }
+    }
   }
 }

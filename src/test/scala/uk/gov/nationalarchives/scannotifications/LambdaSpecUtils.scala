@@ -27,16 +27,16 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   val maintenanceResult1: SSMMaintenanceEvent = SSMMaintenanceEvent(true)
   val maintenanceResult2: SSMMaintenanceEvent = SSMMaintenanceEvent(false)
 
-  val events: TableFor3[String, List[String], List[String]] =
+  val events: TableFor3[String, Option[String], Option[String]] =
     Table(
       ("input", "emailBody", "slackBody"),
-      (scanEventInputText(scanEvent1), scanEventBody(scanEvent1), scanEventBodyJson(scanEvent1)),
-      (scanEventInputText(scanEvent2), scanEventBody(scanEvent2), scanEventBodyJson(scanEvent2)),
-      (scanEventInputText(scanEvent3), List(), List()),
-      (scanEventInputText(scanEvent4), List(), List()),
-      (scanEventInputText(scanEvent5), List(), List()),
-      (maintenanceEventInputText(maintenanceResult1), List(), List()),
-      (maintenanceEventInputText(maintenanceResult2), List(), maintenanceEventBodyJson)
+      (scanEventInputText(scanEvent1), Some(expectedEmailBody(scanEvent1)), Some(expectedSlackBody(scanEvent1))),
+      (scanEventInputText(scanEvent2), Some(expectedEmailBody(scanEvent2)), Some(expectedSlackBody(scanEvent2))),
+      (scanEventInputText(scanEvent3), None, None),
+      (scanEventInputText(scanEvent4), None, None),
+      (scanEventInputText(scanEvent5), None, None),
+      (maintenanceEventInputText(maintenanceResult1), None, None),
+      (maintenanceEventInputText(maintenanceResult2), None, Some(maintenanceEventBodyJson))
     )
 
   val wiremockSesEndpoint = new WireMockServer(9001)
@@ -73,9 +73,9 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     wiremockSesEndpoint.stop()
   }
 
-  def scanEventBody(scanEvent: ScanEvent): List[String] = {
+  def expectedEmailBody(scanEvent: ScanEvent): String = {
     val (critical, high, medium, low) = getCounts(scanEvent)
-    List("Action=SendEmail&Version=2010-12-01&Source=scanresults%40tdr-management.nationalarchives.gov.uk" +
+    "Action=SendEmail&Version=2010-12-01&Source=scanresults%40tdr-management.nationalarchives.gov.uk" +
       "&Destination.ToAddresses.member.1=aws_tdr_management%40nationalarchives.gov.uk" +
       "&Message.Subject.Data=ECR+scan+results+for+yara-dependencies&Message.Subject.Charset=UTF-8" +
       "&Message.Body.Html.Data=%3Chtml%3E%3Cbody%3E%3Ch1%3EImage+scan+results+for+yara-dependencies%3C%2Fh1%3E%3Cdiv%3E%3Cp%3E" +
@@ -83,12 +83,12 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
       s"$high+high+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
       s"$medium+medium+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
       s"$low+low+vulnerabilities%3C%2Fp%3E%3C%2Fdiv%3E%3C%2Fbody%3E%3C%2Fhtml%3E" +
-      "&Message.Body.Html.Charset=UTF-8")
+      "&Message.Body.Html.Charset=UTF-8"
   }
 
-  def scanEventBodyJson(scanEvent: ScanEvent): List[String] = {
+  def expectedSlackBody(scanEvent: ScanEvent): String = {
     val (critical, high, medium, low) = getCounts(scanEvent)
-    List(s"""
+    s"""
        |{
        |  "blocks" : [ {
        |    "type" : "section",
@@ -122,7 +122,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
        |    }
        |  } ]
        |}
-       |""".stripMargin)
+       |""".stripMargin
   }
 
   def scanEventInputText(scanEvent: ScanEvent): String = {
@@ -155,8 +155,8 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
        |""".stripMargin
   }
 
-  def maintenanceEventBodyJson: List[String] = {
-    List(s"""{
+  def maintenanceEventBodyJson: String = {
+    s"""{
        |  "blocks" : [ {
        |    "type" : "section",
        |    "text" : {
@@ -164,6 +164,6 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
        |      "text" : "The Jenkins backup has failed. Please check the maintenance window in systems manager"
        |    }
        |  } ]
-       |}""".stripMargin)
+       |}""".stripMargin
   }
 }
