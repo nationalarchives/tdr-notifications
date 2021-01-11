@@ -17,7 +17,7 @@ pipeline {
       steps {
         script {
           def accountNumber = tdr.getAccountNumberFromStage(env.MANAGEMENT_ACCOUNT)
-          sh "python3 /deploy_lambda_from_s3.py ${accountNumber} mgmt tdr-notifications-mgmt tdr-backend-code-mgmt ${params.TO_DEPLOY}/ecr-scan-notifications.jar"
+          sh "python3 /deploy_lambda_from_s3.py ${accountNumber} mgmt tdr-notifications-mgmt tdr-backend-code-mgmt ${params.TO_DEPLOY}/notifications.jar"
         }
       }
     }
