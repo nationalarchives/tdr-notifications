@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.scannotifications.messages
+package uk.gov.nationalarchives.notifications.messages
 
 import cats.effect.{ContextShift, IO}
 import com.typesafe.config.ConfigFactory
@@ -9,7 +9,7 @@ import cats.implicits._
 import uk.gov.nationalarchives.aws.utils.Clients.ses
 import uk.gov.nationalarchives.aws.utils.SESUtils
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
-import uk.gov.nationalarchives.scannotifications.decoders.IncomingEvent
+import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 
 trait Messages[T <: IncomingEvent] {
   def email(incomingEvent: T): Option[Email]

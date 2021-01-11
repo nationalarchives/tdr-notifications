@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.scannotifications.decoders
+package uk.gov.nationalarchives.notifications.decoders
 
 import io.circe.{Decoder, HCursor}
 
