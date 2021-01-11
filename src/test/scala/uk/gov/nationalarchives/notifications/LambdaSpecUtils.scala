@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.scannotifications
+package uk.gov.nationalarchives.notifications
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{ok, post, urlEqualTo}
@@ -6,8 +6,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor3}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import uk.gov.nationalarchives.scannotifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
-import uk.gov.nationalarchives.scannotifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
+import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
+import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 
 class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll with BeforeAndAfterEach with TableDrivenPropertyChecks {
 

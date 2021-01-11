@@ -4,6 +4,6 @@ lambdaTests(
   // Hard-code stage, since it is arbitrary in the lambdaTests
   // function, which publishes the code to the management account
   stage: "mgmt",
-  libraryName: "ecr-scan-notifications",
-  deployJobName: "TDR ECR Scan Notifications Deploy"
+  libraryName: "notifications",
+  deployJobName: "TDR Notifications Deploy"
 )

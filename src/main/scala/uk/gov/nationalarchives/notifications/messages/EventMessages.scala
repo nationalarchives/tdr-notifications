@@ -1,4 +1,4 @@
-package uk.gov.nationalarchives.scannotifications.messages
+package uk.gov.nationalarchives.notifications.messages
 
 import com.typesafe.config.ConfigFactory
 import scalatags.Text.all._
@@ -7,8 +7,8 @@ import io.circe.generic.auto._
 import cats.syntax.option._
 import uk.gov.nationalarchives.aws.utils.SESUtils
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
-import uk.gov.nationalarchives.scannotifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
-import uk.gov.nationalarchives.scannotifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
+import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
+import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 
 object EventMessages {
 

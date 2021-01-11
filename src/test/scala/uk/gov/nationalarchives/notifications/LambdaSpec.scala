@@ -1,10 +1,10 @@
-package uk.gov.nationalarchives.scannotifications
+package uk.gov.nationalarchives.notifications
 
 import java.nio.charset.StandardCharsets
 import java.util.Base64
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import uk.gov.nationalarchives.scannotifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
+import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 
 class LambdaSpec extends LambdaSpecUtils {
 
