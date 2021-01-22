@@ -7,6 +7,7 @@ import io.circe.generic.auto._
 import cats.syntax.option._
 import uk.gov.nationalarchives.aws.utils.SESUtils
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 
@@ -86,6 +87,18 @@ object EventMessages {
       } else {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", "The Jenkins backup has failed. Please check the maintenance window in systems manager")))).asJson.noSpaces.some
       }
+    }
+  }
+
+  implicit val exportStatusEventMessages: Messages[ExportStatusEvent] = new Messages[ExportStatusEvent] {
+    override def email(incomingEvent: ExportStatusEvent): Option[Email] = {
+      println(s"Skipping email for export complete message for consignment ${incomingEvent.consignmentId}")
+      Option.empty
+    }
+
+    override def slack(incomingEvent: ExportStatusEvent): Option[String] = {
+      val message = s"The export for the consignment ${incomingEvent.consignmentId} has ${if (incomingEvent.success) "completed" else "failed"}"
+      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).asJson.noSpaces.some
     }
   }
 }
