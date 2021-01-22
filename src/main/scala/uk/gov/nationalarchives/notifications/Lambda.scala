@@ -21,7 +21,4 @@ class Lambda {
     case scan: ScanEvent => sendMessages(scan)
     case exportStatus: ExportStatusEvent => sendMessages(exportStatus)
   }).flatten.unsafeRunSync()
-
-
 }
-
