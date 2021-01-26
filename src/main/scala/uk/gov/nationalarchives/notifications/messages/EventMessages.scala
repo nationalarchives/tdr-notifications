@@ -1,10 +1,13 @@
 package uk.gov.nationalarchives.notifications.messages
 
+import cats.effect.Sync
 import com.typesafe.config.ConfigFactory
 import scalatags.Text.all._
 import io.circe.syntax._
 import io.circe.generic.auto._
 import cats.syntax.option._
+import org.typelevel.log4cats.SelfAwareStructuredLogger
+import org.typelevel.log4cats.slf4j.Slf4jLogger
 import uk.gov.nationalarchives.aws.utils.SESUtils
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
@@ -12,6 +15,8 @@ import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMM
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 
 object EventMessages {
+
+  implicit def logger[F[IO]: Sync]: SelfAwareStructuredLogger[F] = Slf4jLogger.getLogger[F]
 
   case class SlackText(`type`: String, text: String)
 
@@ -92,7 +97,7 @@ object EventMessages {
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent] = new Messages[ExportStatusEvent] {
     override def email(incomingEvent: ExportStatusEvent): Option[Email] = {
-      println(s"Skipping email for export complete message for consignment ${incomingEvent.consignmentId}")
+      logger.info(s"Skipping email for export complete message for consignment ${incomingEvent.consignmentId}")
       Option.empty
     }
 
