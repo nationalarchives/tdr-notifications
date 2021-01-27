@@ -10,7 +10,7 @@ import io.circe.parser._
 import io.circe.generic.auto._
 
 object ExportStatusDecoder {
-  case class ExportStatusEvent(consignmentId: UUID, success: Boolean) extends IncomingEvent
+  case class ExportStatusEvent(consignmentId: UUID, success: Boolean, environment: String) extends IncomingEvent
   case class SNS(Message: String)
   case class Record(Sns: SNS)
 

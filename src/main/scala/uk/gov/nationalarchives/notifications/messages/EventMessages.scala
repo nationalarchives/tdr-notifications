@@ -99,7 +99,7 @@ object EventMessages {
     }
 
     override def slack(incomingEvent: ExportStatusEvent): Option[SlackMessage] = {
-      val message = s"The export for the consignment ${incomingEvent.consignmentId} has ${if (incomingEvent.success) "completed" else "failed"}"
+      val message = s"The export for the consignment ${incomingEvent.consignmentId} has ${if (incomingEvent.success) "completed" else "failed"} for environment ${incomingEvent.environment}"
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).some
     }
   }
