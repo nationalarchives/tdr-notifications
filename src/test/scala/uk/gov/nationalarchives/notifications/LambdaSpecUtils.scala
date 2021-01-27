@@ -1,11 +1,14 @@
 package uk.gov.nationalarchives.notifications
 
+import java.util.UUID
+
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.WireMock.{ok, post, urlEqualTo}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor3}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 
@@ -26,6 +29,8 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   val scanEvent5: ScanEvent = ScanEvent(ScanDetail("", List("intg"), ScanFindingCounts(Some(0), Some(0), Some(0), Some(0))))
   val maintenanceResult1: SSMMaintenanceEvent = SSMMaintenanceEvent(true)
   val maintenanceResult2: SSMMaintenanceEvent = SSMMaintenanceEvent(false)
+  val exportStatus1: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true)
+  val exportStatus2: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false)
 
   val events: TableFor3[String, Option[String], Option[String]] =
     Table(
@@ -36,7 +41,9 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
       (scanEventInputText(scanEvent4), None, None),
       (scanEventInputText(scanEvent5), None, None),
       (maintenanceEventInputText(maintenanceResult1), None, None),
-      (maintenanceEventInputText(maintenanceResult2), None, Some(maintenanceEventBodyJson))
+      (maintenanceEventInputText(maintenanceResult2), None, Some(maintenanceEventBodyJson)),
+      (exportStatusEventInputText(exportStatus1), None, Some(exportStatusSlackBody(exportStatus1))),
+      (exportStatusEventInputText(exportStatus2), None, Some(exportStatusSlackBody(exportStatus2))),
     )
 
   val wiremockSesEndpoint = new WireMockServer(9001)
@@ -156,13 +163,28 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   }
 
   def maintenanceEventInputText(ssmMaintenanceResult: SSMMaintenanceEvent): String = {
-    val status = if(ssmMaintenanceResult.success) "SUCCESS" else "FAILED"
+    val status = if (ssmMaintenanceResult.success) "SUCCESS" else "FAILED"
     s"""
        |{
        |  "detail": {
        |    "status": "$status"
        |  }
        |}
+       |""".stripMargin
+  }
+
+  def exportStatusEventInputText(exportStatusEvent: ExportStatusEvent): String = {
+    s"""
+       |{
+       |    "Records": [
+       |        {
+       |            "Sns": {
+       |                "Message": "{\\"success\\":${exportStatusEvent.success},\\"consignmentId\\":\\"${exportStatusEvent.consignmentId}\\"}"
+       |            }
+       |        }
+       |    ]
+       |}
+       |
        |""".stripMargin
   }
 
@@ -173,6 +195,18 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
        |    "text" : {
        |      "type" : "mrkdwn",
        |      "text" : "The Jenkins backup has failed. Please check the maintenance window in systems manager"
+       |    }
+       |  } ]
+       |}""".stripMargin
+  }
+
+  def exportStatusSlackBody(exportStatusEvent: ExportStatusEvent): String = {
+    s"""{
+       |  "blocks" : [ {
+       |    "type" : "section",
+       |    "text" : {
+       |      "type" : "mrkdwn",
+       |      "text" : "The export for the consignment ${exportStatusEvent.consignmentId} has ${if (exportStatusEvent.success) "completed" else "failed"}"
        |    }
        |  } ]
        |}""".stripMargin

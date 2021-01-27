@@ -6,15 +6,18 @@ import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client.{basicRequest, _}
 import sttp.model.MediaType
 import cats.implicits._
+import io.circe.syntax._
+import io.circe.generic.auto._
 import uk.gov.nationalarchives.aws.utils.Clients.ses
 import uk.gov.nationalarchives.aws.utils.SESUtils
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
+import uk.gov.nationalarchives.notifications.messages.EventMessages.SlackMessage
 
 trait Messages[T <: IncomingEvent] {
   def email(incomingEvent: T): Option[Email]
 
-  def slack(incomingEvent: T): Option[String]
+  def slack(incomingEvent: T): Option[SlackMessage]
 }
 
 object Messages {
@@ -37,7 +40,7 @@ object Messages {
       AsyncHttpClientCatsBackend[IO]().flatMap { backend =>
         val request = basicRequest
           .post(uri"${ConfigFactory.load.getString("slack.webhook.url")}")
-          .body(slackMessage)
+          .body(slackMessage.asJson.noSpaces)
           .contentType(MediaType.ApplicationJson)
         for {
           response <- backend.send(request)

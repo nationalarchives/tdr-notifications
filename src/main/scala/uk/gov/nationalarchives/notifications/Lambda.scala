@@ -6,6 +6,7 @@ import cats.FlatMap.ops.toAllFlatMapOps
 import cats.effect._
 import io.circe.parser.decode
 import messages.Messages._
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
 import uk.gov.nationalarchives.notifications.decoders._
@@ -18,8 +19,6 @@ class Lambda {
     IO.fromEither(decode[IncomingEvent](Source.fromInputStream(input).mkString).map {
     case maintenance : SSMMaintenanceEvent => sendMessages(maintenance)
     case scan: ScanEvent => sendMessages(scan)
+    case exportStatus: ExportStatusEvent => sendMessages(exportStatus)
   }).flatten.unsafeRunSync()
-
-
 }
-

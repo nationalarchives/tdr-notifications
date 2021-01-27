@@ -15,6 +15,7 @@ lazy val root = (project in file("."))
       sttpCatsEffect,
       awsUtils,
       typesafe,
+      loggerSlf4j,
       scalaTags,
       scalaTest % Test,
       wiremock % Test
