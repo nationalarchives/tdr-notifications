@@ -29,8 +29,10 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   val scanEvent5: ScanEvent = ScanEvent(ScanDetail("", List("intg"), ScanFindingCounts(Some(0), Some(0), Some(0), Some(0))))
   val maintenanceResult1: SSMMaintenanceEvent = SSMMaintenanceEvent(true)
   val maintenanceResult2: SSMMaintenanceEvent = SSMMaintenanceEvent(false)
-  val exportStatus1: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true)
-  val exportStatus2: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false)
+  val exportStatus1: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "intg")
+  val exportStatus2: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "intg")
+  val exportStatus3: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "staging")
+  val exportStatus4: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "staging")
 
   val events: TableFor3[String, Option[String], Option[String]] =
     Table(
@@ -42,8 +44,10 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
       (scanEventInputText(scanEvent5), None, None),
       (maintenanceEventInputText(maintenanceResult1), None, None),
       (maintenanceEventInputText(maintenanceResult2), None, Some(maintenanceEventBodyJson)),
-      (exportStatusEventInputText(exportStatus1), None, Some(exportStatusSlackBody(exportStatus1))),
+      (exportStatusEventInputText(exportStatus1), None, None),
       (exportStatusEventInputText(exportStatus2), None, Some(exportStatusSlackBody(exportStatus2))),
+      (exportStatusEventInputText(exportStatus3), None, Some(exportStatusSlackBody(exportStatus3))),
+      (exportStatusEventInputText(exportStatus4), None, Some(exportStatusSlackBody(exportStatus4))),
     )
 
   val wiremockSesEndpoint = new WireMockServer(9001)
@@ -179,7 +183,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
        |    "Records": [
        |        {
        |            "Sns": {
-       |                "Message": "{\\"success\\":${exportStatusEvent.success},\\"consignmentId\\":\\"${exportStatusEvent.consignmentId}\\"}"
+       |                "Message": "{\\"success\\":${exportStatusEvent.success},\\"consignmentId\\":\\"${exportStatusEvent.consignmentId}\\", \\"environment\\": \\"${exportStatusEvent.environment}\\"}"
        |            }
        |        }
        |    ]
@@ -206,7 +210,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : "The export for the consignment ${exportStatusEvent.consignmentId} has ${if (exportStatusEvent.success) "completed" else "failed"}"
+       |      "text" : "The export for the consignment ${exportStatusEvent.consignmentId} has ${if (exportStatusEvent.success) "completed" else "failed"} for environment ${exportStatusEvent.environment}"
        |    }
        |  } ]
        |}""".stripMargin
