@@ -30,11 +30,10 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   val maintenanceResult1: SSMMaintenanceEvent = SSMMaintenanceEvent(true)
   val maintenanceResult2: SSMMaintenanceEvent = SSMMaintenanceEvent(false)
 
-  val staticUserId = UUID.randomUUID()
-  val exportOutput1: ExportOutput = ExportOutput(staticUserId, "consignmentRef1", "tb-body1")
-  val exportStatus1: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(exportOutput1))
+  val exportOutput: ExportOutput = ExportOutput(UUID.randomUUID(), "consignmentRef1", "tb-body1")
+  val exportStatus1: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(exportOutput))
   val exportStatus2: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "intg", None)
-  val exportStatus3: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "staging", Some(exportOutput1))
+  val exportStatus3: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "staging", Some(exportOutput))
   val exportStatus4: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "staging", None)
 
   val events: TableFor3[String, Option[String], Option[String]] =

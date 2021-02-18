@@ -13,15 +13,6 @@ object ExportStatusDecoder {
   case class SNS(Message: String)
   case class Record(Sns: SNS)
 
-//  implicit val decoder: Decoder[ExportStatusEvent] = (c: HCursor) => {
-//    for {
-//      consignmentId <- c.downField("consignmentId").as[UUID]
-//      success <- c.downField("success").as[Boolean]
-//      environment <- c.downField("environment").as[String]
-//      exportOutput <- c.downField("exportOutput").as[Option[ExportOutput]]
-//    } yield ExportStatusEvent(consignmentId, success, environment, exportOutput)
-//  }
-
   val decodeExportStatusEvent: Decoder[IncomingEvent] = (c: HCursor) => for {
     message <- c.downField("Records").as[List[Record]]
     json <- parse(message.head.Sns.Message)
