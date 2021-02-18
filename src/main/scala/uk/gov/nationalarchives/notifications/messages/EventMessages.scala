@@ -8,7 +8,7 @@ import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import uk.gov.nationalarchives.aws.utils.SESUtils
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
-import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportOutput, ExportStatusEvent}
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportOutputDetails, ExportStatusEvent}
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 
@@ -110,7 +110,7 @@ object EventMessages {
       }
     }
 
-    private def constructExportInfoMessage(exportOutput: Option[ExportOutput]) = {
+    private def constructExportInfoMessage(exportOutput: Option[ExportOutputDetails]) = {
       exportOutput match {
         case Some(value) => s":\nUser ID: ${value.userId}\n" +
           s"Consignment Reference: ${value.consignmentReference}\n" +

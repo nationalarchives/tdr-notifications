@@ -8,7 +8,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor3}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportOutput, ExportStatusEvent}
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportOutputDetails, ExportStatusEvent}
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 
@@ -30,10 +30,10 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   val maintenanceResult1: SSMMaintenanceEvent = SSMMaintenanceEvent(true)
   val maintenanceResult2: SSMMaintenanceEvent = SSMMaintenanceEvent(false)
 
-  val exportOutput: ExportOutput = ExportOutput(UUID.randomUUID(), "consignmentRef1", "tb-body1")
-  val exportStatus1: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(exportOutput))
+  val exportOutputDetails: ExportOutputDetails = ExportOutputDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1")
+  val exportStatus1: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(exportOutputDetails))
   val exportStatus2: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "intg", None)
-  val exportStatus3: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "staging", Some(exportOutput))
+  val exportStatus3: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "staging", Some(exportOutputDetails))
   val exportStatus4: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "staging", None)
 
   val events: TableFor3[String, Option[String], Option[String]] =
