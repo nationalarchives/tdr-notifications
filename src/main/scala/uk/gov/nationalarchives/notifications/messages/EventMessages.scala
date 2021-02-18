@@ -8,7 +8,7 @@ import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import uk.gov.nationalarchives.aws.utils.SESUtils
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
-import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportOutput, ExportStatusEvent}
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 
@@ -100,10 +100,22 @@ object EventMessages {
 
     override def slack(incomingEvent: ExportStatusEvent): Option[SlackMessage] = {
       if(incomingEvent.environment != "intg" || !incomingEvent.success) {
-        val message = s"The export for the consignment ${incomingEvent.consignmentId} has ${if (incomingEvent.success) "completed" else "failed"} for environment ${incomingEvent.environment}"
+        val exportInfoMessage = constructExportInfoMessage(incomingEvent.exportOutput)
+        val message = s"The export for the consignment ${incomingEvent.consignmentId} " +
+          s"has ${if (incomingEvent.success) "completed" else "failed"} for environment ${incomingEvent.environment}" +
+          s"${exportInfoMessage}"
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).some
       } else {
         Option.empty
+      }
+    }
+
+    private def constructExportInfoMessage(exportOutput: Option[ExportOutput]) = {
+      exportOutput match {
+        case Some(value) => s":\nUser ID: ${value.userId}\n" +
+          s"Consignment Reference: ${value.consignmentReference}\n" +
+          s"Transferring Body Code: ${value.transferringBodyCode}"
+        case None => ""
       }
     }
   }

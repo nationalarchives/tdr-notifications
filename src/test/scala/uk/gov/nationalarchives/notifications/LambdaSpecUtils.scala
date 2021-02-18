@@ -8,7 +8,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor3}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportOutput, ExportStatusEvent}
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 
@@ -29,10 +29,13 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   val scanEvent5: ScanEvent = ScanEvent(ScanDetail("", List("intg"), ScanFindingCounts(Some(0), Some(0), Some(0), Some(0))))
   val maintenanceResult1: SSMMaintenanceEvent = SSMMaintenanceEvent(true)
   val maintenanceResult2: SSMMaintenanceEvent = SSMMaintenanceEvent(false)
-  val exportStatus1: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "intg")
-  val exportStatus2: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "intg")
-  val exportStatus3: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "staging")
-  val exportStatus4: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "staging")
+
+  val staticUserId = UUID.randomUUID()
+  val exportOutput1: ExportOutput = ExportOutput(staticUserId, "consignmentRef1", "tb-body1")
+  val exportStatus1: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(exportOutput1))
+  val exportStatus2: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "intg", None)
+  val exportStatus3: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "staging", Some(exportOutput1))
+  val exportStatus4: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "staging", None)
 
   val events: TableFor3[String, Option[String], Option[String]] =
     Table(
@@ -178,12 +181,17 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   }
 
   def exportStatusEventInputText(exportStatusEvent: ExportStatusEvent): String = {
+    val exportOutput = exportStatusEvent.exportOutput
+    val exportOutputJson = if(exportOutput.isDefined) {
+      s""", \\"exportOutput\\": {\\"userId\\": \\"${exportOutput.get.userId}\\", \\"consignmentReference\\": \\"${exportOutput.get.consignmentReference}\\", \\"transferringBodyCode\\": \\"${exportOutput.get.transferringBodyCode}\\"}"""
+    } else ""
+
     s"""
        |{
        |    "Records": [
        |        {
        |            "Sns": {
-       |                "Message": "{\\"success\\":${exportStatusEvent.success},\\"consignmentId\\":\\"${exportStatusEvent.consignmentId}\\", \\"environment\\": \\"${exportStatusEvent.environment}\\"}"
+       |                "Message": "{\\"success\\":${exportStatusEvent.success},\\"consignmentId\\":\\"${exportStatusEvent.consignmentId}\\", \\"environment\\": \\"${exportStatusEvent.environment}\\"${exportOutputJson}}"
        |            }
        |        }
        |    ]
@@ -205,12 +213,17 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   }
 
   def exportStatusSlackBody(exportStatusEvent: ExportStatusEvent): String = {
+    val exportOutput = exportStatusEvent.exportOutput
+    val exportOutputMessage = if(exportOutput.isDefined) {
+      s""":\\nUser ID: ${exportOutput.get.userId}\\nConsignment Reference: ${exportOutput.get.consignmentReference}\\nTransferring Body Code: ${exportOutput.get.transferringBodyCode}"""
+    } else ""
+
     s"""{
        |  "blocks" : [ {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : "The export for the consignment ${exportStatusEvent.consignmentId} has ${if (exportStatusEvent.success) "completed" else "failed"} for environment ${exportStatusEvent.environment}"
+       |      "text" : "The export for the consignment ${exportStatusEvent.consignmentId} has ${if (exportStatusEvent.success) "completed" else "failed"} for environment ${exportStatusEvent.environment}${exportOutputMessage}"
        |    }
        |  } ]
        |}""".stripMargin
