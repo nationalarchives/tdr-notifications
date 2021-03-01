@@ -8,8 +8,13 @@ import io.circe.parser._
 import io.circe.{Decoder, HCursor, _}
 
 object ExportStatusDecoder {
-  case class ExportOutputDetails(userId: UUID, consignmentReference: String, transferringBodyCode: String)
-  case class ExportStatusEvent(consignmentId: UUID, success: Boolean, environment: String, exportOutput: Option[ExportOutputDetails]) extends IncomingEvent
+  case class ExportSuccessDetails(userId: UUID, consignmentReference: String, transferringBodyCode: String)
+  case class ExportStatusEvent(
+                                consignmentId: UUID,
+                                success: Boolean,
+                                environment: String,
+                                successDetails: Option[ExportSuccessDetails],
+                                failureCause: Option[String]) extends IncomingEvent
   case class SNS(Message: String)
   case class Record(Sns: SNS)
 
