@@ -8,7 +8,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor3}
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportSuccessDetails, ExportStatusEvent}
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 
@@ -29,10 +29,15 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   val scanEvent5: ScanEvent = ScanEvent(ScanDetail("", List("intg"), ScanFindingCounts(Some(0), Some(0), Some(0), Some(0))))
   val maintenanceResult1: SSMMaintenanceEvent = SSMMaintenanceEvent(true)
   val maintenanceResult2: SSMMaintenanceEvent = SSMMaintenanceEvent(false)
-  val exportStatus1: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "intg")
-  val exportStatus2: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "intg")
-  val exportStatus3: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "staging")
-  val exportStatus4: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "staging")
+
+  val successDetails: ExportSuccessDetails = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1")
+  val causeOfFailure: String = "Cause of failure"
+  val exportStatus1: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(successDetails), None)
+  val exportStatus2: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "intg", None, Some(causeOfFailure))
+  val exportStatus3: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), true, "staging", Some(successDetails), None)
+  val exportStatus4: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "staging", None, Some(causeOfFailure))
+  val exportStatus5: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "intg", None, None)
+  val exportStatus6: ExportStatusEvent = ExportStatusEvent(UUID.randomUUID(), false, "staging", None, None)
 
   val events: TableFor3[String, Option[String], Option[String]] =
     Table(
@@ -48,6 +53,8 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
       (exportStatusEventInputText(exportStatus2), None, Some(exportStatusSlackBody(exportStatus2))),
       (exportStatusEventInputText(exportStatus3), None, Some(exportStatusSlackBody(exportStatus3))),
       (exportStatusEventInputText(exportStatus4), None, Some(exportStatusSlackBody(exportStatus4))),
+      (exportStatusEventInputText(exportStatus5), None, Some(exportStatusSlackBody(exportStatus5))),
+      (exportStatusEventInputText(exportStatus6), None, Some(exportStatusSlackBody(exportStatus6))),
     )
 
   val wiremockSesEndpoint = new WireMockServer(9001)
@@ -178,12 +185,18 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   }
 
   def exportStatusEventInputText(exportStatusEvent: ExportStatusEvent): String = {
+    val successDetails = exportStatusEvent.successDetails
+    val failureCause = exportStatusEvent.failureCause
+    val exportOutputJson = if(successDetails.isDefined) {
+        s""", \\"successDetails\\":{\\"userId\\": \\"${successDetails.get.userId}\\",\\"consignmentReference\\": \\"${successDetails.get.consignmentReference}\\",\\"transferringBodyCode\\": \\"${successDetails.get.transferringBodyCode}\\"}"""
+      } else if(failureCause.isDefined) s""", \\"failureCause\\":\\"${failureCause.get}\\" """ else """"""
+
     s"""
        |{
        |    "Records": [
        |        {
        |            "Sns": {
-       |                "Message": "{\\"success\\":${exportStatusEvent.success},\\"consignmentId\\":\\"${exportStatusEvent.consignmentId}\\", \\"environment\\": \\"${exportStatusEvent.environment}\\"}"
+       |                "Message": "{\\"success\\":${exportStatusEvent.success},\\"consignmentId\\":\\"${exportStatusEvent.consignmentId}\\", \\"environment\\": \\"${exportStatusEvent.environment}\\"${exportOutputJson}}"
        |            }
        |        }
        |    ]
@@ -205,12 +218,18 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   }
 
   def exportStatusSlackBody(exportStatusEvent: ExportStatusEvent): String = {
+    val successDetails = exportStatusEvent.successDetails
+    val failureCause = exportStatusEvent.failureCause
+    val exportOutputMessage = if(successDetails.isDefined) {
+      s""":\\nUser ID: ${successDetails.get.userId}\\nConsignment Reference: ${successDetails.get.consignmentReference}\\nTransferring Body Code: ${successDetails.get.transferringBodyCode}"""
+    } else if(failureCause.isDefined) s""":\\nCause: ${failureCause.get}""" else """"""
+
     s"""{
        |  "blocks" : [ {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : "The export for the consignment ${exportStatusEvent.consignmentId} has ${if (exportStatusEvent.success) "completed" else "failed"} for environment ${exportStatusEvent.environment}"
+       |      "text" : "The export for the consignment ${exportStatusEvent.consignmentId} has ${if (exportStatusEvent.success) "completed" else "failed"} for environment ${exportStatusEvent.environment}${exportOutputMessage}"
        |    }
        |  } ]
        |}""".stripMargin

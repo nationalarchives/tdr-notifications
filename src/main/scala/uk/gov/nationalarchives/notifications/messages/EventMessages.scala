@@ -1,11 +1,11 @@
 package uk.gov.nationalarchives.notifications.messages
 
 import cats.effect.IO
-import com.typesafe.config.ConfigFactory
-import scalatags.Text.all._
 import cats.implicits._
+import com.typesafe.config.ConfigFactory
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
+import scalatags.Text.all._
 import uk.gov.nationalarchives.aws.utils.SESUtils
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
@@ -100,11 +100,27 @@ object EventMessages {
 
     override def slack(incomingEvent: ExportStatusEvent): Option[SlackMessage] = {
       if(incomingEvent.environment != "intg" || !incomingEvent.success) {
-        val message = s"The export for the consignment ${incomingEvent.consignmentId} has ${if (incomingEvent.success) "completed" else "failed"} for environment ${incomingEvent.environment}"
+
+        val exportInfoMessage = constructExportInfoMessage(incomingEvent)
+
+        val message = s"The export for the consignment ${incomingEvent.consignmentId} " +
+          s"has ${if (incomingEvent.success) "completed" else "failed"} for environment ${incomingEvent.environment}" +
+          s"${exportInfoMessage}"
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).some
       } else {
         Option.empty
       }
+    }
+
+    private def constructExportInfoMessage(incomingEvent: ExportStatusEvent): String = {
+     if (incomingEvent.successDetails.isDefined) {
+        val value = incomingEvent.successDetails.get
+        s":\nUser ID: ${value.userId}" +
+        s"\nConsignment Reference: ${value.consignmentReference}" +
+        s"\nTransferring Body Code: ${value.transferringBodyCode}"
+      } else if(incomingEvent.failureCause.isDefined) {
+        s":\nCause: ${incomingEvent.failureCause.get}"
+      } else ""
     }
   }
 }

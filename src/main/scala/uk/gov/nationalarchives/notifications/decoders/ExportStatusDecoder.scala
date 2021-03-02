@@ -2,15 +2,19 @@ package uk.gov.nationalarchives.notifications.decoders
 
 import java.util.UUID
 
-import com.amazonaws.services.lambda.runtime.events.SNSEvent
 import io.circe.CursorOp.DownField
-import io.circe.{Decoder, HCursor}
-import io.circe._
-import io.circe.parser._
 import io.circe.generic.auto._
+import io.circe.parser._
+import io.circe.{Decoder, HCursor, _}
 
 object ExportStatusDecoder {
-  case class ExportStatusEvent(consignmentId: UUID, success: Boolean, environment: String) extends IncomingEvent
+  case class ExportSuccessDetails(userId: UUID, consignmentReference: String, transferringBodyCode: String)
+  case class ExportStatusEvent(
+                                consignmentId: UUID,
+                                success: Boolean,
+                                environment: String,
+                                successDetails: Option[ExportSuccessDetails],
+                                failureCause: Option[String]) extends IncomingEvent
   case class SNS(Message: String)
   case class Record(Sns: SNS)
 
