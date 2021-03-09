@@ -1,8 +1,5 @@
 package uk.gov.nationalarchives.notifications
 
-import java.nio.charset.StandardCharsets
-import java.util.Base64
-
 import com.github.tomakehurst.wiremock.client.WireMock._
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 

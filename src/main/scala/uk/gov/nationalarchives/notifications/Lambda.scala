@@ -2,8 +2,8 @@ package uk.gov.nationalarchives.notifications
 
 import java.io.{InputStream, OutputStream}
 
-import cats.FlatMap.ops.toAllFlatMapOps
 import cats.effect._
+import cats.implicits.toFlatMapOps
 import io.circe.parser.decode
 import messages.Messages._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
