@@ -25,20 +25,28 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
           |  </ResponseMetadata>
           |</SendEmailResponse>
           |""".stripMargin)))
+
+    super.beforeEach()
   }
 
   override def afterEach(): Unit = {
     wiremockSlackServer.resetAll()
     wiremockSesEndpoint.resetAll()
+
+    super.afterEach()
   }
 
   override def beforeAll(): Unit = {
     wiremockSlackServer.start()
     wiremockSesEndpoint.start()
+
+    super.beforeAll()
   }
 
   override def afterAll(): Unit = {
     wiremockSlackServer.stop()
     wiremockSesEndpoint.stop()
+
+    super.afterAll()
   }
 }

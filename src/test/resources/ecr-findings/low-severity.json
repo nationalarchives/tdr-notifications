@@ -1,0 +1,44 @@
+{
+  "imageScanFindings": {
+    "findings": [
+      {
+        "name": "CVE-2020-123456789",
+        "uri": "https://example.com/CVE-2020-123456789",
+        "severity": "LOW",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "1.2.3"
+          },
+          {
+            "key": "package_name",
+            "value": "some-dependency"
+          },
+          {
+            "key": "CVSS2_VECTOR",
+            "value": "AV:L/AC:L/Au:N/C:N/I:N/A:P"
+          },
+          {
+            "key": "CVSS2_SCORE",
+            "value": "2.1"
+          }
+        ]
+      }
+    ],
+    "imageScanCompletedAt": 1615387804,
+    "vulnerabilitySourceUpdatedAt": 1614955804,
+    "findingSeverityCounts": {
+      "LOW": 1
+    }
+  },
+  "registryId": "1234",
+  "repositoryName": "some-repo-name",
+  "imageId": {
+    "imageDigest": "sha256:50dc398e12245d03e0159cf3d199d6fbb615f432978b893a1322ee9ae729e629",
+    "imageTag": "intg"
+  },
+  "imageScanStatus": {
+    "status": "COMPLETE",
+    "description": "The scan was completed successfully."
+  }
+}

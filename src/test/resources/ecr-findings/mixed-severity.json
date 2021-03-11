@@ -1,0 +1,519 @@
+{
+  "imageScanFindings": {
+    "findings": [
+      {
+        "name": "RHSA-2020:4952",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "CRITICAL",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "2.9.1-4.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "freetype"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:5476",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "HIGH",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "1:1.1.1c-15.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "openssl"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:5476",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "HIGH",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "1:1.1.1c-15.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "openssl-libs"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4599",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "7.61.1-12.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "curl"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4497",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "2.1.27-1.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "cyrus-sasl-lib"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4484",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "2.2.5-3.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "expat"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4444",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "2.28-101.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "glibc"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4444",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "2.28-101.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "glibc-common"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4444",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "2.28-101.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "glibc-langpack-en"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4444",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "2.28-101.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "glibc-minimal-langpack"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4490",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "2.2.9-1.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "gnupg2"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:5483",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "3.6.8-11.el8_2"
+          },
+          {
+            "key": "package_name",
+            "value": "gnutls"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4305",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "1:11.0.8.10-0.el8_2"
+          },
+          {
+            "key": "package_name",
+            "value": "java-11-openjdk-headless"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4443",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "3.3.2-8.el8_1"
+          },
+          {
+            "key": "package_name",
+            "value": "libarchive"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4599",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "7.61.1-12.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "libcurl"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4482",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "1.8.3-4.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "libgcrypt"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4508",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "0.7.7-1.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "libsolv"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4545",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "0.9.0-4.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "libssh"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4545",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "0.9.0-4.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "libssh-config"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4479",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "2.9.7-7.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "libxml2"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4539",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "10.32-1.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "pcre2"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4433",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "3.6.8-23.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "platform-python"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4432",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "9.0.3-16.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "platform-python-pip"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4433",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "3.6.8-23.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "python3-libs"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4432",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "9.0.3-16.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "python3-pip"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4432",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "9.0.3-16.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "python3-pip-wheel"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4442",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "MEDIUM",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "3.26.0-6.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "sqlite-libs"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4469",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "LOW",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "1:2.2.6-33.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "cups-libs"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4514",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "LOW",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "1:1.1.1c-15.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "openssl"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4514",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "LOW",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "1:1.1.1c-15.el8"
+          },
+          {
+            "key": "package_name",
+            "value": "openssl-libs"
+          }
+        ]
+      },
+      {
+        "name": "RHSA-2020:4553",
+        "description": "Some vulnerability description"
+        "uri": "https://example.com",
+        "severity": "LOW",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "239-31.el8_2.2"
+          },
+          {
+            "key": "package_name",
+            "value": "systemd-libs"
+          }
+        ]
+      }
+    ],
+    "imageScanCompletedAt": 1615279785,
+    "vulnerabilitySourceUpdatedAt": 1615203847,
+    "findingSeverityCounts": {
+      "MEDIUM": 24,
+      "LOW": 4,
+      "HIGH": 3
+    }
+  },
+  "registryId": "1234",
+  "repositoryName": "some-repo-name",
+  "imageId": {
+    "imageDigest": "sha256:ca236bc619f5513544fbae8873a58a46485742428934de7483d16f60ce052b4b",
+    "imageTag": "intg"
+  },
+  "imageScanStatus": {
+    "status": "COMPLETE",
+    "description": "The scan was completed successfully."
+  }
+}
