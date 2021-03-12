@@ -1,16 +1,16 @@
 package uk.gov.nationalarchives.notifications
 
 import com.github.tomakehurst.wiremock.client.WireMock.{equalTo, equalToJson, postRequestedFor, urlEqualTo}
-import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor3}
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor4}
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
-  def events: TableFor3[String, Option[String], Option[String]]
+  def events: TableFor4[String, String, Option[String], Option[String]]
 
   forAll(events) {
-    (input, emailBody, slackBody) => {
+    (description, input, emailBody, slackBody) => {
       emailBody match {
         case Some(body) =>
-          "the process method" should s"send an email message for event $input" in {
+          "the process method" should s"send an email message for $description" in {
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSesEndpoint.verify(1,
@@ -19,7 +19,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             )
           }
         case None =>
-          "the process method" should s"not send an email message for event $input" in {
+          "the process method" should s"not send an email message for $description" in {
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSesEndpoint.verify(0, postRequestedFor(urlEqualTo("/")))
@@ -28,7 +28,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
 
       slackBody match {
         case Some(body) =>
-          "the process method" should s"send a slack message for event $input" in {
+          "the process method" should s"send a slack message for $description" in {
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSlackServer.verify(slackBody.size,
@@ -37,7 +37,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             )
           }
         case None =>
-          "the process method" should s"not send a slack message for event $input" in {
+          "the process method" should s"not send a slack message for $description" in {
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSlackServer.verify(0,

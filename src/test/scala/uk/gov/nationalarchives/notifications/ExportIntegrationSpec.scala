@@ -2,18 +2,18 @@ package uk.gov.nationalarchives.notifications
 
 import java.util.UUID
 
-import org.scalatest.prop.TableFor3
+import org.scalatest.prop.TableFor4
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportStatusEvent, ExportSuccessDetails}
 
 class ExportIntegrationSpec extends LambdaIntegrationSpec {
-  override lazy val events: TableFor3[String, Option[String], Option[String]] = Table(
-    ("input", "emailBody", "slackBody"),
-    (exportStatusEventInputText(exportStatus1), None, None),
-    (exportStatusEventInputText(exportStatus2), None, Some(expectedSlackMessage(exportStatus2))),
-    (exportStatusEventInputText(exportStatus3), None, Some(expectedSlackMessage(exportStatus3))),
-    (exportStatusEventInputText(exportStatus4), None, Some(expectedSlackMessage(exportStatus4))),
-    (exportStatusEventInputText(exportStatus5), None, Some(expectedSlackMessage(exportStatus5))),
-    (exportStatusEventInputText(exportStatus6), None, Some(expectedSlackMessage(exportStatus6))),
+  override lazy val events: TableFor4[String, String, Option[String], Option[String]] = Table(
+    ("description", "input", "emailBody", "slackBody"),
+    ("a successful export event on intg", exportStatusEventInputText(exportStatus1), None, None),
+    ("a failed export event on intg", exportStatusEventInputText(exportStatus2), None, Some(expectedSlackMessage(exportStatus2))),
+    ("a successful export event on staging", exportStatusEventInputText(exportStatus3), None, Some(expectedSlackMessage(exportStatus3))),
+    ("a failed export event on staging", exportStatusEventInputText(exportStatus4), None, Some(expectedSlackMessage(exportStatus4))),
+    ("a failed export on intg with no error details", exportStatusEventInputText(exportStatus5), None, Some(expectedSlackMessage(exportStatus5))),
+    ("a failed export on staging with no error details", exportStatusEventInputText(exportStatus6), None, Some(expectedSlackMessage(exportStatus6))),
   )
 
   private lazy val successDetails = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1")
