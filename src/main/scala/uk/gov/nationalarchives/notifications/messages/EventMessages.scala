@@ -27,7 +27,7 @@ object EventMessages {
 
     private def slackBlock(text: String) = SlackBlock("section", SlackText("mrkdwn", text))
 
-    private def countBlock(count: Option[Int], level: String) = slackBlock(s"${count.getOrElse(0)} $level severity vulnerabilities")
+    private def countBlock(count: Int, level: String) = slackBlock(s"$count $level severity vulnerabilities")
 
     private def allowedTagMatches(detail: ScanDetail): Set[String] = detail.tags.toSet.intersect(allowedTags)
 
@@ -53,10 +53,10 @@ object EventMessages {
     override def email(event: ScanEvent): Option[SESUtils.Email] = {
       val detail = event.detail
       if(shouldSendNotification(detail)) {
-        val critical = detail.findingSeverityCounts.critical.getOrElse(0)
-        val high = detail.findingSeverityCounts.high.getOrElse(0)
-        val medium = detail.findingSeverityCounts.medium.getOrElse(0)
-        val low = detail.findingSeverityCounts.low.getOrElse(0)
+        val critical = detail.findingSeverityCounts.critical
+        val high = detail.findingSeverityCounts.high
+        val medium = detail.findingSeverityCounts.medium
+        val low = detail.findingSeverityCounts.low
 
         val message = html(
           body(

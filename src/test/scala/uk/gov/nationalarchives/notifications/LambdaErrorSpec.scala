@@ -6,7 +6,7 @@ import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, S
 class LambdaErrorSpec extends LambdaSpecUtils {
 
   "the process method" should "error if the ses service is unavailable" in {
-    val scanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Some(10), Some(100), Some(1000), Some(10000))))
+    val scanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(10, 100, 1000, 10000)))
     val stream = new java.io.ByteArrayInputStream(scanEventInputText(scanEvent).getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
     wiremockSesEndpoint.resetAll()
     val exception = intercept[Exception] {
@@ -16,7 +16,7 @@ class LambdaErrorSpec extends LambdaSpecUtils {
   }
 
   "the process method" should "error if the slack service is unavailable" in {
-    val scanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Some(10), Some(100), Some(1000), Some(10000))))
+    val scanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(10, 100, 1000, 10000)))
     val stream = new java.io.ByteArrayInputStream(scanEventInputText(scanEvent).getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
     wiremockSlackServer.resetAll()
     val exception = intercept[Exception] {

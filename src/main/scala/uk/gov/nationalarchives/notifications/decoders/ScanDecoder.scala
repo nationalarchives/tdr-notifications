@@ -8,10 +8,8 @@ object ScanDecoder {
 
   case class ScanDetail(repositoryName: String, tags: List[String], findingSeverityCounts: ScanFindingCounts)
 
-  case class ScanFindingCounts(critical: Option[Int], high: Option[Int], medium: Option[Int], low: Option[Int]) {
-    def areAllZero(): Boolean = {
-      (critical.getOrElse(0) + high.getOrElse(0) + medium.getOrElse(0) + low.getOrElse(0)) == 0
-    }
+  case class ScanFindingCounts(critical: Int, high: Int, medium: Int, low: Int) {
+    def areAllZero(): Boolean = (critical + high + medium + low) == 0
   }
 
   implicit val decodeScanFindingCounts: Decoder[ScanFindingCounts] = (c: HCursor) => for {
@@ -19,7 +17,7 @@ object ScanDecoder {
     high <- c.downField("HIGH").as[Option[Int]]
     medium <- c.downField("MEDIUM").as[Option[Int]]
     low <- c.downField("LOW").as[Option[Int]]
-  } yield ScanFindingCounts(critical, high, medium, low)
+  } yield ScanFindingCounts(critical.getOrElse(0), high.getOrElse(0), medium.getOrElse(0), low.getOrElse(0))
 
   implicit val decodeScanDetail: Decoder[ScanDetail] = (c: HCursor) => for {
     repositoryName <- c.downField("repository-name").as[String]

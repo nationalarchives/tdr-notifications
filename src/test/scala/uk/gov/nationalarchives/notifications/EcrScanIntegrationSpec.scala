@@ -14,11 +14,11 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec {
     ("an ECR scan of 'intg' with no results", scanEventInputText(scanEvent5), None, None)
   )
 
-  private lazy val scanEvent1: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Some(10), Some(100), Some(1000), Some(10000))))
-  private lazy val scanEvent2: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Option.empty, Some(0), Option.empty, Some(10))))
-  private lazy val scanEvent3: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Option.empty, Option.empty, Option.empty, Option.empty)))
-  private lazy val scanEvent4: ScanEvent = ScanEvent(ScanDetail("", List("anothertag"), ScanFindingCounts(Option.empty, Option.empty, Option.empty, Option.empty)))
-  private lazy val scanEvent5: ScanEvent = ScanEvent(ScanDetail("", List("intg"), ScanFindingCounts(Some(0), Some(0), Some(0), Some(0))))
+  private lazy val scanEvent1: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(10, 100, 1000, 10000)))
+  private lazy val scanEvent2: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(0, 0, 0, 10)))
+  private lazy val scanEvent3: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(0, 0, 0, 0)))
+  private lazy val scanEvent4: ScanEvent = ScanEvent(ScanDetail("", List("anothertag"), ScanFindingCounts(0, 0, 0, 0)))
+  private lazy val scanEvent5: ScanEvent = ScanEvent(ScanDetail("", List("intg"), ScanFindingCounts(0, 0, 0, 0)))
 
   private def expectedEmailBody(scanEvent: ScanEvent): String = {
     val (critical, high, medium, low) = getCounts(scanEvent)
@@ -86,10 +86,10 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec {
 
 object EcrScanIntegrationSpec {
   private def getCounts(scanEvent: ScanEvent): (Int, Int, Int, Int) = {
-    val critical = scanEvent.detail.findingSeverityCounts.critical.getOrElse(0)
-    val high = scanEvent.detail.findingSeverityCounts.high.getOrElse(0)
-    val medium = scanEvent.detail.findingSeverityCounts.medium.getOrElse(0)
-    val low = scanEvent.detail.findingSeverityCounts.low.getOrElse(0)
+    val critical = scanEvent.detail.findingSeverityCounts.critical
+    val high = scanEvent.detail.findingSeverityCounts.high
+    val medium = scanEvent.detail.findingSeverityCounts.medium
+    val low = scanEvent.detail.findingSeverityCounts.low
     (critical, high, medium, low)
   }
 
