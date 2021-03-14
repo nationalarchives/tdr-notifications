@@ -23,15 +23,20 @@ object EventMessages {
   case class SlackMessage(blocks: List[SlackBlock])
 
   implicit val scanEventMessages: Messages[ScanEvent] = new Messages[ScanEvent] {
-    private val allowedTags = Set("latest", "intg", "staging", "prod", "mgmt")
+
+    // Tags that we are interested in because they are set on deployed images. We can ignore other tags (e.g. version
+    // tags) because they represent old images or ones which have not been deployed yet.
+    private val releaseTags = Set("latest", "intg", "staging", "prod", "mgmt")
 
     private def slackBlock(text: String) = SlackBlock("section", SlackText("mrkdwn", text))
 
     private def countBlock(count: Int, level: String) = slackBlock(s"$count $level severity vulnerabilities")
 
-    private def allowedTagMatches(detail: ScanDetail): Set[String] = detail.tags.toSet.intersect(allowedTags)
+    private def includesReleaseTags(imageTags: List[String]): Boolean =
+      imageTags.toSet.intersect(releaseTags).nonEmpty
 
-    private def shouldSendNotification(detail: ScanDetail): Boolean = allowedTagMatches(detail).nonEmpty && !detail.findingSeverityCounts.areAllZero()
+    private def shouldSendNotification(detail: ScanDetail): Boolean =
+      includesReleaseTags(detail.tags) && !detail.findingSeverityCounts.areAllZero()
 
     override def slack(event: ScanEvent): Option[SlackMessage] = {
       val detail = event.detail
