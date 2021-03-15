@@ -1,4 +1,4 @@
-## TDR Notifications
+# TDR Notifications
 
 This project is for sending slack/email messages in response to cloudwatch events. It supports several types of event:
 
@@ -8,3 +8,25 @@ This project is for sending slack/email messages in response to cloudwatch event
   a notification is sent.
 * Consignment export results. When the consignment export task finishes, a Slack message is sent with details of whether
   the export succeeded or failed.
+
+## Run locally
+
+Set these environment variables, either on the command line or in IntelliJ depending on how you want to run the app:
+
+* `SLACK_WEBHOOK`: the webhook URL of a Slack app. You can [create a new app][Slack-app] in Slack for testing purposes.
+  Use the `#bot-testing` channel rather than a team channel to avoid confusion and spam.
+* `TO_EMAIL`: the email address that alerts should be sent to. For testing purposes, this should normally be your own
+  email address rather than a team one.
+
+The app uses AWS services like Simple Email Service (SES) in the management account, so you will also need to update
+your AWS credentials file with temporary mgmt credentials.
+
+Register your email address with SES, then click the link in the verification email:
+
+```
+aws ses verify-email-identity --email-address "your.name@nationalarchives.gov.uk"
+```
+
+Then run the LambdaRunner app from IntelliJ, or run `sbt run` on the command line.
+
+[Slack-app]: https://api.slack.com/apps/
