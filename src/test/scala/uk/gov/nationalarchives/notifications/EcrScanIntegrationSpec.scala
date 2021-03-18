@@ -1,17 +1,17 @@
 package uk.gov.nationalarchives.notifications
 
-import org.scalatest.prop.TableFor3
+import org.scalatest.prop.TableFor4
 import uk.gov.nationalarchives.notifications.EcrScanIntegrationSpec.{getCounts, scanEventInputText}
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 
 class EcrScanIntegrationSpec extends LambdaIntegrationSpec {
-  override lazy val events: TableFor3[String, Option[String], Option[String]] = Table(
-    ("input", "emailBody", "slackBody"),
-    (scanEventInputText(scanEvent1), Some(expectedEmailBody(scanEvent1)), Some(expectedSlackBody(scanEvent1))),
-    (scanEventInputText(scanEvent2), Some(expectedEmailBody(scanEvent2)), Some(expectedSlackBody(scanEvent2))),
-    (scanEventInputText(scanEvent3), None, None),
-    (scanEventInputText(scanEvent4), None, None),
-    (scanEventInputText(scanEvent5), None, None)
+  override lazy val events: TableFor4[String, String, Option[String], Option[String]] = Table(
+    ("description", "input", "emailBody", "slackBody"),
+    ("an ECR scan of 'latest' with a mix of severities", scanEventInputText(scanEvent1), Some(expectedEmailBody(scanEvent1)), Some(expectedSlackBody(scanEvent1))),
+    ("an ECR scan of 'latest' with only low severity vulnerabilities", scanEventInputText(scanEvent2), Some(expectedEmailBody(scanEvent2)), Some(expectedSlackBody(scanEvent2))),
+    ("an ECR scan of 'latest' with no results", scanEventInputText(scanEvent3), None, None),
+    ("an ECR scan of an image with a non-deployment tag", scanEventInputText(scanEvent4), None, None),
+    ("an ECR scan of 'intg' with no results", scanEventInputText(scanEvent5), None, None)
   )
 
   private lazy val scanEvent1: ScanEvent = ScanEvent(ScanDetail("", List("latest"), ScanFindingCounts(Some(10), Some(100), Some(1000), Some(10000))))
