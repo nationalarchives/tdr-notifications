@@ -3,7 +3,7 @@
     "findings": [
       {
         "name": "RHSA-2020:4952",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "CRITICAL",
         "attributes": [
@@ -19,7 +19,7 @@
       },
       {
         "name": "RHSA-2020:5476",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "HIGH",
         "attributes": [
@@ -35,7 +35,7 @@
       },
       {
         "name": "RHSA-2020:5476",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "HIGH",
         "attributes": [
@@ -51,7 +51,7 @@
       },
       {
         "name": "RHSA-2020:4599",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -67,7 +67,7 @@
       },
       {
         "name": "RHSA-2020:4497",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -83,7 +83,7 @@
       },
       {
         "name": "RHSA-2020:4484",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -99,7 +99,7 @@
       },
       {
         "name": "RHSA-2020:4444",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -115,7 +115,7 @@
       },
       {
         "name": "RHSA-2020:4444",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -131,7 +131,7 @@
       },
       {
         "name": "RHSA-2020:4444",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -147,7 +147,7 @@
       },
       {
         "name": "RHSA-2020:4444",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -163,7 +163,7 @@
       },
       {
         "name": "RHSA-2020:4490",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -179,7 +179,7 @@
       },
       {
         "name": "RHSA-2020:5483",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -195,7 +195,7 @@
       },
       {
         "name": "RHSA-2020:4305",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -211,7 +211,7 @@
       },
       {
         "name": "RHSA-2020:4443",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -227,7 +227,7 @@
       },
       {
         "name": "RHSA-2020:4599",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -243,7 +243,7 @@
       },
       {
         "name": "RHSA-2020:4482",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -259,7 +259,7 @@
       },
       {
         "name": "RHSA-2020:4508",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -275,7 +275,7 @@
       },
       {
         "name": "RHSA-2020:4545",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -291,7 +291,7 @@
       },
       {
         "name": "RHSA-2020:4545",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -307,7 +307,7 @@
       },
       {
         "name": "RHSA-2020:4479",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -323,7 +323,7 @@
       },
       {
         "name": "RHSA-2020:4539",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -339,7 +339,7 @@
       },
       {
         "name": "RHSA-2020:4433",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -355,7 +355,7 @@
       },
       {
         "name": "RHSA-2020:4432",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -371,7 +371,7 @@
       },
       {
         "name": "RHSA-2020:4433",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -387,7 +387,7 @@
       },
       {
         "name": "RHSA-2020:4432",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -403,7 +403,7 @@
       },
       {
         "name": "RHSA-2020:4432",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -419,7 +419,7 @@
       },
       {
         "name": "RHSA-2020:4442",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "MEDIUM",
         "attributes": [
@@ -435,7 +435,7 @@
       },
       {
         "name": "RHSA-2020:4469",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "LOW",
         "attributes": [
@@ -451,7 +451,7 @@
       },
       {
         "name": "RHSA-2020:4514",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "LOW",
         "attributes": [
@@ -467,7 +467,7 @@
       },
       {
         "name": "RHSA-2020:4514",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "LOW",
         "attributes": [
@@ -483,7 +483,7 @@
       },
       {
         "name": "RHSA-2020:4553",
-        "description": "Some vulnerability description"
+        "description": "Some vulnerability description",
         "uri": "https://example.com",
         "severity": "LOW",
         "attributes": [
