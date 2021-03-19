@@ -14,7 +14,7 @@ class LambdaErrorSpec extends LambdaSpecUtils with MockEcrApi {
     ecrApiEndpoint.stubFor(post(urlEqualTo("/"))
       .willReturn(ok(ecrApiResponse)))
 
-    val scanEvent = ScanEvent(ScanDetail("", List("latest"), "some-sha256-digest", ScanFindingCounts(10, 100, 1000, 10000)))
+    val scanEvent = ScanEvent(ScanDetail("", List("latest"), "some-sha256-digest", ScanFindingCounts(10, 100, 1000, 10000, 1, 10)))
     val stream = new java.io.ByteArrayInputStream(scanEventInputText(scanEvent).getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
     wiremockSesEndpoint.resetAll()
     val exception = intercept[Exception] {
@@ -27,7 +27,7 @@ class LambdaErrorSpec extends LambdaSpecUtils with MockEcrApi {
     ecrApiEndpoint.stubFor(post(urlEqualTo("/"))
       .willReturn(ok(ecrApiResponse)))
 
-    val scanEvent = ScanEvent(ScanDetail("", List("latest"), "some-sha256-digest", ScanFindingCounts(10, 100, 1000, 10000)))
+    val scanEvent = ScanEvent(ScanDetail("", List("latest"), "some-sha256-digest", ScanFindingCounts(10, 100, 1000, 10000, 1, 10)))
     val stream = new java.io.ByteArrayInputStream(scanEventInputText(scanEvent).getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
     wiremockSlackServer.resetAll()
     val exception = intercept[Exception] {

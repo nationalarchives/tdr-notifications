@@ -33,6 +33,14 @@ object EventMessages {
     // tags) because they represent old images or ones which have not been deployed yet.
     private val releaseTags = Set("latest", "intg", "staging", "prod", "mgmt")
 
+    // Findings which should be included in alerts
+    private val relevantFindingLevels = Set(
+      FindingSeverity.CRITICAL,
+      FindingSeverity.HIGH,
+      FindingSeverity.MEDIUM,
+      FindingSeverity.LOW
+    )
+
     private val config = ConfigFactory.load
 
     private val mutedVulnerabilities: Set[String] = config.getString("alerts.ecr-scan.mute")
@@ -44,8 +52,11 @@ object EventMessages {
     private def includesReleaseTags(imageTags: List[String]): Boolean =
       imageTags.toSet.intersect(releaseTags).nonEmpty
 
+    private def includesRelevantFindings(findings: Seq[Finding]): Boolean =
+      findings.map(_.severity).toSet.intersect(relevantFindingLevels).nonEmpty
+
     private def shouldSendNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
-      includesReleaseTags(detail.tags) && findings.nonEmpty
+      includesReleaseTags(detail.tags) && includesRelevantFindings(findings)
 
     private def filterReport(report: ImageScanReport): ImageScanReport = {
       val filteredFindings = report.findings.filterNot(finding => mutedVulnerabilities.contains(finding.name))
