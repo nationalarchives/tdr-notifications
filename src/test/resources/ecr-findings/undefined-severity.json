@@ -1,0 +1,27 @@
+{
+  "imageScanFindings": {
+    "findings": [
+      {
+        "name": "CVE-2020-123456789",
+        "uri": "https://example.com/CVE-2020-123456789",
+        "severity": "UNDEFINED",
+        "attributes": []
+      }
+    ],
+    "imageScanCompletedAt": 1615387804,
+    "vulnerabilitySourceUpdatedAt": 1614955804,
+    "findingSeverityCounts": {
+      "LOW": 1
+    }
+  },
+  "registryId": "1234",
+  "repositoryName": "some-repo-name",
+  "imageId": {
+    "imageDigest": "sha256:50dc398e12245d03e0159cf3d199d6fbb615f432978b893a1322ee9ae729e629",
+    "imageTag": "intg"
+  },
+  "imageScanStatus": {
+    "status": "COMPLETE",
+    "description": "The scan was completed successfully."
+  }
+}

@@ -1,40 +1,45 @@
 package uk.gov.nationalarchives.notifications.messages
 
 import cats.effect.{ContextShift, IO}
+import cats.implicits._
 import com.typesafe.config.ConfigFactory
+import io.circe.generic.auto._
+import io.circe.syntax._
 import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client.{basicRequest, _}
 import sttp.model.MediaType
-import cats.implicits._
-import io.circe.syntax._
-import io.circe.generic.auto._
 import uk.gov.nationalarchives.aws.utils.Clients.ses
 import uk.gov.nationalarchives.aws.utils.SESUtils
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.SlackMessage
 
-trait Messages[T <: IncomingEvent] {
-  def email(incomingEvent: T): Option[Email]
+trait Messages[T <: IncomingEvent, TContext] {
+  def context(incomingEvent: T): IO[TContext]
 
-  def slack(incomingEvent: T): Option[SlackMessage]
+  def email(incomingEvent: T, context: TContext): Option[Email]
+
+  def slack(incomingEvent: T, context: TContext): Option[SlackMessage]
 }
 
 object Messages {
 
-  def sendMessages[T <: IncomingEvent](incomingEvent: T)(implicit messages: Messages[T]): IO[String] = {
-    (sendEmailMessage(incomingEvent) |+| sendSlackMessage(incomingEvent))
-      .getOrElse(IO.pure("No messages have been sent"))
+  def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
+    for {
+      context <- messages.context(incomingEvent)
+      result <- (sendEmailMessage(incomingEvent, context) |+| sendSlackMessage(incomingEvent, context))
+        .getOrElse(IO.pure("No messages have been sent"))
+    } yield result
   }
 
-  def sendEmailMessage[T <: IncomingEvent](incomingEvent: T)(implicit messages: Messages[T]): Option[IO[String]] = {
-    messages.email(incomingEvent).map(email => {
+  private def sendEmailMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
+    messages.email(incomingEvent, context).map(email => {
       IO.fromTry(SESUtils(ses).sendEmail(email).map(_.messageId()))
     })
   }
 
-  def sendSlackMessage[T <: IncomingEvent](incomingEvent: T)(implicit messages: Messages[T]): Option[IO[String]] = {
-    messages.slack(incomingEvent).map(slackMessage => {
+  private def sendSlackMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
+    messages.slack(incomingEvent, context).map(slackMessage => {
       implicit val cs: ContextShift[IO] = IO.contextShift(scala.concurrent.ExecutionContext.global)
 
       AsyncHttpClientCatsBackend[IO]().flatMap { backend =>

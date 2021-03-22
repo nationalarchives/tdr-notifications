@@ -11,8 +11,9 @@ object LambdaRunner extends App {
        |{
        |  "detail": {
        |    "scan-status": "COMPLETE",
-       |    "repository-name": "yara-dependencies",
+       |    "repository-name": "yara",
        |    "image-tags" : ["intg"],
+       |    "image-digest": "sha256:401d492b2ab0d6639a3889cafae28188666c1ebd827d86e0ce67819211a0c062",
        |    "finding-severity-counts": {
        |      "CRITICAL": 0,
        |      "HIGH": 0,

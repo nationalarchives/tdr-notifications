@@ -1,0 +1,18 @@
+{
+  "imageScanFindings": {
+    "findings": [],
+    "imageScanCompletedAt": 1615279785,
+    "vulnerabilitySourceUpdatedAt": 1615203847,
+    "findingSeverityCounts": {}
+  },
+  "registryId": "1234",
+  "repositoryName": "some-repo-name",
+  "imageId": {
+    "imageDigest": "sha256:0dd8216bcde6a8c286f797f3ea79faa6ee1dabcbd663470b0e54b2aec56285da",
+    "imageTag": "intg"
+  },
+  "imageScanStatus": {
+    "status": "COMPLETE",
+    "description": "The scan was completed successfully."
+  }
+}
