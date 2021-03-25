@@ -23,8 +23,8 @@ trait Messages[T <: IncomingEvent, TContext] {
 }
 
 object Messages {
-
-  val kmsUtils: KMSUtils = KMSUtils(kms, Map("LambdaFunctionName" -> ConfigFactory.load.getString("function.name")))
+  val config = ConfigFactory.load
+  val kmsUtils: KMSUtils = KMSUtils(kms(config.getString("kms.endpoint")), Map("LambdaFunctionName" -> config.getString("function.name")))
   val eventConfig: Map[String, String] = kmsUtils.decryptValuesFromConfig(List("alerts.ecr-scan.mute", "ses.email.to", "slack.webhook.url"))
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
