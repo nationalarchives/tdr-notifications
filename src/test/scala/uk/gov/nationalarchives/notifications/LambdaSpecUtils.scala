@@ -56,8 +56,6 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
           |""".stripMargin)))
 
     stubKmsResponse
-
-
     super.beforeEach()
   }
 
