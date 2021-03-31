@@ -2,7 +2,7 @@ package uk.gov.nationalarchives.notifications
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
-import com.github.tomakehurst.wiremock.client.WireMock.{equalToJson, ok, okJson, post, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{ok, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.common.FileSource
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.extension.{Parameters, ResponseDefinitionTransformer}
