@@ -8,8 +8,8 @@ import io.circe.syntax._
 import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client.{basicRequest, _}
 import sttp.model.MediaType
-import uk.gov.nationalarchives.aws.utils.Clients.ses
-import uk.gov.nationalarchives.aws.utils.SESUtils
+import uk.gov.nationalarchives.aws.utils.Clients.{kms, ses}
+import uk.gov.nationalarchives.aws.utils.{KMSUtils, SESUtils}
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.SlackMessage
@@ -23,6 +23,9 @@ trait Messages[T <: IncomingEvent, TContext] {
 }
 
 object Messages {
+  val config = ConfigFactory.load
+  val kmsUtils: KMSUtils = KMSUtils(kms(config.getString("kms.endpoint")), Map("LambdaFunctionName" -> config.getString("function.name")))
+  val eventConfig: Map[String, String] = kmsUtils.decryptValuesFromConfig(List("alerts.ecr-scan.mute", "ses.email.to", "slack.webhook.url"))
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
@@ -44,7 +47,7 @@ object Messages {
 
       AsyncHttpClientCatsBackend[IO]().flatMap { backend =>
         val request = basicRequest
-          .post(uri"${ConfigFactory.load.getString("slack.webhook.url")}")
+          .post(uri"${eventConfig("slack.webhook.url")}")
           .body(slackMessage.asJson.noSpaces)
           .contentType(MediaType.ApplicationJson)
         for {

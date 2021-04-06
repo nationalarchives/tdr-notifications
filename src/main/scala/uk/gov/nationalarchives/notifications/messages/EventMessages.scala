@@ -1,7 +1,6 @@
 package uk.gov.nationalarchives.notifications.messages
 
 import java.net.URI
-
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.config.ConfigFactory
@@ -14,6 +13,7 @@ import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
+import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
@@ -41,9 +41,7 @@ object EventMessages {
       FindingSeverity.LOW
     )
 
-    private val config = ConfigFactory.load
-
-    private val mutedVulnerabilities: Set[String] = config.getString("alerts.ecr-scan.mute")
+    private val mutedVulnerabilities: Set[String] = eventConfig("alerts.ecr-scan.mute")
       .split(",")
       .toSet
 
@@ -65,7 +63,7 @@ object EventMessages {
 
     override def context(event: ScanEvent): IO[ImageScanReport] = {
       val repoName = event.detail.repositoryName
-      val ecrClient = Clients.ecr(URI.create(config.getString("ecr.endpoint")))
+      val ecrClient = Clients.ecr(URI.create(ConfigFactory.load.getString("ecr.endpoint")))
       val ecrUtils: ECRUtils = ECRUtils(ecrClient)
       val findingsResponse = ecrUtils.imageScanFindings(repoName, event.detail.imageDigest)
 
@@ -114,7 +112,7 @@ object EventMessages {
             )
           )
         ).toString()
-        Email("scanresults@tdr-management.nationalarchives.gov.uk", ConfigFactory.load.getString("ses.email.to"), s"ECR scan results for ${detail.repositoryName}", message).some
+        Email("scanresults@tdr-management.nationalarchives.gov.uk", eventConfig("ses.email.to"), s"ECR scan results for ${detail.repositoryName}", message).some
       } else {
         Option.empty
       }
