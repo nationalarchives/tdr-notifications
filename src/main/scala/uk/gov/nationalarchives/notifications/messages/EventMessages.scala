@@ -38,12 +38,16 @@ object EventMessages {
       FindingSeverity.CRITICAL,
       FindingSeverity.HIGH,
       FindingSeverity.MEDIUM,
-      FindingSeverity.LOW
+      FindingSeverity.LOW,
+      FindingSeverity.UNDEFINED
     )
 
     private val mutedVulnerabilities: Set[String] = eventConfig("alerts.ecr-scan.mute")
       .split(",")
       .toSet
+
+    private val ecrScanDocumentationMessage: String = "See the TDR developer manual for guidance on fixing these vulnerabilities: " +
+      "https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/alerts/ecr-scans.md"
 
     private def slackBlock(text: String) = SlackBlock("section", SlackText("mrkdwn", text))
 
@@ -85,9 +89,9 @@ object EventMessages {
         val highBlock = slackBlock(s"${filteredReport.highCount} high severity vulnerabilities")
         val mediumBlock = slackBlock(s"${filteredReport.mediumCount} medium severity vulnerabilities")
         val lowBlock = slackBlock(s"${filteredReport.lowCount} low severity vulnerabilities")
-        val documentationBlock = slackBlock("See the TDR developer manual for guidance on fixing these vulnerabilities: " +
-          "https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/alerts/ecr-scans.md")
-        SlackMessage(List(headerBlock, criticalBlock, highBlock, mediumBlock, lowBlock, documentationBlock)).some
+        val undefinedBlock = slackBlock(s"${filteredReport.undefinedCount} undefined severity vulnerabilities")
+        val documentationBlock = slackBlock(ecrScanDocumentationMessage)
+        SlackMessage(List(headerBlock, criticalBlock, highBlock, mediumBlock, lowBlock, undefinedBlock, documentationBlock)).some
       } else {
         Option.empty
       }
@@ -104,11 +108,11 @@ object EventMessages {
               p(s"${filteredReport.criticalCount} critical vulnerabilities"),
               p(s"${filteredReport.highCount} high vulnerabilities"),
               p(s"${filteredReport.mediumCount} medium vulnerabilities"),
-              p(s"${filteredReport.lowCount} low vulnerabilities")
+              p(s"${filteredReport.lowCount} low vulnerabilities"),
+              p(s"${filteredReport.undefinedCount} undefined vulnerabilities")
             ),
             div(
-              p("See the TDR developer manual for guidance on fixing these vulnerabilities: " +
-                "https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/alerts/ecr-scans.md")
+              p(ecrScanDocumentationMessage)
             )
           )
         ).toString()
@@ -173,6 +177,7 @@ case class ImageScanReport(findings: Seq[Finding]) {
   def highCount: Int = findings.count(_.severity == FindingSeverity.HIGH)
   def mediumCount: Int = findings.count(_.severity == FindingSeverity.MEDIUM)
   def lowCount: Int = findings.count(_.severity == FindingSeverity.LOW)
+  def undefinedCount: Int = findings.count(_.severity == FindingSeverity.UNDEFINED)
 }
 
 case class Finding(name: String, severity: FindingSeverity)
