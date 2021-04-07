@@ -14,22 +14,22 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
     (
       "an ECR scan of 'latest' with a mix of severities",
       scanEventInputText(mixedSeverityEvent),
-      Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4))),
-      Some(expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4))),
+      Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1))),
+      Some(expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1))),
       stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, mixedSeverityFindings)
     ),
     (
       "an ECR scan of 'latest' with only low severity vulnerabilities",
       scanEventInputText(lowSeverityEvent),
-      Some(expectedEmailBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1))),
-      Some(expectedSlackBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1))),
+      Some(expectedEmailBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1, 0))),
+      Some(expectedSlackBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1, 0))),
       stubEcrApiResponse(lowSeverityEvent.detail.imageDigest, lowSeverityFindings)
     ),
     (
       "an ECR scan of 'latest' with only undefined severity vulnerabilities",
       scanEventInputText(undefinedSeverityEvent),
-      None,
-      None,
+      Some(expectedEmailBody(undefinedSeverityEvent, ExpectedFindings(0, 0, 0, 0, 1))),
+      Some(expectedSlackBody(undefinedSeverityEvent, ExpectedFindings(0, 0, 0, 0, 1))),
       stubEcrApiResponse(undefinedSeverityEvent.detail.imageDigest, undefinedFindings)
     ),
     (
@@ -70,8 +70,8 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
     (
       "an ECR scan with a mix of muted and non-muted vulnerabilities",
       scanEventInputText(mixedSeverityEvent),
-      Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3))),
-      Some(expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3))),
+      Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0))),
+      Some(expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0))),
       stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, findingsIncludingMutedVulnerability)
     ),
   )
@@ -87,7 +87,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
   private lazy val mixedCounts = ScanFindingCounts(10, 100, 1000, 10000, 10, 1)
   private lazy val lowSeverityCounts = ScanFindingCounts(0, 0, 0, 10, 0, 0)
   private lazy val informationalCounts = ScanFindingCounts(0, 0, 0, 0, 10, 0)
-  private lazy val undefinedSeverityCounts = ScanFindingCounts(0, 0, 0, 0, 0, 10)
+  private lazy val undefinedSeverityCounts = ScanFindingCounts(0, 0, 0, 0, 10, 0)
   private lazy val emptyCounts = ScanFindingCounts(0, 0, 0, 0, 0, 0)
   private lazy val zeroCounts = ScanFindingCounts(0, 0, 0, 0, 0, 0)
 
@@ -99,7 +99,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
   private lazy val findingsWithOnlyMutedVulnerability = Source.fromResource("ecr-findings/muted-vulnerability.json").getLines.mkString
   private lazy val findingsIncludingMutedVulnerability = Source.fromResource("ecr-findings/including-muted-vulnerability.json").getLines.mkString
 
-  case class ExpectedFindings(critical: Int, high: Int, medium: Int, low: Int)
+  case class ExpectedFindings(critical: Int, high: Int, medium: Int, low: Int, undefined: Int)
 
   private def stubEcrApiResponse(sha256Digest: String, response: String): () => () = () => {
     ecrApiEndpoint.stubFor(post(urlEqualTo("/"))
@@ -117,7 +117,8 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       s"${expectedFindings.critical}+critical+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
       s"${expectedFindings.high}+high+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
       s"${expectedFindings.medium}+medium+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
-      s"${expectedFindings.low}+low+vulnerabilities%3C%2Fp%3E%3C%2Fdiv%3E" +
+      s"${expectedFindings.low}+low+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
+      s"${expectedFindings.undefined}+undefined+vulnerabilities%3C%2Fp%3E%3C%2Fdiv%3E" +
       "%3Cdiv%3E%3Cp%3E" +
       "See+the+TDR+developer+manual+for+guidance+on+fixing+these+vulnerabilities%3A+" +
       "https%3A%2F%2Fgithub.com%2Fnationalarchives%2Ftdr-dev-documentation%2Fblob%2Fmaster%2Fmanual%2Falerts%2Fecr-scans.md" +
@@ -163,6 +164,12 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
+       |      "text" : "${expectedFindings.undefined} undefined severity vulnerabilities"
+       |    }
+       |  }, {
+       |    "type" : "section",
+       |    "text" : {
+       |      "type" : "mrkdwn",
        |      "text" : "See the TDR developer manual for guidance on fixing these vulnerabilities: https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/alerts/ecr-scans.md"
        |    }
        |  } ]
@@ -172,16 +179,17 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
 }
 
 object EcrScanIntegrationSpec {
-  private def getCounts(scanEvent: ScanEvent): (Int, Int, Int, Int) = {
+  private def getCounts(scanEvent: ScanEvent): (Int, Int, Int, Int, Int) = {
     val critical = scanEvent.detail.findingSeverityCounts.critical
     val high = scanEvent.detail.findingSeverityCounts.high
     val medium = scanEvent.detail.findingSeverityCounts.medium
     val low = scanEvent.detail.findingSeverityCounts.low
-    (critical, high, medium, low)
+    val undefined = scanEvent.detail.findingSeverityCounts.undefined
+    (critical, high, medium, low, undefined)
   }
 
   def scanEventInputText(scanEvent: ScanEvent): String = {
-    val (critical, high, medium, low) = getCounts(scanEvent)
+    val (critical, high, medium, low, undefined) = getCounts(scanEvent)
     s"""
        |{
        |  "detail": {
@@ -193,7 +201,8 @@ object EcrScanIntegrationSpec {
        |      "CRITICAL": $critical,
        |      "HIGH": $high,
        |      "MEDIUM": $medium,
-       |      "LOW": $low
+       |      "LOW": $low,
+       |      "UNDEFINED": $undefined
        |    }
        |  }
        |}

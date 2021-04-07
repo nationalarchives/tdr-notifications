@@ -496,6 +496,22 @@
             "value": "systemd-libs"
           }
         ]
+      },
+      {
+        "name": "RHSA-2020:4553",
+        "description": "Some vulnerability description",
+        "uri": "https://example.com",
+        "severity": "UNDEFINED",
+        "attributes": [
+          {
+            "key": "package_version",
+            "value": "239-31.el8_2.2"
+          },
+          {
+            "key": "package_name",
+            "value": "systemd-libs"
+          }
+        ]
       }
     ],
     "imageScanCompletedAt": 1615279785,
@@ -503,7 +519,8 @@
     "findingSeverityCounts": {
       "MEDIUM": 24,
       "LOW": 4,
-      "HIGH": 3
+      "HIGH": 3,
+      "UNDEFINED": 1
     }
   },
   "registryId": "1234",
