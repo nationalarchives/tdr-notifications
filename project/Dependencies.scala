@@ -7,7 +7,7 @@ object Dependencies {
   lazy val sttpCatsEffect = "com.softwaremill.sttp.client" %% "async-http-client-backend-cats" % "2.2.9"
   lazy val typesafe = "com.typesafe" % "config" % "1.4.0"
   lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.8.2"
-  lazy val awsUtils =  "uk.gov.nationalarchives.aws.utils" %% "tdr-aws-utils" % "0.1.14"
+  lazy val awsUtils =  "uk.gov.nationalarchives.aws.utils" %% "tdr-aws-utils" % "0.1.15"
   lazy val loggerSlf4j = "org.typelevel" %% "log4cats-slf4j" % "1.2.0-RC2"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.2"
   lazy val wiremock = "com.github.tomakehurst" % "wiremock" % "2.27.2"
