@@ -150,9 +150,17 @@ object EventMessages {
 
         val exportInfoMessage = constructExportInfoMessage(incomingEvent)
 
-        val message = s"The export for the consignment ${incomingEvent.consignmentId} " +
-          s"has ${if (incomingEvent.success) "completed" else "failed"} for environment ${incomingEvent.environment}" +
-          s"${exportInfoMessage}"
+        val message: String = if (incomingEvent.success) {
+          ":white_check_mark: *Export success:* \n" +
+            s"*Consignment ID:* ${incomingEvent.consignmentId} \n" +
+            s"*Environment:* ${incomingEvent.environment}: \n" +
+            s"$exportInfoMessage"
+        } else {
+          ":x: *Export failure:* \n" +
+          s"*Consignment ID:* ${incomingEvent.consignmentId} \n" +
+          s"*Environment:* ${incomingEvent.environment}: \n" +
+          s"$exportInfoMessage"
+        }
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).some
       } else {
         Option.empty
