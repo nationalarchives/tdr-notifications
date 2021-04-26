@@ -53,14 +53,26 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
       s""":\\nUser ID: ${successDetails.get.userId}\\nConsignment Reference: ${successDetails.get.consignmentReference}\\nTransferring Body Code: ${successDetails.get.transferringBodyCode}"""
     } else if(failureCause.isDefined) s""":\\nCause: ${failureCause.get}""" else """"""
 
-    s"""{
-       |  "blocks" : [ {
-       |    "type" : "section",
-       |    "text" : {
-       |      "type" : "mrkdwn",
-       |      "text" : "The export for the consignment ${exportStatusEvent.consignmentId} has ${if (exportStatusEvent.success) "completed" else "failed"} for environment ${exportStatusEvent.environment}${exportOutputMessage}"
-       |    }
-       |  } ]
-       |}""".stripMargin
+    if (exportStatusEvent.success) {
+      s"""{
+         |  "blocks" : [ {
+         |    "type" : "section",
+         |    "text" : {
+         |      "type" : "mrkdwn",
+         |      "text" : ":white_check_mark: *Export success:* \\n*Consignment ID:* ${exportStatusEvent.consignmentId} \\n*Environment:* ${exportStatusEvent.environment}: \\n$exportOutputMessage"
+         |    }
+         |  } ]
+         |}""".stripMargin
+    } else {
+      s"""{
+         |  "blocks" : [ {
+         |    "type" : "section",
+         |    "text" : {
+         |      "type" : "mrkdwn",
+         |      "text" : ":x: *Export failure:* \\n*Consignment ID:* ${exportStatusEvent.consignmentId} \\n*Environment:* ${exportStatusEvent.environment}: \\n$exportOutputMessage"
+         |    }
+         |  } ]
+         |}""".stripMargin
+    }
   }
 }
