@@ -50,8 +50,8 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     val successDetails = exportStatusEvent.successDetails
     val failureCause = exportStatusEvent.failureCause
     val exportOutputMessage = if(successDetails.isDefined) {
-      s""":\\nUser ID: ${successDetails.get.userId}\\nConsignment Reference: ${successDetails.get.consignmentReference}\\nTransferring Body Code: ${successDetails.get.transferringBodyCode}"""
-    } else if(failureCause.isDefined) s""":\\nCause: ${failureCause.get}""" else """"""
+      s"""\\n*User ID:* ${successDetails.get.userId}\\n*Consignment Reference:* ${successDetails.get.consignmentReference}\\n*Transferring Body Code:* ${successDetails.get.transferringBodyCode}"""
+    } else if(failureCause.isDefined) s"""\\n*Cause:* ${failureCause.get}""" else """"""
 
     if (exportStatusEvent.success) {
       s"""{
@@ -59,7 +59,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
          |    "type" : "section",
          |    "text" : {
          |      "type" : "mrkdwn",
-         |      "text" : ":white_check_mark: *Export success:* \\n*Consignment ID:* ${exportStatusEvent.consignmentId} \\n*Environment:* ${exportStatusEvent.environment}: \\n$exportOutputMessage"
+         |      "text" : ":white_check_mark: *Export success for ${exportStatusEvent.environment} environment!* \\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
          |    }
          |  } ]
          |}""".stripMargin
@@ -69,7 +69,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
          |    "type" : "section",
          |    "text" : {
          |      "type" : "mrkdwn",
-         |      "text" : ":x: *Export failure:* \\n*Consignment ID:* ${exportStatusEvent.consignmentId} \\n*Environment:* ${exportStatusEvent.environment}: \\n$exportOutputMessage"
+         |      "text" : ":x: *Export failure for ${exportStatusEvent.environment} environment!* \\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
          |    }
          |  } ]
          |}""".stripMargin
