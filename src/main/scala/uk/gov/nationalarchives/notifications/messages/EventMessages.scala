@@ -151,11 +151,11 @@ object EventMessages {
         val exportInfoMessage = constructExportInfoMessage(incomingEvent)
 
         val message: String = if (incomingEvent.success) {
-          s":white_check_mark: *Export success for ${incomingEvent.environment} environment!* \n" +
+          s":white_check_mark: Export *success* on *${incomingEvent.environment}!* \n" +
             s"*Consignment ID:* ${incomingEvent.consignmentId}" +
             s"$exportInfoMessage"
         } else {
-          s":x: *Export failure for ${incomingEvent.environment} environment!* \n" +
+          s":x: Export *failure* on *${incomingEvent.environment}!* \n" +
           s"*Consignment ID:* ${incomingEvent.consignmentId}" +
           s"$exportInfoMessage"
         }
