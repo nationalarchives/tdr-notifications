@@ -59,7 +59,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
          |    "type" : "section",
          |    "text" : {
          |      "type" : "mrkdwn",
-         |      "text" : ":white_check_mark: *Export success for ${exportStatusEvent.environment} environment!* \\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
+         |      "text" : ":white_check_mark: Export *success* on *${exportStatusEvent.environment}!* \\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
          |    }
          |  } ]
          |}""".stripMargin
@@ -69,7 +69,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
          |    "type" : "section",
          |    "text" : {
          |      "type" : "mrkdwn",
-         |      "text" : ":x: *Export failure for ${exportStatusEvent.environment} environment!* \\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
+         |      "text" : ":x: Export *failure* on *${exportStatusEvent.environment}!* \\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
          |    }
          |  } ]
          |}""".stripMargin
