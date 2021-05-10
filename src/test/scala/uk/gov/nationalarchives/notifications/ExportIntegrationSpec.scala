@@ -50,17 +50,29 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     val successDetails = exportStatusEvent.successDetails
     val failureCause = exportStatusEvent.failureCause
     val exportOutputMessage = if(successDetails.isDefined) {
-      s""":\\nUser ID: ${successDetails.get.userId}\\nConsignment Reference: ${successDetails.get.consignmentReference}\\nTransferring Body Code: ${successDetails.get.transferringBodyCode}"""
-    } else if(failureCause.isDefined) s""":\\nCause: ${failureCause.get}""" else """"""
+      s"""\\n*User ID:* ${successDetails.get.userId}\\n*Consignment Reference:* ${successDetails.get.consignmentReference}\\n*Transferring Body Code:* ${successDetails.get.transferringBodyCode}"""
+    } else if(failureCause.isDefined) s"""\\n*Cause:* ${failureCause.get}""" else """"""
 
-    s"""{
-       |  "blocks" : [ {
-       |    "type" : "section",
-       |    "text" : {
-       |      "type" : "mrkdwn",
-       |      "text" : "The export for the consignment ${exportStatusEvent.consignmentId} has ${if (exportStatusEvent.success) "completed" else "failed"} for environment ${exportStatusEvent.environment}${exportOutputMessage}"
-       |    }
-       |  } ]
-       |}""".stripMargin
+    if (exportStatusEvent.success) {
+      s"""{
+         |  "blocks" : [ {
+         |    "type" : "section",
+         |    "text" : {
+         |      "type" : "mrkdwn",
+         |      "text" : ":white_check_mark: Export *success* on *${exportStatusEvent.environment}!* \\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
+         |    }
+         |  } ]
+         |}""".stripMargin
+    } else {
+      s"""{
+         |  "blocks" : [ {
+         |    "type" : "section",
+         |    "text" : {
+         |      "type" : "mrkdwn",
+         |      "text" : ":x: Export *failure* on *${exportStatusEvent.environment}!* \\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
+         |    }
+         |  } ]
+         |}""".stripMargin
+    }
   }
 }

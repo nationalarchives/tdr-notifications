@@ -150,9 +150,15 @@ object EventMessages {
 
         val exportInfoMessage = constructExportInfoMessage(incomingEvent)
 
-        val message = s"The export for the consignment ${incomingEvent.consignmentId} " +
-          s"has ${if (incomingEvent.success) "completed" else "failed"} for environment ${incomingEvent.environment}" +
-          s"${exportInfoMessage}"
+        val message: String = if (incomingEvent.success) {
+          s":white_check_mark: Export *success* on *${incomingEvent.environment}!* \n" +
+            s"*Consignment ID:* ${incomingEvent.consignmentId}" +
+            s"$exportInfoMessage"
+        } else {
+          s":x: Export *failure* on *${incomingEvent.environment}!* \n" +
+          s"*Consignment ID:* ${incomingEvent.consignmentId}" +
+          s"$exportInfoMessage"
+        }
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).some
       } else {
         Option.empty
@@ -162,11 +168,11 @@ object EventMessages {
     private def constructExportInfoMessage(incomingEvent: ExportStatusEvent): String = {
      if (incomingEvent.successDetails.isDefined) {
         val value = incomingEvent.successDetails.get
-        s":\nUser ID: ${value.userId}" +
-        s"\nConsignment Reference: ${value.consignmentReference}" +
-        s"\nTransferring Body Code: ${value.transferringBodyCode}"
+        s"\n*User ID:* ${value.userId}" +
+        s"\n*Consignment Reference:* ${value.consignmentReference}" +
+        s"\n*Transferring Body Code:* ${value.transferringBodyCode}"
       } else if(incomingEvent.failureCause.isDefined) {
-        s":\nCause: ${incomingEvent.failureCause.get}"
+        s"\n*Cause:* ${incomingEvent.failureCause.get}"
       } else ""
     }
   }
