@@ -6,7 +6,8 @@ import java.io.ByteArrayInputStream
 object LambdaRunner extends App {
   val lambda = new Lambda
 
-  val message =
+//  There are three 'message' variables so that different types of Slack notification messages can be tested locally
+  val ecrScanMessage =
     s"""
        |{
        |  "detail": {
@@ -23,7 +24,35 @@ object LambdaRunner extends App {
        |  }
        |}
        |""".stripMargin
-  val inputStream = new ByteArrayInputStream(message.getBytes)
+
+    val exportSuccessMessage = s"""
+       |{
+       |    "Records": [
+       |        {
+       |            "Sns": {
+       |                "Message": "{\\"success\\":true,\\"consignmentId\\":\\"fc2b60ba-8078-4e7a-b91b-a5b6c616a9bc\\", \\"environment\\": \\"some-environment\\", \\"successDetails\\":{\\"userId\\": \\"fc2b60ba-8078-4e7a-b91b-a5b6c616a9bc\\",\\"consignmentReference\\": \\"some-consignment-reference\\",\\"transferringBodyCode\\": \\"some-transferring-body-code\\"}}"
+       |            }
+       |        }
+       |    ]
+       |}
+       |
+       |""".stripMargin
+
+    val exportFailureMessage =
+      s"""
+         |{
+         |    "Records": [
+         |        {
+         |            "Sns": {
+         |                "Message": "{\\"success\\":false,\\"consignmentId\\":\\"fc2b60ba-8078-4e7a-b91b-a5b6c616a9bc\\",\\"environment\\": \\"some-environment\\",\\"failureCause\\":\\"Cause of failure\\"}"
+         |            }
+         |        }
+         |    ]
+         |}
+         |
+         |""".stripMargin
+
+  val inputStream = new ByteArrayInputStream(ecrScanMessage.getBytes)
 
   // The Lambda does not use the output stream, so it's safe to set it to null
   val outputStream = null
