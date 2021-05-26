@@ -13,7 +13,7 @@ This project is for sending slack/email messages in response to cloudwatch event
 
 Set these environment variables, either on the command line or in IntelliJ depending on how you want to run the app:
 
-* `SLACK_WEBHOOK`: the webhook URL of a Slack app. You can [create a new app][Slack-app] in Slack for testing purposes.
+* `SLACK_WEBHOOK`: the webhook URL of a Slack app. You can [create a new app][Slack-app] (steps 1-3) in Slack for testing purposes.
   Use the `#bot-testing` channel rather than a team channel to avoid confusion and spam.
 * `TO_EMAIL`: the email address that alerts should be sent to. For testing purposes, this should normally be your own
   email address rather than a team one.
@@ -32,4 +32,4 @@ Then run the LambdaRunner app from IntelliJ, or run `sbt run` on the command lin
 ## Adding new environment variables to the tests
 The environment variables in the deployed lambda are encrypted using KMS and then base64 encoded. These are then decoded in the lambda. Because of this, any variables in `src/test/resources/application.conf` which come from environment variables in `src/main/resources/application.conf` need to be stored base64 encoded. There are comments next to each variable to say what the base64 string decodes to. If you want to add a new variable you can run `echo -n "value of variable" | base64 -w 0` and paste the output into the test application.conf
 
-[Slack-app]: https://api.slack.com/apps/
+[Slack-app]: https://api.slack.com/messaging/webhooks
