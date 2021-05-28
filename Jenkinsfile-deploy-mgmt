@@ -16,7 +16,7 @@ pipeline {
       }
       steps {
         script {
-          tdr.reportStartOfBuildToGitHub(repo, env.GIT_COMMIT)
+          tdr.reportStartOfBuildToGitHub("tdr-notifications", env.GIT_COMMIT)
           tdr.assembleAndStash("notifications")
         }
       }
