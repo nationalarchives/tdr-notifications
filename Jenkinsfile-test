@@ -3,7 +3,7 @@ library("tdr-jenkinslib")
 lambdaTests(
   // Hard-code stage, since it is arbitrary in the lambdaTests
   // function, which publishes the code to the management account
-  stage: "mgmt",
+  stage: "intg",
   libraryName: "notifications",
   deployJobName: "TDR Notifications Deploy"
 )
