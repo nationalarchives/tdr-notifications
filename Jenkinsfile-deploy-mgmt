@@ -7,20 +7,6 @@ pipeline {
     string(name: "TO_DEPLOY", description: "The git tag, branch or commit reference to deploy, e.g. '1'")
   }
   stages {
-    stage("Build") {
-      agent {
-        ecs {
-          inheritFrom "transfer-frontend"
-          taskDefinitionOverride "arn:aws:ecs:eu-west-2:${env.MANAGEMENT_ACCOUNT}:task-definition/sbtwithpostgres"
-        }
-      }
-      steps {
-        script {
-          tdr.reportStartOfBuildToGitHub("tdr-notifications", env.GIT_COMMIT)
-          tdr.assembleAndStash("notifications")
-        }
-      }
-    }
     stage("Deploy lambda") {
       agent {
         ecs {
@@ -30,15 +16,6 @@ pipeline {
       }
       steps {
         script {
-          unstash "notifications-jar"
-          tdr.copyToS3CodeBucket("notifications", versionTag)
-
-          tdr.configureJenkinsGitUser()
-
-          sh "git tag ${versionTag}"
-          sshagent(['github-jenkins']) {
-            sh("git push origin ${versionTag}")
-          }
           def accountNumber = tdr.getAccountNumberFromStage(env.MANAGEMENT_ACCOUNT)
           sh "python3 /deploy_lambda_from_s3.py ${accountNumber} mgmt tdr-notifications-mgmt tdr-backend-code-mgmt ${params.TO_DEPLOY}/notifications.jar"
         }
