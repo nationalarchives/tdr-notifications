@@ -1,4 +1,4 @@
-@Library("tdr-jenkinslib@add-before-agent-parameter") _
+library("tdr-jenkinslib")
 
 lambdaTests(
   // Hard-code stage, since it is arbitrary in the lambdaTests
