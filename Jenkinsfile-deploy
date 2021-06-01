@@ -1,8 +1,8 @@
 library("tdr-jenkinslib")
 
 deployToLambda(
-        stage: params.STAGE,
-        libraryName: "notifications",
-        version: params.TO_DEPLOY,
-        deploymentPackageName: "notifications.jar"
+  stage: params.STAGE,
+  libraryName: "notifications",
+  version: params.TO_DEPLOY,
+  deploymentPackageName: "notifications.jar"
 )
