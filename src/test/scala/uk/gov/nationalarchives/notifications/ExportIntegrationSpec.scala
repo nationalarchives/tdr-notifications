@@ -8,7 +8,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{Expor
 class ExportIntegrationSpec extends LambdaIntegrationSpec {
   override lazy val events: TableFor5[String, String, Option[String], Option[String], () => ()] = Table(
     ("description", "input", "emailBody", "slackBody", "stubContext"),
-    ("a successful export event on intg", exportStatusEventInputText(exportStatus1), None, None, () => ()),
+    ("a successful export event on intg", exportStatusEventInputText(exportStatus1), None, Some(expectedSlackMessage(exportStatus1)), () => ()),
     ("a failed export event on intg", exportStatusEventInputText(exportStatus2), None, Some(expectedSlackMessage(exportStatus2)), () => ()),
     ("a successful export event on staging", exportStatusEventInputText(exportStatus3), None, Some(expectedSlackMessage(exportStatus3)), () => ()),
     ("a failed export event on staging", exportStatusEventInputText(exportStatus4), None, Some(expectedSlackMessage(exportStatus4)), () => ()),
