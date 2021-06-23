@@ -146,18 +146,23 @@ object EventMessages {
     }
 
     override def slack(incomingEvent: ExportStatusEvent, context: Unit): Option[SlackMessage] = {
-      val exportInfoMessage = constructExportInfoMessage(incomingEvent)
+      if(incomingEvent.environment != "intg" || !incomingEvent.success) {
 
-      val message: String = if (incomingEvent.success) {
-        s":white_check_mark: Export *success* on *${incomingEvent.environment}!* \n" +
+        val exportInfoMessage = constructExportInfoMessage(incomingEvent)
+
+        val message: String = if (incomingEvent.success) {
+          s":white_check_mark: Export *success* on *${incomingEvent.environment}!* \n" +
+            s"*Consignment ID:* ${incomingEvent.consignmentId}" +
+            s"$exportInfoMessage"
+        } else {
+          s":x: Export *failure* on *${incomingEvent.environment}!* \n" +
           s"*Consignment ID:* ${incomingEvent.consignmentId}" +
           s"$exportInfoMessage"
+        }
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).some
       } else {
-        s":x: Export *failure* on *${incomingEvent.environment}!* \n" +
-        s"*Consignment ID:* ${incomingEvent.consignmentId}" +
-        s"$exportInfoMessage"
+        Option.empty
       }
-      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).some
     }
 
     private def constructExportInfoMessage(incomingEvent: ExportStatusEvent): String = {
