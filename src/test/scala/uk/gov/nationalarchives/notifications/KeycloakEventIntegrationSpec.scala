@@ -1,9 +1,6 @@
 package uk.gov.nationalarchives.notifications
 
-import java.util.UUID
-
 import org.scalatest.prop.TableFor5
-import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 
 class KeycloakEventIntegrationSpec extends LambdaIntegrationSpec {
@@ -11,14 +8,14 @@ class KeycloakEventIntegrationSpec extends LambdaIntegrationSpec {
     ("description", "input", "emailBody", "slackBody", "stubContext"),
     ("a keycloak event message", scanEventInputText(keycloakEvent), None, Some(expectedKeycloakEventSlackMessage), () => ())
   )
-  private lazy val keycloakEvent = KeycloakEvent("Some keycloak event message")
+  private lazy val keycloakEvent = KeycloakEvent("tdrEnv", "Some keycloak event message")
 
   def scanEventInputText(keycloakEvent: KeycloakEvent): String = {
     s"""{
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "${keycloakEvent.message}"
+       |       "Message": "{\\"tdrEnv\\":\\"${keycloakEvent.tdrEnv}\\",\\"message\\":\\"${keycloakEvent.message}\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
@@ -30,7 +27,7 @@ class KeycloakEventIntegrationSpec extends LambdaIntegrationSpec {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : ":warning: Keycloak Event: Some keycloak event message"
+       |      "text" : ":warning: Keycloak Event tdrEnv: Some keycloak event message"
        |    }
        |  } ]
        |}""".stripMargin

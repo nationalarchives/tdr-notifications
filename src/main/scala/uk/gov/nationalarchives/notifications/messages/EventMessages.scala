@@ -188,7 +188,7 @@ object EventMessages {
     }
 
     override def slack(keycloakEvent: KeycloakEvent, context: Unit): Option[SlackMessage] = {
-      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event: ${keycloakEvent.message}")))).some
+      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
     }
   }
 }
