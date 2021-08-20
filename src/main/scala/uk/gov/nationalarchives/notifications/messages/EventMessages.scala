@@ -1,6 +1,7 @@
 package uk.gov.nationalarchives.notifications.messages
 
 import java.net.URI
+
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.config.ConfigFactory
@@ -11,6 +12,7 @@ import software.amazon.awssdk.services.ecr.model.FindingSeverity
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
@@ -174,6 +176,19 @@ object EventMessages {
       } else if(incomingEvent.failureCause.isDefined) {
         s"\n*Cause:* ${incomingEvent.failureCause.get}"
       } else ""
+    }
+  }
+
+  implicit val keycloakEventMessages: Messages[KeycloakEvent, Unit] = new Messages[KeycloakEvent, Unit] {
+    override def context(event: KeycloakEvent): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: KeycloakEvent, context: Unit): Option[Email] = {
+      logger.info(s"Skipping email for Keycloak event ${incomingEvent}")
+      Option.empty
+    }
+
+    override def slack(keycloakEvent: KeycloakEvent, context: Unit): Option[SlackMessage] = {
+      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
     }
   }
 }

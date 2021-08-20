@@ -7,6 +7,7 @@ import cats.implicits.toFlatMapOps
 import io.circe.parser.decode
 import messages.Messages._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
 import uk.gov.nationalarchives.notifications.decoders._
@@ -20,5 +21,6 @@ class Lambda {
     case maintenance : SSMMaintenanceEvent => sendMessages(maintenance)
     case scan: ScanEvent => sendMessages(scan)
     case exportStatus: ExportStatusEvent => sendMessages(exportStatus)
+    case keycloakEvent: KeycloakEvent => sendMessages(keycloakEvent)
   }).flatten.unsafeRunSync()
 }
