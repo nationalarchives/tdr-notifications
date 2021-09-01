@@ -1,7 +1,6 @@
 package uk.gov.nationalarchives.notifications.messages
 
 import java.net.URI
-
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.config.ConfigFactory
@@ -11,6 +10,7 @@ import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, SESUtils}
+import uk.gov.nationalarchives.notifications.decoders.DiskSpaceAlarmDecoder.DiskSpaceAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
@@ -189,6 +189,28 @@ object EventMessages {
 
     override def slack(keycloakEvent: KeycloakEvent, context: Unit): Option[SlackMessage] = {
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
+    }
+  }
+
+  implicit val diskSpaceAlarmMessages: Messages[DiskSpaceAlarmEvent, Unit] = new Messages[DiskSpaceAlarmEvent, Unit] {
+    override def context(incomingEvent: DiskSpaceAlarmEvent): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[Email] = Option.empty
+
+    override def slack(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[SlackMessage] = {
+      if(List("tdr-jenkins-disk-space-alarm-mgmt", "tdr-jenkins-prod-disk-space-alarm-mgmt").contains(incomingEvent.AlarmName)) {
+        val trigger = incomingEvent.Trigger
+        trigger.Dimensions.find(d => d.name == "server_name").map(_.`value`).map(serverName => {
+          val text = if(incomingEvent.NewStateValue == "OK") {
+            s":white_check_mark: $serverName disk space is now below ${trigger.Threshold} percent"
+          } else {
+            s":warning: $serverName disk space is over ${trigger.Threshold} percent"
+          }
+          SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", text))))
+        })
+      } else {
+        Option.empty
+      }
     }
   }
 }

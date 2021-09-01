@@ -7,13 +7,14 @@ import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.decodeScanEven
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.decodeMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.decodeExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.decodeKeycloakEvent
+import uk.gov.nationalarchives.notifications.decoders.DiskSpaceAlarmDecoder.decodeDiskSpaceAlertEvent
 
 trait IncomingEvent {
 }
 
 object IncomingEvent {
   implicit val allDecoders: Decoder[IncomingEvent] = decodeScanEvent or decodeMaintenanceEvent or decodeExportStatusEvent or
-    decodeKeycloakEvent
+    decodeKeycloakEvent or decodeDiskSpaceAlertEvent
 
   def parseSNSMessage(snsMessage: String): Either[DecodingFailure, Json] = {
     parse(snsMessage)
