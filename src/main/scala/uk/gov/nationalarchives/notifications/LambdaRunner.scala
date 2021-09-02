@@ -52,6 +52,20 @@ object LambdaRunner extends App {
          |
          |""".stripMargin
 
+  val diskSpaceFullMessage =
+    s"""
+       |{
+       |    "Records": [
+       |        {
+       |            "Sns": {
+       |                "Message": "{\\"AlarmName\\":\\"tdr-jenkins-disk-space-alarm-mgmt\\",\\"NewStateValue\\":\\"OK\\",\\"Trigger\\":{\\"Dimensions\\":[{\\"value\\":\\"Jenkins\\",\\"name\\":\\"server_name\\"}],\\"Threshold\\":20.0}}"
+       |            }
+       |        }
+       |    ]
+       |}
+       |
+       |""".stripMargin
+
   val inputStream = new ByteArrayInputStream(ecrScanMessage.getBytes)
 
   // The Lambda does not use the output stream, so it's safe to set it to null
