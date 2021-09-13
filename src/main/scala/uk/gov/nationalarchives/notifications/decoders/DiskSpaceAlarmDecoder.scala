@@ -4,5 +4,5 @@ object DiskSpaceAlarmDecoder {
 
   case class AlarmDimension(name: String, `value`: String)
   case class AlarmTrigger(Dimensions: List[AlarmDimension], Threshold: Int)
-  case class DiskSpaceAlarmEvent(NewStateValue: String, AlarmName: String, Trigger: AlarmTrigger) extends IncomingEvent
+  case class DiskSpaceAlarmEvent(NewStateValue: String, AlarmName: String, Trigger: AlarmTrigger, NewStateReason: String) extends IncomingEvent
 }
