@@ -35,7 +35,7 @@ class DiskSpaceAlarmIntegrationSpec extends LambdaIntegrationSpec {
            |			"type": "section",
            |			"text": {
            |				"type": "mrkdwn",
-           |				"text": "See https://grafana.tdr-management.nationalarchives.gov.uk/d/eDVRAnI7z/jenkins-disk-space to see the data"
+           |				"text": "See <https://grafana.tdr-management.nationalarchives.gov.uk/d/eDVRAnI7z/jenkins-disk-space|this Grafana dashboard> to see the data"
            |			}
            |	}
            |  ]
@@ -53,9 +53,16 @@ class DiskSpaceAlarmIntegrationSpec extends LambdaIntegrationSpec {
            |	  "type": "section",
            |			"text": {
            |				"type": "mrkdwn",
-           |				"text": "See https://grafana.tdr-management.nationalarchives.gov.uk/d/eDVRAnI7z/jenkins-disk-space to see the data"
+           |				"text": "See <https://grafana.tdr-management.nationalarchives.gov.uk/d/eDVRAnI7z/jenkins-disk-space|this Grafana dashboard> to see the data"
            |			}
-           |	}
+           |	},
+           |  {
+           |    "type": "section",
+           |      "text": {
+           |        "type": "mrkdwn",
+           |        "text": "See <https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/clear-jenkins-disk-space.md|the dev documentation> for details of how to clear disk space"
+           |      }
+           |  }
            |  ]
            |}""".stripMargin.some
       }
@@ -73,7 +80,7 @@ class DiskSpaceAlarmIntegrationSpec extends LambdaIntegrationSpec {
          |	  "type": "section",
          |			"text": {
          |				"type": "mrkdwn",
-         |				"text": "See https://grafana.tdr-management.nationalarchives.gov.uk/d/eDVRAnI7z/jenkins-disk-space to see the data"
+         |				"text": "See <https://grafana.tdr-management.nationalarchives.gov.uk/d/eDVRAnI7z/jenkins-disk-space|this Grafana dashboard> to see the data"
          |			}
          |	}
          |  ]
