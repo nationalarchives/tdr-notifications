@@ -199,25 +199,37 @@ object EventMessages {
 
     override def slack(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[SlackMessage] = {
       if(List("tdr-jenkins-disk-space-alarm-mgmt", "tdr-jenkins-prod-disk-space-alarm-mgmt").contains(incomingEvent.AlarmName)) {
+        val extraBlocks = Nil
         val trigger = incomingEvent.Trigger
         trigger.Dimensions.find(d => d.name == "server_name").map(_.`value`).map(serverName => {
-          val text = if(incomingEvent.NewStateValue == "OK") {
-            s":white_check_mark: $serverName disk space is now below ${trigger.Threshold} percent"
+          if(incomingEvent.NewStateValue == "OK") {
+            slackMessage(
+              s":white_check_mark: $serverName disk space is now below ${trigger.Threshold} percent"
+            )
           } else {
             if(incomingEvent.NewStateReason.contains("no datapoints were received")) {
-              s":warning: $serverName is not sending disk space data to Cloudwatch. This is most likely because Jenkins is restarting."
+              slackMessage(
+                s":warning: $serverName is not sending disk space data to Cloudwatch. This is most likely because Jenkins is restarting."
+              )
             } else {
-              s":warning: $serverName disk space is over ${trigger.Threshold} percent"
+              slackMessage(
+                s":warning: $serverName disk space is over ${trigger.Threshold} percent",
+                List("See <https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/clear-jenkins-disk-space.md|the dev documentation> for details of how to clear disk space")
+              )
             }
           }
-          SlackMessage(List(
-            SlackBlock("section", SlackText("mrkdwn", text)),
-            SlackBlock("section", SlackText("mrkdwn", "See https://grafana.tdr-management.nationalarchives.gov.uk/d/eDVRAnI7z/jenkins-disk-space to see the data")))
-          )
         })
       } else {
         Option.empty
       }
+    }
+
+    private def slackMessage(text: String, extraBlocksText: List[String] = Nil): SlackMessage = {
+      val slackBlocks = List(
+        SlackBlock("section", SlackText("mrkdwn", text)),
+        SlackBlock("section", SlackText("mrkdwn", "See <https://grafana.tdr-management.nationalarchives.gov.uk/d/eDVRAnI7z/jenkins-disk-space|this Grafana dashboard> to see the data"))
+      ) ++ extraBlocksText.map(text => SlackBlock("section", SlackText("mrkdwn", text)))
+      SlackMessage(slackBlocks)
     }
   }
 }
