@@ -204,9 +204,16 @@ object EventMessages {
           val text = if(incomingEvent.NewStateValue == "OK") {
             s":white_check_mark: $serverName disk space is now below ${trigger.Threshold} percent"
           } else {
-            s":warning: $serverName disk space is over ${trigger.Threshold} percent"
+            if(incomingEvent.NewStateReason.contains("no datapoints were received")) {
+              s":warning: $serverName is not sending disk space data to Cloudwatch. This is most likely because Jenkins is restarting."
+            } else {
+              s":warning: $serverName disk space is over ${trigger.Threshold} percent"
+            }
           }
-          SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", text))))
+          SlackMessage(List(
+            SlackBlock("section", SlackText("mrkdwn", text)),
+            SlackBlock("section", SlackText("mrkdwn", "See https://grafana.tdr-management.nationalarchives.gov.uk/d/eDVRAnI7z/jenkins-disk-space to see the data")))
+          )
         })
       } else {
         Option.empty
