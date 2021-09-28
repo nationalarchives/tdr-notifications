@@ -1,7 +1,7 @@
 library("tdr-jenkinslib")
 pipeline {
   agent {
-    label "master"
+    label "built-in"
   }
   parameters {
     string(name: "TO_DEPLOY", description: "The git tag, branch or commit reference to deploy, e.g. '1'")
