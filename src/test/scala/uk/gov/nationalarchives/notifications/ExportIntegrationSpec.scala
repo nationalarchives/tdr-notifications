@@ -29,7 +29,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     val successDetails = exportStatusEvent.successDetails
     val failureCause = exportStatusEvent.failureCause
     val exportOutputJson = if(successDetails.isDefined) {
-      s""", \\"successDetails\\":{\\"userId\\": \\"${successDetails.get.userId}\\",\\"consignmentReference\\": \\"${successDetails.get.consignmentReference}\\",\\"transferringBodyCode\\": \\"${successDetails.get.transferringBodyCode}\\"}"""
+      s""", \\"successDetails\\":{\\"userId\\": \\"${successDetails.get.userId}\\",\\"consignmentReference\\": \\"${successDetails.get.consignmentReference}\\",\\"transferringBodyName\\": \\"${successDetails.get.transferringBodyName}\\"}"""
     } else if(failureCause.isDefined) s""", \\"failureCause\\":\\"${failureCause.get}\\" """ else """"""
 
     s"""
@@ -50,7 +50,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     val successDetails = exportStatusEvent.successDetails
     val failureCause = exportStatusEvent.failureCause
     val exportOutputMessage = if(successDetails.isDefined) {
-      s"""\\n*User ID:* ${successDetails.get.userId}\\n*Consignment Reference:* ${successDetails.get.consignmentReference}\\n*Transferring Body Code:* ${successDetails.get.transferringBodyCode}"""
+      s"""\\n*User ID:* ${successDetails.get.userId}\\n*Consignment Reference:* ${successDetails.get.consignmentReference}\\n*Transferring Body Name:* ${successDetails.get.transferringBodyName}"""
     } else if(failureCause.isDefined) s"""\\n*Cause:* ${failureCause.get}""" else """"""
 
     if (exportStatusEvent.success) {

@@ -172,7 +172,7 @@ object EventMessages {
         val value = incomingEvent.successDetails.get
         s"\n*User ID:* ${value.userId}" +
         s"\n*Consignment Reference:* ${value.consignmentReference}" +
-        s"\n*Transferring Body Code:* ${value.transferringBodyCode}"
+        s"\n*Transferring Body Name:* ${value.transferringBodyName}"
       } else if(incomingEvent.failureCause.isDefined) {
         s"\n*Cause:* ${incomingEvent.failureCause.get}"
       } else ""
