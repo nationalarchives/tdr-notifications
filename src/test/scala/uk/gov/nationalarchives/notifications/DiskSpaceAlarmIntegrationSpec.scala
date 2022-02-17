@@ -1,7 +1,7 @@
 package uk.gov.nationalarchives.notifications
 
 import cats.implicits._
-import org.scalatest.prop.TableFor5
+import org.scalatest.prop.TableFor6
 
 class DiskSpaceAlarmIntegrationSpec extends LambdaIntegrationSpec {
 
@@ -90,15 +90,15 @@ class DiskSpaceAlarmIntegrationSpec extends LambdaIntegrationSpec {
     }
   }
 
-  override def events: TableFor5[String, String, Option[String], Option[String], () => Unit] = Table(
-    ("description", "input", "emailBody", "slackBody", "stubContext"),
-    ("Alarm OK for server Jenkins with threshold 20", event("OK", "Jenkins", 20), None, slackMessage("OK", "Jenkins", 20), () => ()),
-    ("Alarm OK for server Jenkins with threshold 70", event("OK", "Jenkins", 70), None, slackMessage("OK", "Jenkins", 70), () => ()),
-    ("Alarm OK for server JenkinsProd with threshold 70", event("OK", "JenkinsProd", 70), None, slackMessage("OK", "JenkinsProd", 70), () => ()),
-    ("Alarm ALARM for server Jenkins with threshold 20", event("ALARM", "Jenkins", 20), None, slackMessage("ALARM", "Jenkins", 20), () => ()),
-    ("Alarm ALARM for server Jenkins with threshold 70", event("ALARM", "Jenkins", 70), None, slackMessage("ALARM", "Jenkins", 70), () => ()),
-    ("Alarm ALARM for server JenkinsProd with threshold 70", event("ALARM", "JenkinsProd", 70), None, slackMessage("ALARM", "JenkinsProd", 70), () => ()),
-    ("Alarm ALARM for server JenkinsProd with no data points", event("ALARM", "JenkinsProd", 70, "no datapoints were received"), None, slackMessage("ALARM", "JenkinsProd", 70, "no datapoints were received"), () => ()),
-    ("Alarm ALARM for server Jenkins with no data points", event("ALARM", "Jenkins", 70, "no datapoints were received"), None, slackMessage("ALARM", "Jenkins", 70, "no datapoints were received"), () => ())
+  override def events: TableFor6[String, String, Option[String], Option[String],  Option[String], () => Unit] = Table(
+    ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
+    ("Alarm OK for server Jenkins with threshold 20", event("OK", "Jenkins", 20), None, slackMessage("OK", "Jenkins", 20), None, () => ()),
+    ("Alarm OK for server Jenkins with threshold 70", event("OK", "Jenkins", 70), None, slackMessage("OK", "Jenkins", 70), None, () => ()),
+    ("Alarm OK for server JenkinsProd with threshold 70", event("OK", "JenkinsProd", 70), None, slackMessage("OK", "JenkinsProd", 70), None, () => ()),
+    ("Alarm ALARM for server Jenkins with threshold 20", event("ALARM", "Jenkins", 20), None, slackMessage("ALARM", "Jenkins", 20), None, () => ()),
+    ("Alarm ALARM for server Jenkins with threshold 70", event("ALARM", "Jenkins", 70), None, slackMessage("ALARM", "Jenkins", 70), None, () => ()),
+    ("Alarm ALARM for server JenkinsProd with threshold 70", event("ALARM", "JenkinsProd", 70), None, slackMessage("ALARM", "JenkinsProd", 70), None, () => ()),
+    ("Alarm ALARM for server JenkinsProd with no data points", event("ALARM", "JenkinsProd", 70, "no datapoints were received"), None, slackMessage("ALARM", "JenkinsProd", 70, "no datapoints were received"), None, () => ()),
+    ("Alarm ALARM for server Jenkins with no data points", event("ALARM", "Jenkins", 70, "no datapoints were received"), None, slackMessage("ALARM", "Jenkins", 70, "no datapoints were received"), None, () => ())
   )
 }

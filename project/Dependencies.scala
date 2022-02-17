@@ -11,5 +11,6 @@ object Dependencies {
   lazy val loggerSlf4j = "org.typelevel" %% "log4cats-slf4j" % "1.2.0-RC2"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.2"
   lazy val wiremock = "com.github.tomakehurst" % "wiremock" % "2.27.2"
-
+  lazy val elasticMq = "org.elasticmq" %% "elasticmq-server" % "1.1.1"
+  lazy val elasticMqSqs = "org.elasticmq" %% "elasticmq-rest-sqs" % "1.1.1"
 }

@@ -1,9 +1,13 @@
 package uk.gov.nationalarchives.notifications.messages
 
 import java.net.URI
+
 import cats.effect.IO
 import cats.implicits._
 import com.typesafe.config.ConfigFactory
+import io.circe.Encoder.AsObject.importedAsObjectEncoder
+import io.circe.generic.auto._
+import io.circe.syntax.EncoderOps
 import org.typelevel.log4cats.SelfAwareStructuredLogger
 import org.typelevel.log4cats.slf4j.Slf4jLogger
 import scalatags.Text.all._
@@ -28,6 +32,8 @@ object EventMessages {
   case class SlackBlock(`type`: String, text: SlackText)
 
   case class SlackMessage(blocks: List[SlackBlock])
+
+  case class SQSMessage(consignmentReference: String)
 
   implicit val scanEventMessages: Messages[ScanEvent, ImageScanReport] = new Messages[ScanEvent, ImageScanReport] {
 
@@ -123,6 +129,8 @@ object EventMessages {
         Option.empty
       }
     }
+
+    override def sqs(incomingEvent: ScanEvent, context: ImageScanReport): Option[String] = Option.empty
   }
 
   implicit val maintenanceEventMessages: Messages[SSMMaintenanceEvent, Unit] = new Messages[SSMMaintenanceEvent, Unit] {
@@ -137,6 +145,8 @@ object EventMessages {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", "The Jenkins backup has failed. Please check the maintenance window in systems manager")))).some
       }
     }
+
+    override def sqs(incomingEvent: SSMMaintenanceEvent, context: Unit): Option[String] = Option.empty
   }
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
@@ -177,6 +187,19 @@ object EventMessages {
         s"\n*Cause:* ${incomingEvent.failureCause.get}"
       } else ""
     }
+
+    override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[String] = {
+      if (incomingEvent.success && incomingEvent.successDetails.isDefined) {
+        val value = incomingEvent.successDetails.get
+        val packageSignedUrl: String = "placeholder_value"
+        val packageShaSignedUrl: String = "placeholder_value"
+        Some(SQSExportMessage(packageSignedUrl, packageShaSignedUrl, value.consignmentReference).asJson.toString)
+      } else {
+        val failureCause = if (incomingEvent.failureCause.isDefined) { incomingEvent.failureCause.get } else "No failure cause given"
+        logger.error(s"SQS export message failure for event $incomingEvent: $failureCause")
+        None
+      }
+    }
   }
 
   implicit val keycloakEventMessages: Messages[KeycloakEvent, Unit] = new Messages[KeycloakEvent, Unit] {
@@ -194,6 +217,8 @@ object EventMessages {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
       }
     }
+
+    override def sqs(incomingEvent: KeycloakEvent, context: Unit): Option[String] = Option.empty
   }
 
   implicit val diskSpaceAlarmMessages: Messages[DiskSpaceAlarmEvent, Unit] = new Messages[DiskSpaceAlarmEvent, Unit] {
@@ -235,6 +260,8 @@ object EventMessages {
       ) ++ extraBlocksText.map(text => SlackBlock("section", SlackText("mrkdwn", text)))
       SlackMessage(slackBlocks)
     }
+
+    override def sqs(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[String] = Option.empty
   }
 }
 
@@ -247,3 +274,5 @@ case class ImageScanReport(findings: Seq[Finding]) {
 }
 
 case class Finding(name: String, severity: FindingSeverity)
+
+case class SQSExportMessage(packageSignedUrl: String, packageShaSignedUrl: String, consignmentReference: String, retryCount: Int = 0)

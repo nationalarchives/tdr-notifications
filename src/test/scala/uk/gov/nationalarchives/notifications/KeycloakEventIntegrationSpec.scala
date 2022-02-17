@@ -1,13 +1,13 @@
 package uk.gov.nationalarchives.notifications
 
-import com.github.tomakehurst.wiremock.client.WireMock.{equalTo, postRequestedFor, urlEqualTo}
-import org.scalatest.prop.TableFor5
+import com.github.tomakehurst.wiremock.client.WireMock.{postRequestedFor, urlEqualTo}
+import org.scalatest.prop.TableFor6
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 
 class KeycloakEventIntegrationSpec extends LambdaIntegrationSpec {
-  override lazy val events: TableFor5[String, String, Option[String], Option[String], () => ()] = Table(
-    ("description", "input", "emailBody", "slackBody", "stubContext"),
-    ("a keycloak event message", scanEventInputText(keycloakEvent), None, Some(expectedKeycloakEventSlackMessage), () => ())
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[String], () => ()] = Table(
+    ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
+    ("a keycloak event message", scanEventInputText(keycloakEvent), None, Some(expectedKeycloakEventSlackMessage), None, () => ())
   )
   private lazy val keycloakEvent = KeycloakEvent("tdrEnv", "Some keycloak event message")
 

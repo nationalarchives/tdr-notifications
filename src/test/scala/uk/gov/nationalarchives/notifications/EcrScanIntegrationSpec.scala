@@ -1,7 +1,7 @@
 package uk.gov.nationalarchives.notifications
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import org.scalatest.prop.TableFor5
+import org.scalatest.prop.TableFor6
 import uk.gov.nationalarchives.notifications.EcrScanIntegrationSpec.scanEventInputText
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 
@@ -9,13 +9,14 @@ import scala.io.Source
 
 class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
 
-  override lazy val events: TableFor5[String, String, Option[String], Option[String], () => ()] = Table(
-    ("description", "input", "emailBody", "slackBody", "stubContext"),
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[String], () => ()] = Table(
+    ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     (
       "an ECR scan of 'latest' with a mix of severities",
       scanEventInputText(mixedSeverityEvent),
       Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1))),
       Some(expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1))),
+      None,
       stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, mixedSeverityFindings)
     ),
     (
@@ -23,6 +24,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       scanEventInputText(lowSeverityEvent),
       Some(expectedEmailBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1, 0))),
       Some(expectedSlackBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1, 0))),
+      None,
       stubEcrApiResponse(lowSeverityEvent.detail.imageDigest, lowSeverityFindings)
     ),
     (
@@ -30,11 +32,13 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       scanEventInputText(undefinedSeverityEvent),
       Some(expectedEmailBody(undefinedSeverityEvent, ExpectedFindings(0, 0, 0, 0, 1))),
       Some(expectedSlackBody(undefinedSeverityEvent, ExpectedFindings(0, 0, 0, 0, 1))),
+      None,
       stubEcrApiResponse(undefinedSeverityEvent.detail.imageDigest, undefinedFindings)
     ),
     (
       "an ECR scan of 'latest' with only informational vulnerabilities",
       scanEventInputText(informationalEvent),
+      None,
       None,
       None,
       stubEcrApiResponse(informationalEvent.detail.imageDigest, informationalFindings)
@@ -44,11 +48,13 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       scanEventInputText(noVulnerabilitiesEvent),
       None,
       None,
+      None,
       stubEcrApiResponse(noVulnerabilitiesEvent.detail.imageDigest, noFindings)
     ),
     (
       "an ECR scan of an image with a non-deployment tag",
       scanEventInputText(otherTagEvent),
+      None,
       None,
       None,
       stubEcrApiResponse(otherTagEvent.detail.imageDigest, lowSeverityFindings)
@@ -58,11 +64,13 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       scanEventInputText(intgTagEmptyEvent),
       None,
       None,
+      None,
       stubEcrApiResponse(intgTagEmptyEvent.detail.imageDigest, noFindings)
     ),
     (
       "an ECR scan which only contains a muted vulnerability",
       scanEventInputText(lowSeverityEvent),
+      None,
       None,
       None,
       stubEcrApiResponse(lowSeverityEvent.detail.imageDigest, findingsWithOnlyMutedVulnerability)
@@ -72,6 +80,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       scanEventInputText(mixedSeverityEvent),
       Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0))),
       Some(expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0))),
+      None,
       stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, findingsIncludingMutedVulnerability)
     ),
   )
