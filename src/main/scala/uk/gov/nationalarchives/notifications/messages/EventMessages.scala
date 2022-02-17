@@ -33,7 +33,10 @@ object EventMessages {
 
   case class SlackMessage(blocks: List[SlackBlock])
 
-  case class SQSMessage(consignmentReference: String)
+  case class SQSExportMessage(packageSignedUrl: String,
+                              packageShaSignedUrl: String,
+                              consignmentReference: String,
+                              retryCount: Int = 0)
 
   implicit val scanEventMessages: Messages[ScanEvent, ImageScanReport] = new Messages[ScanEvent, ImageScanReport] {
 
@@ -274,5 +277,3 @@ case class ImageScanReport(findings: Seq[Finding]) {
 }
 
 case class Finding(name: String, severity: FindingSeverity)
-
-case class SQSExportMessage(packageSignedUrl: String, packageShaSignedUrl: String, consignmentReference: String, retryCount: Int = 0)

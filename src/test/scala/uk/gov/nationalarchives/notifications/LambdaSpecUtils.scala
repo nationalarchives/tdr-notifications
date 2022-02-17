@@ -73,7 +73,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     wiremockSlackServer.resetAll()
     wiremockSesEndpoint.resetAll()
     wiremockKmsEndpoint.resetAll()
-    transformEngineQueueHelper.deleteQueue()
+    transformEngineQueueHelper.deleteQueue
 
     super.afterEach()
   }
