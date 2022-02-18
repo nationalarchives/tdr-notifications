@@ -29,7 +29,7 @@ object Messages {
   val config = ConfigFactory.load
   val kmsUtils: KMSUtils = KMSUtils(kms(config.getString("kms.endpoint")), Map("LambdaFunctionName" -> config.getString("function.name")))
   val eventConfig: Map[String, String] = kmsUtils.decryptValuesFromConfig(
-    List("alerts.ecr-scan.mute", "ses.email.to", "slack.webhook.url", "sqs.queue.transform_engine"))
+    List("alerts.ecr-scan.mute", "ses.email.to", "slack.webhook.url", "sqs.queue.transform_engine_output"))
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
@@ -47,7 +47,7 @@ object Messages {
 
   private def sendSQSMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     messages.sqs(incomingEvent, context).map(messageBody => {
-      val queueUrl = eventConfig("sqs.queue.transform_engine")
+      val queueUrl = eventConfig("sqs.queue.transform_engine_output")
       IO(SQSUtils(sqs).send(queueUrl, messageBody).toString)
     })
   }
