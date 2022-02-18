@@ -1,10 +1,10 @@
 package uk.gov.nationalarchives.notifications
 
 import java.io.{InputStream, OutputStream}
+
 import cats.effect._
-import cats.implicits.toFlatMapOps
+import cats.effect.unsafe.implicits.global
 import io.circe.parser.decode
-import messages.Messages._
 import uk.gov.nationalarchives.notifications.decoders.DiskSpaceAlarmDecoder.DiskSpaceAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
@@ -12,6 +12,7 @@ import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMM
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
 import uk.gov.nationalarchives.notifications.decoders._
 import uk.gov.nationalarchives.notifications.messages.EventMessages._
+import uk.gov.nationalarchives.notifications.messages.Messages._
 
 import scala.io.Source
 

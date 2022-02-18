@@ -12,13 +12,19 @@ lazy val root = (project in file("."))
       circeCore,
       circeGeneric,
       circeParser,
-      sttpCatsEffect,
+      sttp,
+      sttpCirce,
+      catsEffect,
       awsUtils,
       typesafe,
-      loggerSlf4j,
+      log4catsSlf4j,
+      log4cats,
+      slf4j,
       scalaTags,
       scalaTest % Test,
-      wiremock % Test
+      wiremock % Test,
+      pureConfigCatsEffect,
+      pureConfig
     )
   )
 

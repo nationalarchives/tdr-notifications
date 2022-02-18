@@ -1,11 +1,12 @@
 package uk.gov.nationalarchives.notifications.messages
 
 import java.net.URI
+
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import com.typesafe.config.ConfigFactory
-import org.typelevel.log4cats.SelfAwareStructuredLogger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
+import io.chrisdavenport.log4cats.SelfAwareStructuredLogger
+import io.chrisdavenport.log4cats.slf4j.Slf4jLogger
 import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email

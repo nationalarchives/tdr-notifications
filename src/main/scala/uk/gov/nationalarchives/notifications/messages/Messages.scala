@@ -1,16 +1,16 @@
 package uk.gov.nationalarchives.notifications.messages
 
-import cats.effect.{ContextShift, IO}
+import cats.effect.IO
 import cats.implicits._
 import com.typesafe.config.ConfigFactory
 import io.circe.generic.auto._
 import io.circe.syntax._
-import sttp.client.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import sttp.client.{basicRequest, _}
+import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
+import sttp.client3.{basicRequest, _}
 import sttp.model.MediaType
 import uk.gov.nationalarchives.aws.utils.Clients.{kms, ses}
-import uk.gov.nationalarchives.aws.utils.{KMSUtils, SESUtils}
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
+import uk.gov.nationalarchives.aws.utils.{KMSUtils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.SlackMessage
 
@@ -43,9 +43,8 @@ object Messages {
 
   private def sendSlackMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     messages.slack(incomingEvent, context).map(slackMessage => {
-      implicit val cs: ContextShift[IO] = IO.contextShift(scala.concurrent.ExecutionContext.global)
 
-      AsyncHttpClientCatsBackend[IO]().flatMap { backend =>
+      AsyncHttpClientCatsBackend.resource[IO]().use { backend =>
         val request = basicRequest
           .post(uri"${eventConfig("slack.webhook.url")}")
           .body(slackMessage.asJson.noSpaces)
