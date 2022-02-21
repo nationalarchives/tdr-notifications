@@ -9,7 +9,7 @@ class TransformEngineRetrySpec extends LambdaIntegrationSpec {
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     ("a transform engine retry event on intg",
       exportStatusEventInputText(transformEngineRetry), None, None, expectedSqsMessage(transformEngineRetry), () => ()),
-    ("a successful export event on staging",
+    ("a transform engine retry event on staging",
       exportStatusEventInputText(transformEngineRetry), None, None, expectedSqsMessage(transformEngineRetry), () => ())
   )
 
