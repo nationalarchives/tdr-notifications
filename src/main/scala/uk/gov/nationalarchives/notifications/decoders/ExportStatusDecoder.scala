@@ -6,8 +6,8 @@ object ExportStatusDecoder {
   case class ExportSuccessDetails(userId: UUID,
                                   consignmentReference: String,
                                   transferringBodyName: String,
-                                  consignmentType: Option[String] = None,
-                                  exportBucket: Option[String] = None)
+                                  consignmentType: String,
+                                  exportBucket: String)
   case class ExportStatusEvent(
                                 consignmentId: UUID,
                                 success: Boolean,

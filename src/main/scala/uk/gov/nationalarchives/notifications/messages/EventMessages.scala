@@ -153,6 +153,10 @@ object EventMessages {
   }
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
+    private def sendToTransformEngine(ev: ExportStatusEvent): Boolean = {
+      ev.success && ev.successDetails.isDefined && ev.successDetails.get.consignmentType == "judgment"
+    }
+
     override def context(event: ExportStatusEvent): IO[Unit] = IO.unit
 
     override def email(incomingEvent: ExportStatusEvent, context: Unit): Option[Email] = {
@@ -192,7 +196,7 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[String] = {
-      if (incomingEvent.success && incomingEvent.successDetails.isDefined) {
+      if (sendToTransformEngine(incomingEvent)) {
         val value = incomingEvent.successDetails.get
         val packageSignedUrl: String = "placeholder_value"
         val packageShaSignedUrl: String = "placeholder_value"
