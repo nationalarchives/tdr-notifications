@@ -19,11 +19,17 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.Export
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object EventMessages {
+
+  trait ExportMessage {
+    val consignmentReference: String
+    val retryCount: Int
+  }
 
   implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
 
@@ -36,7 +42,7 @@ object EventMessages {
   case class SQSExportMessage(packageSignedUrl: String,
                               packageShaSignedUrl: String,
                               consignmentReference: String,
-                              retryCount: Int = 0)
+                              override val retryCount: Int) extends ExportMessage
 
   implicit val scanEventMessages: Messages[ScanEvent, ImageScanReport] = new Messages[ScanEvent, ImageScanReport] {
 
@@ -196,7 +202,7 @@ object EventMessages {
         val value = incomingEvent.successDetails.get
         val packageSignedUrl: String = "placeholder_value"
         val packageShaSignedUrl: String = "placeholder_value"
-        Some(SQSExportMessage(packageSignedUrl, packageShaSignedUrl, value.consignmentReference).asJson.toString)
+        Some(SQSExportMessage(packageSignedUrl, packageShaSignedUrl, value.consignmentReference, 0).asJson.toString)
       } else {
         val failureCause = if (incomingEvent.failureCause.isDefined) { incomingEvent.failureCause.get } else "No failure cause given"
         logger.error(s"SQS export message failure for event $incomingEvent: $failureCause")
@@ -265,6 +271,22 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[String] = Option.empty
+  }
+
+  implicit val transformEngineRetryMessages: Messages[TransformEngineRetryEvent, Unit] = new Messages[TransformEngineRetryEvent, Unit] {
+    override def context(incomingEvent: TransformEngineRetryEvent): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[Email] = Option.empty
+
+    override def slack(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[SlackMessage] = Option.empty
+
+    override def sqs(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[String] = {
+      val consignmentReference = incomingEvent.consignmentReference
+      val retryCount = incomingEvent.retryCount
+      val packageSignedUrl: String = "placeholder_value"
+      val packageShaSignedUrl: String = "placeholder_value"
+      Some(SQSExportMessage(packageSignedUrl, packageShaSignedUrl, consignmentReference, retryCount).asJson.toString)
+    }
   }
 }
 
