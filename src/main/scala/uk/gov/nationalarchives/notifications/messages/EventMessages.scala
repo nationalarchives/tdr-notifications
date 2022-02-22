@@ -1,11 +1,11 @@
 package uk.gov.nationalarchives.notifications.messages
 
 import java.net.URI
+
 import cats.effect.IO
-import cats.implicits._
+import cats.syntax.all._
 import com.typesafe.config.ConfigFactory
-import org.typelevel.log4cats.SelfAwareStructuredLogger
-import org.typelevel.log4cats.slf4j.Slf4jLogger
+import com.typesafe.scalalogging.Logger
 import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
@@ -20,8 +20,7 @@ import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object EventMessages {
-
-  implicit def logger: SelfAwareStructuredLogger[IO] = Slf4jLogger.getLogger[IO]
+  val logger: Logger = Logger(this.getClass)
 
   case class SlackText(`type`: String, text: String)
 
