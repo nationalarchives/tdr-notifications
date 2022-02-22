@@ -2,7 +2,6 @@ package uk.gov.nationalarchives.notifications.messages
 
 import cats.effect.IO
 import cats.implicits._
-import com.amazonaws.services.lambda.runtime.events.SQSEvent.SQSMessage
 import com.typesafe.config.ConfigFactory
 import io.circe.generic.auto._
 import io.circe.syntax._
@@ -13,7 +12,7 @@ import uk.gov.nationalarchives.aws.utils.Clients.{kms, ses, sqs}
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.aws.utils.{KMSUtils, SESUtils, SQSUtils}
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
-import uk.gov.nationalarchives.notifications.messages.EventMessages.SlackMessage
+import uk.gov.nationalarchives.notifications.messages.EventMessages.{SlackMessage, SqsMessage}
 
 trait Messages[T <: IncomingEvent, TContext] {
   def context(incomingEvent: T): IO[TContext]

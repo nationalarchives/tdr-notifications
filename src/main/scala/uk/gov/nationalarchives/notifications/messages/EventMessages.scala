@@ -36,7 +36,7 @@ object EventMessages {
   case class SqsExportMessage(packageSignedUrl: String,
                               packageShaSignedUrl: String,
                               consignmentReference: String,
-                              retryCount: Int = 0)
+                              retryCount: Int)
 
   implicit val scanEventMessages: Messages[ScanEvent, ImageScanReport] = new Messages[ScanEvent, ImageScanReport] {
 
@@ -200,7 +200,7 @@ object EventMessages {
         val value = incomingEvent.successDetails.get
         val packageSignedUrl: String = "placeholder_value"
         val packageShaSignedUrl: String = "placeholder_value"
-        val messageBody = SqsExportMessage(packageSignedUrl, packageShaSignedUrl, value.consignmentReference).asJson.toString
+        val messageBody = SqsExportMessage(packageSignedUrl, packageShaSignedUrl, value.consignmentReference, 0).asJson.toString
         val queueUrl = eventConfig("sqs.queue.transform_engine_output")
         Some(SqsMessage(queueUrl, messageBody))
       } else {
