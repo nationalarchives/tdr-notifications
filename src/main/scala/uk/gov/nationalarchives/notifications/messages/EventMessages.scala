@@ -31,7 +31,7 @@ object EventMessages {
 
   case class SlackMessage(blocks: List[SlackBlock])
 
-  case class SqsMessage(queueUrl: String, messageBody: String)
+  case class SqsMessageDetails(queueUrl: String, messageBody: String)
 
   case class SqsExportMessage(packageSignedUrl: String,
                               packageShaSignedUrl: String,
@@ -133,7 +133,7 @@ object EventMessages {
       }
     }
 
-    override def sqs(incomingEvent: ScanEvent, context: ImageScanReport): Option[SqsMessage] = Option.empty
+    override def sqs(incomingEvent: ScanEvent, context: ImageScanReport): Option[SqsMessageDetails] = Option.empty
   }
 
   implicit val maintenanceEventMessages: Messages[SSMMaintenanceEvent, Unit] = new Messages[SSMMaintenanceEvent, Unit] {
@@ -149,7 +149,7 @@ object EventMessages {
       }
     }
 
-    override def sqs(incomingEvent: SSMMaintenanceEvent, context: Unit): Option[SqsMessage] = Option.empty
+    override def sqs(incomingEvent: SSMMaintenanceEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
@@ -195,17 +195,15 @@ object EventMessages {
       } else ""
     }
 
-    override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessage] = {
+    override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessageDetails] = {
       if (sendToTransformEngine(incomingEvent)) {
         val value = incomingEvent.successDetails.get
         val packageSignedUrl: String = "placeholder_value"
         val packageShaSignedUrl: String = "placeholder_value"
-        val messageBody = SqsExportMessage(packageSignedUrl, packageShaSignedUrl, value.consignmentReference, 0).asJson.toString
-        val queueUrl = eventConfig("sqs.queue.transform_engine_output")
-        Some(SqsMessage(queueUrl, messageBody))
+        val messageBody: String = SqsExportMessage(packageSignedUrl, packageShaSignedUrl, value.consignmentReference, 0).asJson.toString
+        val queueUrl: String = eventConfig("sqs.queue.transform_engine_output")
+        Some(SqsMessageDetails(queueUrl, messageBody))
       } else {
-        val failureCause = if (incomingEvent.failureCause.isDefined) { incomingEvent.failureCause.get } else "No failure cause given"
-        logger.error(s"SQS export message failure for event $incomingEvent: $failureCause")
         None
       }
     }
@@ -227,7 +225,7 @@ object EventMessages {
       }
     }
 
-    override def sqs(incomingEvent: KeycloakEvent, context: Unit): Option[SqsMessage] = Option.empty
+    override def sqs(incomingEvent: KeycloakEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 
   implicit val diskSpaceAlarmMessages: Messages[DiskSpaceAlarmEvent, Unit] = new Messages[DiskSpaceAlarmEvent, Unit] {
@@ -270,7 +268,7 @@ object EventMessages {
       SlackMessage(slackBlocks)
     }
 
-    override def sqs(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[SqsMessage] = Option.empty
+    override def sqs(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 }
 

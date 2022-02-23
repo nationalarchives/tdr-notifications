@@ -12,7 +12,7 @@ import uk.gov.nationalarchives.aws.utils.Clients.{kms, ses, sqs}
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.aws.utils.{KMSUtils, SESUtils, SQSUtils}
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
-import uk.gov.nationalarchives.notifications.messages.EventMessages.{SlackMessage, SqsMessage}
+import uk.gov.nationalarchives.notifications.messages.EventMessages.{SlackMessage, SqsMessageDetails}
 
 trait Messages[T <: IncomingEvent, TContext] {
   def context(incomingEvent: T): IO[TContext]
@@ -21,7 +21,7 @@ trait Messages[T <: IncomingEvent, TContext] {
 
   def slack(incomingEvent: T, context: TContext): Option[SlackMessage]
 
-  def sqs(incomingEvent: T, context: TContext): Option[SqsMessage]
+  def sqs(incomingEvent: T, context: TContext): Option[SqsMessageDetails]
 }
 
 object Messages {
@@ -45,9 +45,9 @@ object Messages {
   }
 
   private def sendSQSMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
-    messages.sqs(incomingEvent, context).map(sqsMessage => {
-      val queueUrl = sqsMessage.queueUrl
-      val messageBody = sqsMessage.messageBody
+    messages.sqs(incomingEvent, context).map(sqsMessageDetails => {
+      val queueUrl = sqsMessageDetails.queueUrl
+      val messageBody = sqsMessageDetails.messageBody
       IO(SQSUtils(sqs).send(queueUrl, messageBody).toString)
     })
   }
