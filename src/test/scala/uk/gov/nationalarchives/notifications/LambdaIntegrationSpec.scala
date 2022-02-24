@@ -1,12 +1,10 @@
 package uk.gov.nationalarchives.notifications
 
 import com.github.tomakehurst.wiremock.client.WireMock.{equalTo, equalToJson, postRequestedFor, urlEqualTo}
-import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor6}
-import software.amazon.awssdk.services.sqs.model.Message
 import io.circe.generic.auto._
 import io.circe.parser
-import io.circe.syntax._
-import spray.json.enrichAny
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor6}
+import software.amazon.awssdk.services.sqs.model.Message
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {

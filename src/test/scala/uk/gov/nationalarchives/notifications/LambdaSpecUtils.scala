@@ -1,6 +1,9 @@
 package uk.gov.nationalarchives.notifications
 
 import java.net.URI
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
+import java.util
 
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
@@ -10,20 +13,15 @@ import com.github.tomakehurst.wiremock.core.WireMockConfiguration
 import com.github.tomakehurst.wiremock.extension.{Parameters, ResponseDefinitionTransformer}
 import com.github.tomakehurst.wiremock.http.{Request, ResponseDefinition}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import io.circe.generic.auto._
+import io.circe.parser.decode
+import org.elasticmq.rest.sqs.{SQSRestServer, SQSRestServerBuilder}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import io.circe.generic.auto._
-import io.circe.parser.decode
-import java.nio.ByteBuffer
-import java.nio.charset.Charset
-import java.util
-
-import org.elasticmq.rest.sqs.{SQSRestServer, SQSRestServerBuilder}
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sqs.SqsClient
-import software.amazon.awssdk.services.sqs.model.{CreateQueueRequest, CreateQueueResponse, DeleteMessageRequest, DeleteMessageResponse, DeleteQueueRequest, DeleteQueueResponse, GetQueueAttributesRequest, Message, QueueAttributeName, ReceiveMessageRequest, SendMessageRequest, SendMessageResponse}
+import software.amazon.awssdk.services.sqs.model._
 
 import scala.jdk.CollectionConverters._
 
@@ -48,11 +46,6 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     override def getName: String = ""
   }))
 
-  val s3Client: S3Client = S3Client.builder
-    .region(Region.EU_WEST_2)
-    .endpointOverride(URI.create("http://localhost:8003/"))
-    .build()
-
   def stubKmsResponse: StubMapping = wiremockKmsEndpoint.stubFor(post(urlEqualTo("/")))
 
   override def beforeEach(): Unit = {
@@ -72,6 +65,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
 
     stubKmsResponse
     transformEngineQueueHelper.createQueue
+
     super.beforeEach()
   }
 
