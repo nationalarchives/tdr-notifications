@@ -3,6 +3,7 @@ import sbt._
 object Dependencies {
   private val circeVersion = "0.13.0"
   private val sttpClient3Version = "3.3.15"
+  private val elasticMqVersion = "1.1.1"
 
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClient3Version
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpClient3Version
@@ -16,4 +17,6 @@ object Dependencies {
   lazy val wiremock = "com.github.tomakehurst" % "wiremock" % "2.27.2"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
   lazy val typeSafeLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4"
+  lazy val elasticMq = "org.elasticmq" %% "elasticmq-server" % elasticMqVersion
+  lazy val elasticMqSqs = "org.elasticmq" %% "elasticmq-rest-sqs" % elasticMqVersion
 }

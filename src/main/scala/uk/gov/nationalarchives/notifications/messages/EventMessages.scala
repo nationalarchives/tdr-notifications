@@ -5,6 +5,9 @@ import java.net.URI
 import cats.effect.IO
 import cats.syntax.all._
 import com.typesafe.config.ConfigFactory
+import io.circe.Encoder.AsObject.importedAsObjectEncoder
+import io.circe.generic.auto._
+import io.circe.syntax.EncoderOps
 import com.typesafe.scalalogging.Logger
 import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
@@ -27,6 +30,13 @@ object EventMessages {
   case class SlackBlock(`type`: String, text: SlackText)
 
   case class SlackMessage(blocks: List[SlackBlock])
+
+  case class SqsMessageDetails(queueUrl: String, messageBody: String)
+
+  case class SqsExportMessage(packageSignedUrl: String,
+                              packageShaSignedUrl: String,
+                              consignmentReference: String,
+                              retryCount: Int)
 
   implicit val scanEventMessages: Messages[ScanEvent, ImageScanReport] = new Messages[ScanEvent, ImageScanReport] {
 
@@ -122,6 +132,8 @@ object EventMessages {
         Option.empty
       }
     }
+
+    override def sqs(incomingEvent: ScanEvent, context: ImageScanReport): Option[SqsMessageDetails] = Option.empty
   }
 
   implicit val maintenanceEventMessages: Messages[SSMMaintenanceEvent, Unit] = new Messages[SSMMaintenanceEvent, Unit] {
@@ -136,9 +148,15 @@ object EventMessages {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", "The Jenkins backup has failed. Please check the maintenance window in systems manager")))).some
       }
     }
+
+    override def sqs(incomingEvent: SSMMaintenanceEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
+    private def sendToTransformEngine(ev: ExportStatusEvent): Boolean = {
+      ev.success && ev.successDetails.exists(_.consignmentType == "judgment")
+    }
+
     override def context(event: ExportStatusEvent): IO[Unit] = IO.unit
 
     override def email(incomingEvent: ExportStatusEvent, context: Unit): Option[Email] = {
@@ -176,6 +194,19 @@ object EventMessages {
         s"\n*Cause:* ${incomingEvent.failureCause.get}"
       } else ""
     }
+
+    override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessageDetails] = {
+      if (sendToTransformEngine(incomingEvent)) {
+        val value = incomingEvent.successDetails.get
+        val packageSignedUrl: String = "placeholder_value"
+        val packageShaSignedUrl: String = "placeholder_value"
+        val messageBody: String = SqsExportMessage(packageSignedUrl, packageShaSignedUrl, value.consignmentReference, 0).asJson.toString
+        val queueUrl: String = eventConfig("sqs.queue.transform_engine_output")
+        Some(SqsMessageDetails(queueUrl, messageBody))
+      } else {
+        None
+      }
+    }
   }
 
   implicit val keycloakEventMessages: Messages[KeycloakEvent, Unit] = new Messages[KeycloakEvent, Unit] {
@@ -193,6 +224,8 @@ object EventMessages {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
       }
     }
+
+    override def sqs(incomingEvent: KeycloakEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 
   implicit val diskSpaceAlarmMessages: Messages[DiskSpaceAlarmEvent, Unit] = new Messages[DiskSpaceAlarmEvent, Unit] {
@@ -234,6 +267,8 @@ object EventMessages {
       ) ++ extraBlocksText.map(text => SlackBlock("section", SlackText("mrkdwn", text)))
       SlackMessage(slackBlocks)
     }
+
+    override def sqs(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 }
 

@@ -19,7 +19,9 @@ lazy val root = (project in file("."))
       scalaTags,
       typeSafeLogging,
       scalaTest % Test,
-      wiremock % Test
+      wiremock % Test,
+      elasticMq % Test,
+      elasticMqSqs % Test
     )
   )
 

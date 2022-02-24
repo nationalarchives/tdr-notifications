@@ -7,7 +7,7 @@ This project is for sending slack/email messages in response to cloudwatch event
 * Maintenance window results. When the Jenkins backup maintenance window runs, the results are checked and if it fails,
   a notification is sent.
 * Consignment export results. When the consignment export task finishes, a Slack message is sent with details of whether
-  the export succeeded or failed.
+  the export succeeded or failed. A message is also sent, if it is a `judgment` export, to a SQS queue belonging to the transformation engine.
 
 ## Run locally
 
@@ -17,6 +17,7 @@ Set these environment variables, either on the command line or in IntelliJ depen
   Use the `#bot-testing` channel rather than a team channel to avoid confusion and spam.
 * `TO_EMAIL`: the email address that alerts should be sent to. For testing purposes, this should normally be your own
   email address rather than a team one.
+* `TRANSFORM_ENGINE_OUTPUT_SQS`: set this it the SQS queue where the message should be sent. Need to ensure have permissions to send to the SQS queue
 
 The app uses AWS services like Simple Email Service (SES) in the management account, so you will also need to update
 your AWS credentials file with temporary mgmt credentials.
