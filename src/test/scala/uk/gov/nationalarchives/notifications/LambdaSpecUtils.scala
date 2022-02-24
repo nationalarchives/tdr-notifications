@@ -21,6 +21,7 @@ import java.util
 
 import org.elasticmq.rest.sqs.{SQSRestServer, SQSRestServerBuilder}
 import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.s3.S3Client
 import software.amazon.awssdk.services.sqs.SqsClient
 import software.amazon.awssdk.services.sqs.model.{CreateQueueRequest, CreateQueueResponse, DeleteMessageRequest, DeleteMessageResponse, DeleteQueueRequest, DeleteQueueResponse, GetQueueAttributesRequest, Message, QueueAttributeName, ReceiveMessageRequest, SendMessageRequest, SendMessageResponse}
 
@@ -46,6 +47,11 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     }
     override def getName: String = ""
   }))
+
+  val s3Client: S3Client = S3Client.builder
+    .region(Region.EU_WEST_2)
+    .endpointOverride(URI.create("http://localhost:8003/"))
+    .build()
 
   def stubKmsResponse: StubMapping = wiremockKmsEndpoint.stubFor(post(urlEqualTo("/")))
 

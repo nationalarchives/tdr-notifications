@@ -11,8 +11,9 @@ import io.circe.syntax.EncoderOps
 import com.typesafe.scalalogging.Logger
 import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
+import uk.gov.nationalarchives.aws.utils.Clients.{s3, s3Async}
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
-import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, SESUtils}
+import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.DiskSpaceAlarmDecoder.DiskSpaceAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
@@ -197,11 +198,14 @@ object EventMessages {
 
     override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessageDetails] = {
       if (sendToTransformEngine(incomingEvent)) {
+        val s3Utils = S3Utils(s3Async)
         val value = incomingEvent.successDetails.get
-        val packageSignedUrl: String = "placeholder_value"
-        val packageShaSignedUrl: String = "placeholder_value"
-        val messageBody: String = SqsExportMessage(packageSignedUrl, packageShaSignedUrl, value.consignmentReference, 0).asJson.toString
-        val queueUrl: String = eventConfig("sqs.queue.transform_engine_output")
+        val consignmentReference = value.consignmentReference
+        val bucketName = value.exportBucket
+        val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentReference.tar.gz").toString
+        val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentReference.tar.gz.sha").toString
+        val messageBody = SqsExportMessage(packageSignedUrl, packageShaSignedUrl, consignmentReference, 0).asJson.toString
+        val queueUrl = eventConfig("sqs.queue.transform_engine_output")
         Some(SqsMessageDetails(queueUrl, messageBody))
       } else {
         None
