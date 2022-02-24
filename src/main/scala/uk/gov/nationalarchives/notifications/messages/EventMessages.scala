@@ -15,22 +15,16 @@ import uk.gov.nationalarchives.aws.utils.Clients.{s3, s3Async}
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.DiskSpaceAlarmDecoder.DiskSpaceAlarmEvent
-import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportStatusEvent, ExportSuccessDetails}
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object EventMessages {
   val logger: Logger = Logger(this.getClass)
-
-  trait ExportMessage {
-    val consignmentReference: String
-    val retryCount: Int
-  }
 
   case class SlackText(`type`: String, text: String)
 
@@ -43,16 +37,7 @@ object EventMessages {
   case class SqsExportMessage(packageSignedUrl: String,
                               packageShaSignedUrl: String,
                               consignmentReference: String,
-                              retryCount: Int) extends ExportMessage
-
-  private def generateSqsExportMessage(bucketName: String, consignmentRef: String, retryCount: Int): SqsMessageDetails = {
-    val s3Utils = S3Utils(s3Async)
-    val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz").toString
-    val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256").toString
-    val messageBody = SqsExportMessage(packageSignedUrl, packageShaSignedUrl, consignmentRef, retryCount).asJson.toString
-    val queueUrl = eventConfig("sqs.queue.transform_engine_output")
-    SqsMessageDetails(queueUrl, messageBody)
-  }
+                              retryCount: Int)
 
   implicit val scanEventMessages: Messages[ScanEvent, ImageScanReport] = new Messages[ScanEvent, ImageScanReport] {
 
@@ -213,10 +198,15 @@ object EventMessages {
 
     override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessageDetails] = {
       if (sendToTransformEngine(incomingEvent)) {
+        val s3Utils = S3Utils(s3Async)
         val value = incomingEvent.successDetails.get
         val consignmentReference = value.consignmentReference
         val bucketName = value.exportBucket
-        Some(generateSqsExportMessage(bucketName, consignmentReference, 0))
+        val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentReference.tar.gz").toString
+        val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentReference.tar.gz.sha256").toString
+        val messageBody = SqsExportMessage(packageSignedUrl, packageShaSignedUrl, consignmentReference, 0).asJson.toString
+        val queueUrl = eventConfig("sqs.queue.transform_engine_output")
+        Some(SqsMessageDetails(queueUrl, messageBody))
       } else {
         None
       }
@@ -283,21 +273,6 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
-  }
-
-  implicit val transformEngineRetryMessages: Messages[TransformEngineRetryEvent, Unit] = new Messages[TransformEngineRetryEvent, Unit] {
-    override def context(incomingEvent: TransformEngineRetryEvent): IO[Unit] = IO.unit
-
-    override def email(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[Email] = Option.empty
-
-    override def slack(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[SlackMessage] = Option.empty
-
-    override def sqs(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[SqsMessageDetails] = {
-      val judgmentBucket = eventConfig("s3.judgment_export_bucket")
-      val consignmentReference = incomingEvent.consignmentReference
-      val retryCount = incomingEvent.retryCount
-      Some(generateSqsExportMessage(judgmentBucket, consignmentReference, retryCount))
-    }
   }
 }
 
