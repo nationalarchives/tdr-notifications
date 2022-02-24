@@ -66,6 +66,30 @@ object LambdaRunner extends App {
        |
        |""".stripMargin
 
+  val transformEngineRetryMessage =
+    s"""
+       |{
+       |  "Records": [
+       |        {
+       |            "messageId": "messageIdValue",
+       |            "receiptHandle": "receipt handle value",
+       |            "body": "{\\"consignmentReference\\": \\"some-consignment-reference\\",\\"retryCount\\": 0}",
+       |            "attributes": {
+       |                "ApproximateReceiveCount": "1",
+       |                "SentTimestamp": "1545082649183",
+       |                "SenderId": "senderIdValue",
+       |                "ApproximateFirstReceiveTimestamp": "1545082649185"
+       |            },
+       |            "messageAttributes": {},
+       |            "md5OfBody": "md5OfBodyValue",
+       |            "eventSource": "aws:sqs",
+       |            "eventSourceARN": "queueArn",
+       |            "awsRegion": "eu-west-2"
+       |        }
+       |  ]
+       |}
+       |""".stripMargin
+
   val inputStream = new ByteArrayInputStream(ecrScanMessage.getBytes)
 
   // The Lambda does not use the output stream, so it's safe to set it to null
