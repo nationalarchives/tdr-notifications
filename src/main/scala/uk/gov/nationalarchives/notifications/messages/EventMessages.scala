@@ -203,7 +203,7 @@ object EventMessages {
         val consignmentReference = value.consignmentReference
         val bucketName = value.exportBucket
         val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentReference.tar.gz").toString
-        val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentReference.tar.gz.sha").toString
+        val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentReference.tar.gz.sha256").toString
         val messageBody = SqsExportMessage(packageSignedUrl, packageShaSignedUrl, consignmentReference, 0).asJson.toString
         val queueUrl = eventConfig("sqs.queue.transform_engine_output")
         Some(SqsMessageDetails(queueUrl, messageBody))

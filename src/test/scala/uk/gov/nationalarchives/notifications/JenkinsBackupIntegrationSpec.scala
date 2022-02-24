@@ -1,11 +1,12 @@
 package uk.gov.nationalarchives.notifications
 
 import org.scalatest.prop.TableFor6
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 
 class JenkinsBackupIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[String], () => ()] = Table(
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[ExportSuccessDetails], () => ()] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     ("a successful Jenkins backup event", maintenanceEventInputText(maintenanceResult1), None, None, None, () => ()),
     ("a failed Jenkins backup event", maintenanceEventInputText(maintenanceResult2), None, Some(expectedBackupFailureSlackMessage), None, () => ())
