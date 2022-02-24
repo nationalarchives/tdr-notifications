@@ -96,5 +96,3 @@ case class SqsExportMessageBody(packageSignedUrl: String,
                                 packageShaSignedUrl: String,
                                 consignmentReference: String,
                                 retryCount: Int)
-
-//case class SqsExpectedMessageProperties()
