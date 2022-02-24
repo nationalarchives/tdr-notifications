@@ -115,16 +115,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     def createQueue: CreateQueueResponse = sqsClient.createQueue(
       CreateQueueRequest.builder.queueName(queueUrl.split("/")(4)).attributes(visibilityTimeoutAttributes).build()
     )
-    def deleteQueue(): DeleteQueueResponse = sqsClient.deleteQueue(DeleteQueueRequest.builder.queueUrl(queueUrl).build())
-
-    def queueAttribute(attributeName: QueueAttributeName): String = sqsClient.getQueueAttributes(
-      GetQueueAttributesRequest.builder().queueUrl(queueUrl).attributeNames(attributeName).build()
-    ).attributes().get(attributeName)
-
-    def nonVisibleMessageCount: Int = queueAttribute(QueueAttributeName.APPROXIMATE_NUMBER_OF_MESSAGES_NOT_VISIBLE).toInt
-
-    def delete(msg: Message): DeleteMessageResponse = sqsClient.deleteMessage(DeleteMessageRequest
-      .builder.queueUrl(queueUrl).receiptHandle(msg.receiptHandle()).build)
+    def deleteQueue: DeleteQueueResponse = sqsClient.deleteQueue(DeleteQueueRequest.builder.queueUrl(queueUrl).build())
   }
 
   val port = 8002
