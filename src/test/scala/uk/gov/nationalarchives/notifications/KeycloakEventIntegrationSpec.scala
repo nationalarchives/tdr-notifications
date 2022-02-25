@@ -6,7 +6,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.Export
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 
 class KeycloakEventIntegrationSpec extends LambdaIntegrationSpec {
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[ExportSuccessDetails], () => ()] = Table(
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[(ExportSuccessDetails, Int)], () => ()] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     ("a keycloak event message", scanEventInputText(keycloakEvent), None, Some(expectedKeycloakEventSlackMessage), None, () => ())
   )

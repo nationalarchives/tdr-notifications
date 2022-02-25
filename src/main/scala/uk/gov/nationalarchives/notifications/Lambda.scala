@@ -10,6 +10,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.Export
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.decoders._
 import uk.gov.nationalarchives.notifications.messages.EventMessages._
 import uk.gov.nationalarchives.notifications.messages.Messages._
@@ -24,5 +25,6 @@ class Lambda {
       case exportStatus: ExportStatusEvent => sendMessages(exportStatus)
       case keycloakEvent: KeycloakEvent => sendMessages(keycloakEvent)
       case diskSpaceAlarmEvent: DiskSpaceAlarmEvent => sendMessages(diskSpaceAlarmEvent)
+      case transformEngineRetryEvent: TransformEngineRetryEvent => sendMessages(transformEngineRetryEvent)
     }).flatten.unsafeRunSync()
   }

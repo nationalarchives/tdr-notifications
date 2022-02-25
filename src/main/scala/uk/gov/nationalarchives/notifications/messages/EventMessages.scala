@@ -213,7 +213,6 @@ object EventMessages {
 
     override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessageDetails] = {
       if (sendToTransformEngine(incomingEvent)) {
-        val s3Utils = S3Utils(s3Async)
         val value = incomingEvent.successDetails.get
         val consignmentReference = value.consignmentReference
         val bucketName = value.exportBucket
@@ -294,6 +293,7 @@ object EventMessages {
     override def slack(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[SlackMessage] = Option.empty
 
     override def sqs(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[SqsMessageDetails] = {
+      //As only sending transform engine messages for judgments, will only get retry messages for the same
       val judgmentBucket = eventConfig("s3.judgment_export_bucket")
       val consignmentReference = incomingEvent.consignmentReference
       val retryCount = incomingEvent.retryCount

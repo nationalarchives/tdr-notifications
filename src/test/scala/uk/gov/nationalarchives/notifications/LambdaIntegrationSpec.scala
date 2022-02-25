@@ -8,7 +8,7 @@ import software.amazon.awssdk.services.sqs.model.Message
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
-  def events: TableFor6[String, String, Option[String], Option[String], Option[ExportSuccessDetails], () => ()]
+  def events: TableFor6[String, String, Option[String], Option[String], Option[(ExportSuccessDetails, Int)], () => ()]
 
   forAll(events) {
     (description, input, emailBody, slackBody, sqsMessage, stubContext) => {
@@ -55,7 +55,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
       }
 
       sqsMessage match {
-        case Some(expectedSuccessDetails) =>
+        case Some((expectedSuccessDetails, expectedRetryCount)) =>
           "the process method" should s"send a sqs message for $description" in {
             stubContext()
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
@@ -70,11 +70,11 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
 
             val expectedConsignmentRef = expectedSuccessDetails.consignmentReference
             val expectedBucket = expectedSuccessDetails.exportBucket
-            val expectedSignedUrl = s"https://s3.eu-west-2.amazonaws.com/$expectedBucket/$expectedConsignmentRef.tar.gz?X-Amz-Security-Token"
-            val expectedShaSignedUrl = s"https://s3.eu-west-2.amazonaws.com/$expectedBucket/$expectedConsignmentRef.tar.gz.sha256?X-Amz-Security-Token"
+            val expectedSignedUrl = s"https://$expectedBucket.s3.eu-west-2.amazonaws.com/$expectedConsignmentRef.tar.gz?X-Amz-Security-Token"
+            val expectedShaSignedUrl = s"https://$expectedBucket.s3.eu-west-2.amazonaws.com/$expectedConsignmentRef.tar.gz.sha256?X-Amz-Security-Token"
 
             message.consignmentReference shouldEqual expectedConsignmentRef
-            message.retryCount shouldBe 0
+            message.retryCount shouldBe expectedRetryCount
             message.packageSignedUrl.startsWith(expectedSignedUrl) shouldBe true
             message.packageShaSignedUrl.startsWith(expectedShaSignedUrl) shouldBe true
           }
