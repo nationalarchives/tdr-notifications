@@ -3,13 +3,14 @@ package uk.gov.nationalarchives.notifications
 import com.github.tomakehurst.wiremock.client.WireMock._
 import org.scalatest.prop.TableFor6
 import uk.gov.nationalarchives.notifications.EcrScanIntegrationSpec.scanEventInputText
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 
 import scala.io.Source
 
 class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
 
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[String], () => ()] = Table(
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[ExportSuccessDetails], () => ()] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     (
       "an ECR scan of 'latest' with a mix of severities",

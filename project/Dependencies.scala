@@ -12,7 +12,7 @@ object Dependencies {
   lazy val circeParser = "io.circe" %% "circe-parser" % circeVersion
   lazy val typesafe = "com.typesafe" % "config" % "1.4.0"
   lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.8.2"
-  lazy val awsUtils =  "uk.gov.nationalarchives.aws.utils" %% "tdr-aws-utils" % "0.1.20"
+  lazy val awsUtils =  "uk.gov.nationalarchives.aws.utils" %% "tdr-aws-utils" % "0.1.21"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.2"
   lazy val wiremock = "com.github.tomakehurst" % "wiremock" % "2.27.2"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.1"

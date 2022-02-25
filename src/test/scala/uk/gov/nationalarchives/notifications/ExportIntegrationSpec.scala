@@ -7,7 +7,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{Expor
 
 class ExportIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[String], () => ()] = Table(
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[ExportSuccessDetails], () => ()] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     ("a successful standard export event on intg",
       exportStatusEventInputText(exportStatus2), None, None, None, () => ()),
@@ -91,14 +91,9 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     }
   }
 
-  private def expectedSqsMessage(exportStatusEvent: ExportStatusEvent): Option[String] = {
+  private def expectedSqsMessage(exportStatusEvent: ExportStatusEvent): Option[ExportSuccessDetails] = {
     if (exportStatusEvent.success && exportStatusEvent.successDetails.isDefined) {
-      Some(s"""{
-         |  "packageSignedUrl" : "placeholder_value",
-         |  "packageShaSignedUrl" : "placeholder_value",
-         |  "consignmentReference" : "consignmentRef1",
-         |  "retryCount" : 0
-         |}""".stripMargin)
+      exportStatusEvent.successDetails
     } else None
   }
 }
