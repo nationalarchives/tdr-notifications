@@ -70,8 +70,8 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
 
             val expectedConsignmentRef = expectedSuccessDetails.consignmentReference
             val expectedBucket = expectedSuccessDetails.exportBucket
-            val expectedSignedUrl = s"https://s3.eu-west-2.amazonaws.com/${expectedBucket}/${expectedConsignmentRef}.tar.gz?X-Amz-Security-Token"
-            val expectedShaSignedUrl = s"https://s3.eu-west-2.amazonaws.com/${expectedBucket}/${expectedConsignmentRef}.tar.gz.sha256?X-Amz-Security-Token"
+            val expectedSignedUrl = s"https://s3.eu-west-2.amazonaws.com/$expectedBucket/$expectedConsignmentRef.tar.gz?X-Amz-Security-Token"
+            val expectedShaSignedUrl = s"https://s3.eu-west-2.amazonaws.com/$expectedBucket/$expectedConsignmentRef.tar.gz.sha256?X-Amz-Security-Token"
 
             message.consignmentReference shouldEqual expectedConsignmentRef
             message.retryCount shouldBe 0
