@@ -91,7 +91,7 @@ class DiskSpaceAlarmIntegrationSpec extends LambdaIntegrationSpec {
     }
   }
 
-  override def events: TableFor6[String, String, Option[String], Option[String],  Option[(ExportSuccessDetails, Int)], () => Unit] = Table(
+  override def events: TableFor6[String, String, Option[String], Option[String],  Option[SqsExpectedMessageDetails], () => Unit] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     ("Alarm OK for server Jenkins with threshold 20", event("OK", "Jenkins", 20), None, slackMessage("OK", "Jenkins", 20), None, () => ()),
     ("Alarm OK for server Jenkins with threshold 70", event("OK", "Jenkins", 70), None, slackMessage("OK", "Jenkins", 70), None, () => ()),

@@ -8,12 +8,12 @@ import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecode
 
 class TransformEngineRetryIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[(ExportSuccessDetails, Int)], () => ()] = Table(
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     ("a transform engine retry event on intg",
-      transformEngineRetryEventInputText(retryEvent), None, None, Some(successDetails, 2), () => ()),
+      transformEngineRetryEventInputText(retryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => ()),
     ("a transform engine event on staging",
-      transformEngineRetryEventInputText(retryEvent), None, None, Some(successDetails, 2), () => ())
+      transformEngineRetryEventInputText(retryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => ())
   )
 
   private lazy val successDetails = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "judgment", "judgment-export-bucket")
@@ -45,9 +45,5 @@ class TransformEngineRetryIntegrationSpec extends LambdaIntegrationSpec {
        |  ]
        |}
        |""".stripMargin
-  }
-
-  private def expectedSqsMessage(exportStatusEvent: ExportStatusEvent): Option[ExportSuccessDetails] = {
-      Some(exportStatusEvent.successDetails.get)
   }
 }

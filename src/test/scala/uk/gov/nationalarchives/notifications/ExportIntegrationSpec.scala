@@ -7,7 +7,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{Expor
 
 class ExportIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[(ExportSuccessDetails, Int)], () => ()] = Table(
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     ("a successful standard export event on intg",
       exportStatusEventInputText(exportStatus2), None, None, None, () => ()),
@@ -91,11 +91,9 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     }
   }
 
-  private def expectedSqsMessage(exportStatusEvent: ExportStatusEvent): Option[(ExportSuccessDetails, Int)] = {
+  private def expectedSqsMessage(exportStatusEvent: ExportStatusEvent): Option[SqsExpectedMessageDetails] = {
     if (exportStatusEvent.success && exportStatusEvent.successDetails.isDefined) {
-      Some(exportStatusEvent.successDetails.get, 0)
+      Some(SqsExpectedMessageDetails(exportStatusEvent.successDetails.get, 0))
     } else None
   }
 }
-
-case class ExpectedSqsMessage

@@ -8,7 +8,7 @@ import software.amazon.awssdk.services.sqs.model.Message
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
-  def events: TableFor6[String, String, Option[String], Option[String], Option[(ExportSuccessDetails, Int)], () => ()]
+  def events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()]
 
   forAll(events) {
     (description, input, emailBody, slackBody, sqsMessage, stubContext) => {
@@ -55,7 +55,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
       }
 
       sqsMessage match {
-        case Some((expectedSuccessDetails, expectedRetryCount)) =>
+        case Some(expectedMessageDetails) =>
           "the process method" should s"send a sqs message for $description" in {
             stubContext()
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
@@ -68,13 +68,14 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
               case Right(value) => value
             }
 
+            val expectedSuccessDetails = expectedMessageDetails.successDetails
             val expectedConsignmentRef = expectedSuccessDetails.consignmentReference
             val expectedBucket = expectedSuccessDetails.exportBucket
             val expectedSignedUrl = s"https://$expectedBucket.s3.eu-west-2.amazonaws.com/$expectedConsignmentRef.tar.gz?X-Amz-Security-Token"
             val expectedShaSignedUrl = s"https://$expectedBucket.s3.eu-west-2.amazonaws.com/$expectedConsignmentRef.tar.gz.sha256?X-Amz-Security-Token"
 
             message.consignmentReference shouldEqual expectedConsignmentRef
-            message.retryCount shouldBe expectedRetryCount
+            message.retryCount shouldBe expectedMessageDetails.retryCount
             message.packageSignedUrl.startsWith(expectedSignedUrl) shouldBe true
             message.packageShaSignedUrl.startsWith(expectedShaSignedUrl) shouldBe true
           }
@@ -91,6 +92,8 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
     }
   }
 }
+
+case class SqsExpectedMessageDetails(successDetails: ExportSuccessDetails, retryCount: Int)
 
 case class SqsExportMessageBody(packageSignedUrl: String,
                                 packageShaSignedUrl: String,
