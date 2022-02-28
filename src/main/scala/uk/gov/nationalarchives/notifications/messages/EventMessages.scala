@@ -40,10 +40,11 @@ object EventMessages {
 
   case class SqsMessageDetails(queueUrl: String, messageBody: String)
 
-  case class SqsExportMessage(packageSignedUrl: String,
-                              packageShaSignedUrl: String,
-                              consignmentReference: String,
-                              retryCount: Int) extends ExportMessage
+  case class SqsExportMessage(`consignment-reference`: String,
+                              `s3-bagit-url`: String,
+                              `s3-sha-url`: String,
+                              `consignment-type`: String,
+                              `number-of-retries`: Int)
 
   private def generateSqsExportMessage(bucketName: String, consignmentRef: String, retryCount: Int): SqsMessageDetails = {
     val s3Utils = S3Utils(s3Async)
@@ -215,6 +216,7 @@ object EventMessages {
       if (sendToTransformEngine(incomingEvent)) {
         val value = incomingEvent.successDetails.get
         val consignmentReference = value.consignmentReference
+        val consignmentType = value.consignmentType
         val bucketName = value.exportBucket
         Some(generateSqsExportMessage(bucketName, consignmentReference, 0))
       } else {

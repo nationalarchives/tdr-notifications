@@ -6,6 +6,7 @@ import io.circe.parser
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor6}
 import software.amazon.awssdk.services.sqs.model.Message
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
+import uk.gov.nationalarchives.notifications.messages.EventMessages.SqsExportMessage
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
   def events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()]
@@ -64,7 +65,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
 
             messages.size shouldBe 1
             val messageBody = messages.head.body()
-            val message = parser.decode[SqsExportMessageBody](messageBody) match {
+            val message = parser.decode[SqsExportMessage](messageBody) match {
               case Right(value) => value
             }
 
