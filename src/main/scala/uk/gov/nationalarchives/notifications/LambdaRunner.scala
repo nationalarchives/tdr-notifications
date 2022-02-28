@@ -30,7 +30,7 @@ object LambdaRunner extends App {
        |    "Records": [
        |        {
        |            "Sns": {
-       |                "Message": "{\\"success\\":true,\\"consignmentId\\":\\"fc2b60ba-8078-4e7a-b91b-a5b6c616a9bc\\", \\"environment\\": \\"some-environment\\", \\"successDetails\\":{\\"userId\\": \\"fc2b60ba-8078-4e7a-b91b-a5b6c616a9bc\\",\\"consignmentReference\\": \\"some-consignment-reference\\",\\"transferringBodyName\\": \\"some-transferring-body-code\\"}}"
+       |                "Message": "{\\"success\\":true,\\"consignmentId\\":\\"fc2b60ba-8078-4e7a-b91b-a5b6c616a9bc\\", \\"environment\\": \\"some-environment\\", \\"successDetails\\":{\\"userId\\": \\"fc2b60ba-8078-4e7a-b91b-a5b6c616a9bc\\",\\"consignmentReference\\": \\"some-consignment-reference\\",\\"transferringBodyName\\": \\"some-transferring-body-code\\",\\"consignmentType\\": \\"judgment\\", \\"exportBucket\\": \\"some-export-bucket\\"}}"
        |            }
        |        }
        |    ]
@@ -66,7 +66,7 @@ object LambdaRunner extends App {
        |
        |""".stripMargin
 
-  val inputStream = new ByteArrayInputStream(ecrScanMessage.getBytes)
+  val inputStream = new ByteArrayInputStream(exportSuccessMessage.getBytes)
 
   // The Lambda does not use the output stream, so it's safe to set it to null
   val outputStream = null

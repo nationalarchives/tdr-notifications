@@ -6,6 +6,7 @@ import io.circe.parser
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor6}
 import software.amazon.awssdk.services.sqs.model.Message
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
+import uk.gov.nationalarchives.notifications.messages.EventMessages.SqsExportMessage
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
   def events: TableFor6[String, String, Option[String], Option[String], Option[ExportSuccessDetails], () => ()]
@@ -64,19 +65,21 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
 
             messages.size shouldBe 1
             val messageBody = messages.head.body()
-            val message = parser.decode[SqsExportMessageBody](messageBody) match {
+            val message = parser.decode[SqsExportMessage](messageBody) match {
               case Right(value) => value
             }
 
             val expectedConsignmentRef = expectedSuccessDetails.consignmentReference
             val expectedBucket = expectedSuccessDetails.exportBucket
+            val expectedConsignmentType = expectedSuccessDetails.consignmentType
             val expectedSignedUrl = s"https://s3.eu-west-2.amazonaws.com/$expectedBucket/$expectedConsignmentRef.tar.gz?X-Amz-Security-Token"
             val expectedShaSignedUrl = s"https://s3.eu-west-2.amazonaws.com/$expectedBucket/$expectedConsignmentRef.tar.gz.sha256?X-Amz-Security-Token"
 
-            message.consignmentReference shouldEqual expectedConsignmentRef
-            message.retryCount shouldBe 0
-            message.packageSignedUrl.startsWith(expectedSignedUrl) shouldBe true
-            message.packageShaSignedUrl.startsWith(expectedShaSignedUrl) shouldBe true
+            message.`consignment-reference` shouldEqual expectedConsignmentRef
+            message.`number-of-retries` shouldBe 0
+            message.`s3-bagit-url`.startsWith(expectedSignedUrl) shouldBe true
+            message.`s3-sha-url`.startsWith(expectedShaSignedUrl) shouldBe true
+            message.`consignment-type` shouldEqual expectedConsignmentType
           }
         case None =>
           "the process method" should s"not send a sqs message for $description" in {
@@ -91,8 +94,3 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
     }
   }
 }
-
-case class SqsExportMessageBody(packageSignedUrl: String,
-                                packageShaSignedUrl: String,
-                                consignmentReference: String,
-                                retryCount: Int)

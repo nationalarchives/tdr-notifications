@@ -34,10 +34,11 @@ object EventMessages {
 
   case class SqsMessageDetails(queueUrl: String, messageBody: String)
 
-  case class SqsExportMessage(packageSignedUrl: String,
-                              packageShaSignedUrl: String,
-                              consignmentReference: String,
-                              retryCount: Int)
+  case class SqsExportMessage(`consignment-reference`: String,
+                              `s3-bagit-url`: String,
+                              `s3-sha-url`: String,
+                              `consignment-type`: String,
+                              `number-of-retries`: Int)
 
   implicit val scanEventMessages: Messages[ScanEvent, ImageScanReport] = new Messages[ScanEvent, ImageScanReport] {
 
@@ -201,10 +202,11 @@ object EventMessages {
         val s3Utils = S3Utils(s3Async)
         val value = incomingEvent.successDetails.get
         val consignmentReference = value.consignmentReference
+        val consignmentType = value.consignmentType
         val bucketName = value.exportBucket
         val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentReference.tar.gz").toString
         val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentReference.tar.gz.sha256").toString
-        val messageBody = SqsExportMessage(packageSignedUrl, packageShaSignedUrl, consignmentReference, 0).asJson.toString
+        val messageBody = SqsExportMessage(consignmentReference, packageSignedUrl, packageShaSignedUrl, consignmentType, 0).asJson.toString
         val queueUrl = eventConfig("sqs.queue.transform_engine_output")
         Some(SqsMessageDetails(queueUrl, messageBody))
       } else {
