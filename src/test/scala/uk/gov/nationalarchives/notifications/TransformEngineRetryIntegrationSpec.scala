@@ -3,25 +3,31 @@ package uk.gov.nationalarchives.notifications
 import java.util.UUID
 
 import org.scalatest.prop.TableFor6
-import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportStatusEvent, ExportSuccessDetails}
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 
 class TransformEngineRetryIntegrationSpec extends LambdaIntegrationSpec {
 
   override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
-    ("a transform engine retry event on intg",
-      transformEngineRetryEventInputText(retryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => ()),
+    ("a judgment transform engine retry event on intg",
+      transformEngineRetryEventInputText(judgmentRetryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => ()),
+    ("a standard transform engine retry event on intg",
+      transformEngineRetryEventInputText(standardRetryEvent), None, None, None, () => ()),
     ("a transform engine event on staging",
-      transformEngineRetryEventInputText(retryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => ())
+      transformEngineRetryEventInputText(judgmentRetryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => ()),
+    ("a standard transform engine retry event on staging",
+      transformEngineRetryEventInputText(standardRetryEvent), None, None, None, () => ())
   )
 
   private lazy val successDetails = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "judgment", "judgment-export-bucket")
-  private lazy val retryEvent = TransformEngineRetryEvent("consignmentRef1", 2)
+  private lazy val judgmentRetryEvent = TransformEngineRetryEvent("consignmentRef1", "judgment", 2)
+  private lazy val standardRetryEvent = TransformEngineRetryEvent("consignmentRef1", "standard", 2)
 
   private def transformEngineRetryEventInputText(retryEvent: TransformEngineRetryEvent): String = {
     val consignmentRef = retryEvent.consignmentReference
-    val retryCount = retryEvent.retryCount
+    val consignmentType = retryEvent.consignmentType
+    val retryCount = retryEvent.numberOfRetries
 
     s"""
        |{
@@ -29,7 +35,7 @@ class TransformEngineRetryIntegrationSpec extends LambdaIntegrationSpec {
        |        {
        |            "messageId": "messageIdValue",
        |            "receiptHandle": "receipt handle value",
-       |            "body": "{\\"consignmentReference\\": \\"$consignmentRef\\",\\"retryCount\\": $retryCount}",
+       |            "body": "{\\"consignmentReference\\": \\"$consignmentRef\\",\\"consignmentType\\": \\"$consignmentType\\", \\"numberOfRetries\\": $retryCount}",
        |            "attributes": {
        |                "ApproximateReceiveCount": "1",
        |                "SentTimestamp": "1545082649183",

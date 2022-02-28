@@ -75,10 +75,10 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             val expectedSignedUrl = s"https://$expectedBucket.s3.eu-west-2.amazonaws.com/$expectedConsignmentRef.tar.gz?X-Amz-Security-Token"
             val expectedShaSignedUrl = s"https://$expectedBucket.s3.eu-west-2.amazonaws.com/$expectedConsignmentRef.tar.gz.sha256?X-Amz-Security-Token"
 
-            message.consignmentReference shouldEqual expectedConsignmentRef
-            message.retryCount shouldBe expectedMessageDetails.retryCount
-            message.packageSignedUrl.startsWith(expectedSignedUrl) shouldBe true
-            message.packageShaSignedUrl.startsWith(expectedShaSignedUrl) shouldBe true
+            message.`consignment-reference` shouldEqual expectedConsignmentRef
+            message.`number-of-retries` shouldBe expectedMessageDetails.retryCount
+            message.`s3-bagit-url`.startsWith(expectedSignedUrl) shouldBe true
+            message.`s3-sha-url`.startsWith(expectedShaSignedUrl) shouldBe true
           }
         case None =>
           "the process method" should s"not send a sqs message for $description" in {
@@ -95,8 +95,3 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
 }
 
 case class SqsExpectedMessageDetails(successDetails: ExportSuccessDetails, retryCount: Int)
-
-case class SqsExportMessageBody(packageSignedUrl: String,
-                                packageShaSignedUrl: String,
-                                consignmentReference: String,
-                                retryCount: Int)

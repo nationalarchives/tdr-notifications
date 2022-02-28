@@ -4,7 +4,8 @@ import uk.gov.nationalarchives.notifications.messages.EventMessages.ExportMessag
 
 object TransformEngineRetryDecoder {
   case class TransformEngineRetryEvent(consignmentReference: String,
-                                       retryCount: Int
+                                       consignmentType: String,
+                                       numberOfRetries: Int
                                       ) extends IncomingEvent with ExportMessage
 
 }
