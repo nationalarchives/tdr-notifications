@@ -14,7 +14,7 @@ class TransformEngineRetryIntegrationSpec extends LambdaIntegrationSpec {
       transformEngineRetryEventInputText(judgmentRetryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => ()),
     ("a standard transform engine retry event on intg",
       transformEngineRetryEventInputText(standardRetryEvent), None, None, None, () => ()),
-    ("a transform engine event on staging",
+    ("a judgment transform engine event on staging",
       transformEngineRetryEventInputText(judgmentRetryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => ()),
     ("a standard transform engine retry event on staging",
       transformEngineRetryEventInputText(standardRetryEvent), None, None, None, () => ())
@@ -35,7 +35,7 @@ class TransformEngineRetryIntegrationSpec extends LambdaIntegrationSpec {
        |        {
        |            "messageId": "messageIdValue",
        |            "receiptHandle": "receipt handle value",
-       |            "body": "{\\"consignmentReference\\": \\"$consignmentRef\\",\\"consignmentType\\": \\"$consignmentType\\", \\"numberOfRetries\\": $retryCount}",
+       |            "body": "{\\"consignment-reference\\": \\"$consignmentRef\\",\\"consignment-type\\": \\"$consignmentType\\", \\"number-of-retries\\": $retryCount}",
        |            "attributes": {
        |                "ApproximateReceiveCount": "1",
        |                "SentTimestamp": "1545082649183",

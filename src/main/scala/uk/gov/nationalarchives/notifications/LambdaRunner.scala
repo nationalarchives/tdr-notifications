@@ -73,7 +73,7 @@ object LambdaRunner extends App {
        |        {
        |            "messageId": "messageIdValue",
        |            "receiptHandle": "receipt handle value",
-       |            "body": "{\\"consignmentReference\\": \\"some-consignment-reference\\",\\"retryCount\\": 0}",
+       |            "body": "{\\"consignment-reference\\": \\"some-consignment-reference\\",\\"consignment-type\\": \\"judgment\\",\\"number-of-retries\\": 0}",
        |            "attributes": {
        |                "ApproximateReceiveCount": "1",
        |                "SentTimestamp": "1545082649183",

@@ -32,6 +32,12 @@ object EventMessages {
     val consignmentType: String
   }
 
+  trait TransformEngineSqsMessage {
+    val `consignment-reference`: String
+    val `consignment-type`: String
+    val `number-of-retries`: Int
+  }
+
   case class SlackText(`type`: String, text: String)
 
   case class SlackBlock(`type`: String, text: SlackText)
@@ -40,13 +46,13 @@ object EventMessages {
 
   case class SqsMessageDetails(queueUrl: String, messageBody: String)
 
-  case class SqsExportMessage(`consignment-reference`: String,
-                              `s3-bagit-url`: String,
-                              `s3-sha-url`: String,
-                              `consignment-type`: String,
-                              `number-of-retries`: Int)
+  case class SqsExportMessageBody(`consignment-reference`: String,
+                                  `s3-bagit-url`: String,
+                                  `s3-sha-url`: String,
+                                  `consignment-type`: String,
+                                  `number-of-retries`: Int) extends TransformEngineSqsMessage
 
-  private def generateSqsExportMessage(bucketName: String, exportMessage: ExportMessage): SqsMessageDetails = {
+  private def generateSqsExportMessageBody(bucketName: String, exportMessage: ExportMessage): SqsMessageDetails = {
     val retryCount: Int = exportMessage match {
       case e: TransformEngineRetryEvent => e.numberOfRetries
       case _ => 0
@@ -56,7 +62,7 @@ object EventMessages {
     val consignmentType = exportMessage.consignmentType
     val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz").toString
     val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256").toString
-    val messageBody = SqsExportMessage(consignmentRef, packageSignedUrl, packageShaSignedUrl, consignmentType, retryCount).asJson.toString
+    val messageBody = SqsExportMessageBody(consignmentRef, packageSignedUrl, packageShaSignedUrl, consignmentType, retryCount).asJson.toString
     val queueUrl = eventConfig("sqs.queue.transform_engine_output")
     SqsMessageDetails(queueUrl, messageBody)
   }
@@ -222,7 +228,7 @@ object EventMessages {
       if (sendToTransformEngine(incomingEvent)) {
         val successDetails = incomingEvent.successDetails.get
         val bucketName = successDetails.exportBucket
-        Some(generateSqsExportMessage(bucketName, successDetails))
+        Some(generateSqsExportMessageBody(bucketName, successDetails))
       } else {
         None
       }
@@ -302,7 +308,7 @@ object EventMessages {
       //Will only receive judgment retry events as only sending judgment notification at the moment.
       if (incomingEvent.consignmentType == "judgment") {
         val judgmentBucket = eventConfig("s3.judgment_export_bucket")
-        Some(generateSqsExportMessage(judgmentBucket, incomingEvent))
+        Some(generateSqsExportMessageBody(judgmentBucket, incomingEvent))
       } else None
     }
   }
