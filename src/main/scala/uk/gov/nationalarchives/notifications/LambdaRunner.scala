@@ -71,20 +71,7 @@ object LambdaRunner extends App {
        |{
        |  "Records": [
        |        {
-       |            "messageId": "messageIdValue",
-       |            "receiptHandle": "receipt handle value",
-       |            "body": "{\\"consignment-reference\\": \\"some-consignment-reference\\",\\"consignment-type\\": \\"judgment\\",\\"number-of-retries\\": 0}",
-       |            "attributes": {
-       |                "ApproximateReceiveCount": "1",
-       |                "SentTimestamp": "1545082649183",
-       |                "SenderId": "senderIdValue",
-       |                "ApproximateFirstReceiveTimestamp": "1545082649185"
-       |            },
-       |            "messageAttributes": {},
-       |            "md5OfBody": "md5OfBodyValue",
-       |            "eventSource": "aws:sqs",
-       |            "eventSourceARN": "queueArn",
-       |            "awsRegion": "eu-west-2"
+       |            "body": "{\\"consignment-reference\\": \\"some-consignment-reference\\",\\"consignment-type\\": \\"judgment\\",\\"number-of-retries\\": 0}"
        |        }
        |  ]
        |}
