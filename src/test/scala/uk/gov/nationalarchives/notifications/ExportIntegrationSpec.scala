@@ -7,7 +7,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{Expor
 
 class ExportIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[ExportSuccessDetails], () => ()] = Table(
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     ("a successful standard export event on intg",
       exportStatusEventInputText(exportStatus2), None, None, None, () => ()),
@@ -27,8 +27,8 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
       exportStatusEventInputText(exportStatus8), None, Some(expectedSlackMessage(exportStatus8)), None, () => ())
   )
 
-  private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "exportBucket")
-  private lazy val successDetailsJudgment = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "judgment", "exportBucket")
+  private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")
+  private lazy val successDetailsJudgment = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "judgment", "export-bucket")
   private lazy val causeOfFailure = "Cause of failure"
   private lazy val exportStatus1 = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(successDetailsJudgment), None)
   private lazy val exportStatus2 = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(successDetailsStandard), None)
@@ -91,9 +91,9 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     }
   }
 
-  private def expectedSqsMessage(exportStatusEvent: ExportStatusEvent): Option[ExportSuccessDetails] = {
+  private def expectedSqsMessage(exportStatusEvent: ExportStatusEvent): Option[SqsExpectedMessageDetails] = {
     if (exportStatusEvent.success && exportStatusEvent.successDetails.isDefined) {
-      exportStatusEvent.successDetails
+      Some(SqsExpectedMessageDetails(exportStatusEvent.successDetails.get, 0))
     } else None
   }
 }

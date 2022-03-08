@@ -66,7 +66,18 @@ object LambdaRunner extends App {
        |
        |""".stripMargin
 
-  val inputStream = new ByteArrayInputStream(exportSuccessMessage.getBytes)
+  val transformEngineRetryMessage =
+    s"""
+       |{
+       |  "Records": [
+       |        {
+       |            "body": "{\\"consignment-reference\\": \\"some-consignment-reference\\",\\"consignment-type\\": \\"judgment\\",\\"number-of-retries\\": 0}"
+       |        }
+       |  ]
+       |}
+       |""".stripMargin
+
+  val inputStream = new ByteArrayInputStream(ecrScanMessage.getBytes)
 
   // The Lambda does not use the output stream, so it's safe to set it to null
   val outputStream = null

@@ -6,10 +6,10 @@ import io.circe.parser
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor6}
 import software.amazon.awssdk.services.sqs.model.Message
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
-import uk.gov.nationalarchives.notifications.messages.EventMessages.SqsExportMessage
+import uk.gov.nationalarchives.notifications.messages.EventMessages.SqsExportMessageBody
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
-  def events: TableFor6[String, String, Option[String], Option[String], Option[ExportSuccessDetails], () => ()]
+  def events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()]
 
   forAll(events) {
     (description, input, emailBody, slackBody, sqsMessage, stubContext) => {
@@ -56,7 +56,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
       }
 
       sqsMessage match {
-        case Some(expectedSuccessDetails) =>
+        case Some(expectedMessageDetails) =>
           "the process method" should s"send a sqs message for $description" in {
             stubContext()
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
@@ -65,21 +65,20 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
 
             messages.size shouldBe 1
             val messageBody = messages.head.body()
-            val message = parser.decode[SqsExportMessage](messageBody) match {
+            val message = parser.decode[SqsExportMessageBody](messageBody) match {
               case Right(value) => value
             }
 
+            val expectedSuccessDetails = expectedMessageDetails.successDetails
             val expectedConsignmentRef = expectedSuccessDetails.consignmentReference
             val expectedBucket = expectedSuccessDetails.exportBucket
-            val expectedConsignmentType = expectedSuccessDetails.consignmentType
-            val expectedSignedUrl = s"https://s3.eu-west-2.amazonaws.com/$expectedBucket/$expectedConsignmentRef.tar.gz?X-Amz-Security-Token"
-            val expectedShaSignedUrl = s"https://s3.eu-west-2.amazonaws.com/$expectedBucket/$expectedConsignmentRef.tar.gz.sha256?X-Amz-Security-Token"
+            val expectedSignedUrl = s"https://$expectedBucket.s3.eu-west-2.amazonaws.com/$expectedConsignmentRef.tar.gz?X-Amz-Security-Token"
+            val expectedShaSignedUrl = s"https://$expectedBucket.s3.eu-west-2.amazonaws.com/$expectedConsignmentRef.tar.gz.sha256?X-Amz-Security-Token"
 
             message.`consignment-reference` shouldEqual expectedConsignmentRef
-            message.`number-of-retries` shouldBe 0
+            message.`number-of-retries` shouldBe expectedMessageDetails.retryCount
             message.`s3-bagit-url`.startsWith(expectedSignedUrl) shouldBe true
             message.`s3-sha-url`.startsWith(expectedShaSignedUrl) shouldBe true
-            message.`consignment-type` shouldEqual expectedConsignmentType
           }
         case None =>
           "the process method" should s"not send a sqs message for $description" in {
@@ -94,3 +93,5 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
     }
   }
 }
+
+case class SqsExpectedMessageDetails(successDetails: ExportSuccessDetails, retryCount: Int)

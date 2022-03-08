@@ -10,7 +10,7 @@ import scala.io.Source
 
 class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
 
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[ExportSuccessDetails], () => ()] = Table(
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     (
       "an ECR scan of 'latest' with a mix of severities",
