@@ -10,34 +10,41 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
   override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     ("a successful standard export event on intg",
-      exportStatusEventInputText(exportStatus2), None, None, None, () => ()),
+      exportStatusEventInputText(exportStatus1), None, None, None, () => ()),
     ("a successful judgment export event on intg",
-      exportStatusEventInputText(exportStatus1), None, None, expectedSqsMessage(exportStatus1), () => ()),
+      exportStatusEventInputText(exportStatus2), None, None, expectedSqsMessage(exportStatus2), () => ()),
+    ("a successful judgment export event using a mock transferring body on intg",
+      exportStatusEventInputText(exportStatus3), None, None, None, () => ()),
     ("a failed export event on intg",
-      exportStatusEventInputText(exportStatus3), None, Some(expectedSlackMessage(exportStatus3)), None, () => ()),
+      exportStatusEventInputText(exportStatus4), None, Some(expectedSlackMessage(exportStatus4)), None, () => ()),
     ("a successful standard export event on staging",
       exportStatusEventInputText(exportStatus5), None, Some(expectedSlackMessage(exportStatus5)), None, () => ()),
     ("a successful judgment export event on staging",
-      exportStatusEventInputText(exportStatus4), None, Some(expectedSlackMessage(exportStatus4)), expectedSqsMessage(exportStatus4), () => ()),
-    ("a failed export event on staging",
-      exportStatusEventInputText(exportStatus6), None, Some(expectedSlackMessage(exportStatus6)), None, () => ()),
-    ("a failed export on intg with no error details",
+      exportStatusEventInputText(exportStatus6), None, Some(expectedSlackMessage(exportStatus6)), expectedSqsMessage(exportStatus6), () => ()),
+    ("a successful judgment export event using a mock transferring body on staging",
       exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, () => ()),
+    ("a failed export event on staging",
+      exportStatusEventInputText(exportStatus8), None, Some(expectedSlackMessage(exportStatus8)), None, () => ()),
+    ("a failed export on intg with no error details",
+      exportStatusEventInputText(exportStatus9), None, Some(expectedSlackMessage(exportStatus9)), None, () => ()),
     ("a failed export on staging with no error details",
-      exportStatusEventInputText(exportStatus8), None, Some(expectedSlackMessage(exportStatus8)), None, () => ())
+      exportStatusEventInputText(exportStatus10), None, Some(expectedSlackMessage(exportStatus10)), None, () => ())
   )
 
   private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")
   private lazy val successDetailsJudgment = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "judgment", "export-bucket")
+  private lazy val successDetailsJudgmentMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "MOCK1 Department", "judgment", "export-bucket")
   private lazy val causeOfFailure = "Cause of failure"
-  private lazy val exportStatus1 = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(successDetailsJudgment), None)
-  private lazy val exportStatus2 = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(successDetailsStandard), None)
-  private lazy val exportStatus3 = ExportStatusEvent(UUID.randomUUID(), false, "intg", None, Some(causeOfFailure))
-  private lazy val exportStatus4 = ExportStatusEvent(UUID.randomUUID(), true, "staging", Some(successDetailsJudgment), None)
+  private lazy val exportStatus1 = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(successDetailsStandard), None)
+  private lazy val exportStatus2 = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(successDetailsJudgment), None)
+  private lazy val exportStatus3 = ExportStatusEvent(UUID.randomUUID(), true, "intg", Some(successDetailsJudgmentMockBody), None)
+  private lazy val exportStatus4 = ExportStatusEvent(UUID.randomUUID(), false, "intg", None, Some(causeOfFailure))
   private lazy val exportStatus5 = ExportStatusEvent(UUID.randomUUID(), true, "staging", Some(successDetailsStandard), None)
-  private lazy val exportStatus6 = ExportStatusEvent(UUID.randomUUID(), false, "staging", None, Some(causeOfFailure))
-  private lazy val exportStatus7 = ExportStatusEvent(UUID.randomUUID(), false, "intg", None, None)
-  private lazy val exportStatus8 = ExportStatusEvent(UUID.randomUUID(), false, "staging", None, None)
+  private lazy val exportStatus6 = ExportStatusEvent(UUID.randomUUID(), true, "staging", Some(successDetailsJudgment), None)
+  private lazy val exportStatus7 = ExportStatusEvent(UUID.randomUUID(), true, "staging", Some(successDetailsJudgmentMockBody), None)
+  private lazy val exportStatus8 = ExportStatusEvent(UUID.randomUUID(), false, "staging", None, Some(causeOfFailure))
+  private lazy val exportStatus9 = ExportStatusEvent(UUID.randomUUID(), false, "intg", None, None)
+  private lazy val exportStatus10 = ExportStatusEvent(UUID.randomUUID(), false, "staging", None, None)
 
   private def exportStatusEventInputText(exportStatusEvent: ExportStatusEvent): String = {
     val successDetails = exportStatusEvent.successDetails
