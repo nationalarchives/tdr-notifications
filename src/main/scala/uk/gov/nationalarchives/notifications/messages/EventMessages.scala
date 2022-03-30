@@ -183,7 +183,7 @@ object EventMessages {
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
     private def sendToTransformEngine(ev: ExportStatusEvent): Boolean = {
-      ev.success && ev.successDetails.exists(_.consignmentType == "judgment")
+      ev.success && ev.successDetails.exists(_.consignmentType == "judgment") && !ev.successDetails.exists(_.transferringBodyName.contains("MOCK"))
     }
 
     override def context(event: ExportStatusEvent): IO[Unit] = IO.unit
