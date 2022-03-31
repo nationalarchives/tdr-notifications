@@ -25,13 +25,13 @@ lazy val root = (project in file("."))
     )
   )
 
-fork in Test := true
-javaOptions in Test += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
+(Test / fork) := true
+(Test / javaOptions) += s"-Dconfig.file=${sourceDirectory.value}/test/resources/application.conf"
 
 resolvers += "TDR Releases" at "s3://tdr-releases-mgmt"
-assemblyJarName in assembly := "notifications.jar"
+(assembly / assemblyJarName) := "notifications.jar"
 
-assemblyMergeStrategy in assembly := {
+(assembly / assemblyMergeStrategy) := {
   case PathList("META-INF", xs@_*) => MergeStrategy.discard
   case _ => MergeStrategy.first
 }
