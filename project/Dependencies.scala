@@ -10,7 +10,7 @@ object Dependencies {
   lazy val circeCore = "io.circe" %% "circe-core" % circeVersion
   lazy val circeGeneric = "io.circe" %% "circe-generic" % circeVersion
   lazy val circeParser = "io.circe" %% "circe-parser" % circeVersion
-  lazy val typesafe = "com.typesafe" % "config" % "1.4.0"
+  lazy val typesafe = "com.typesafe" % "config" % "1.4.2"
   lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.8.6"
   lazy val awsUtils =  "uk.gov.nationalarchives.aws.utils" %% "tdr-aws-utils" % "0.1.21"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.2"
