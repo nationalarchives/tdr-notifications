@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
   private val circeVersion = "0.14.1"
-  private val sttpClient3Version = "3.3.15"
+  private val sttpClient3Version = "3.3.18"
   private val elasticMqVersion = "1.3.6"
 
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClient3Version
