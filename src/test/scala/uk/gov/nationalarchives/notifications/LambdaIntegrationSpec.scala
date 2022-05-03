@@ -40,7 +40,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSlackServer.verify(slackBody.size,
-              postRequestedFor(urlEqualTo("/webhook")) //Parameterize URL 1 or URL 2
+              postRequestedFor(urlEqualTo("/webhook"))
                 .withRequestBody(equalToJson(body))
             )
           }
