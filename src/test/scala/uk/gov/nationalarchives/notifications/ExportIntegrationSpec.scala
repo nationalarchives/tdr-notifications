@@ -30,9 +30,9 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     ("a failed export on staging with no error details",
       exportStatusEventInputText(exportStatus10), None, Some(expectedSlackMessage(exportStatus10)), None, () => ()),
     ("a successful export event on prod",
-      exportStatusEventInputText(exportStatus11), None, Some(expectedSlackMessage(exportStatus11)),None, () => ()),
+      exportStatusEventInputText(exportStatus11), None, Some(expectedSlackMessage(exportStatus11)), None, () => ()),
     ("a failed export event on prod",
-      exportStatusEventInputText(exportStatus12), None, Some(expectedSlackMessage(exportStatus12)),None, () => ()),
+      exportStatusEventInputText(exportStatus12), None, Some(expectedSlackMessage(exportStatus12)), None, () => ()),
   )
 
   private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")
