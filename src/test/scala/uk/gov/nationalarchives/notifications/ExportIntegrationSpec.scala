@@ -7,7 +7,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{Expor
 
 class ExportIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()] = Table(
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     ("a successful standard export event on intg",
       exportStatusEventInputText(exportStatus1), None, None, None, () => ()),
@@ -28,7 +28,11 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     ("a failed export on intg with no error details",
       exportStatusEventInputText(exportStatus9), None, Some(expectedSlackMessage(exportStatus9)), None, () => ()),
     ("a failed export on staging with no error details",
-      exportStatusEventInputText(exportStatus10), None, Some(expectedSlackMessage(exportStatus10)), None, () => ())
+      exportStatusEventInputText(exportStatus10), None, Some(expectedSlackMessage(exportStatus10)), None, () => ()),
+    ("a successful export event on prod",
+      exportStatusEventInputText(exportStatus11), None, Some(expectedSlackMessage(exportStatus11)),None, () => ()),
+    ("a failed export event on prod",
+      exportStatusEventInputText(exportStatus12), None, Some(expectedSlackMessage(exportStatus12)),None, () => ()),
   )
 
   private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")
@@ -45,6 +49,8 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
   private lazy val exportStatus8 = ExportStatusEvent(UUID.randomUUID(), false, "staging", None, Some(causeOfFailure))
   private lazy val exportStatus9 = ExportStatusEvent(UUID.randomUUID(), false, "intg", None, None)
   private lazy val exportStatus10 = ExportStatusEvent(UUID.randomUUID(), false, "staging", None, None)
+  private lazy val exportStatus11 = ExportStatusEvent(UUID.randomUUID(), true, "prod", Some(successDetailsStandard), None)
+  private lazy val exportStatus12 = ExportStatusEvent(UUID.randomUUID(), false, "prod", None, Some(causeOfFailure))
 
   private def exportStatusEventInputText(exportStatusEvent: ExportStatusEvent): String = {
     val successDetails = exportStatusEvent.successDetails
