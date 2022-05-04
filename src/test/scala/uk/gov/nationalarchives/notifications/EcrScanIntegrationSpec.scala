@@ -111,7 +111,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
 
   case class ExpectedFindings(critical: Int, high: Int, medium: Int, low: Int, undefined: Int)
 
-  private def stubEcrApiResponse(sha256Digest: String, response: String): () => Unit= () => {
+  private def stubEcrApiResponse(sha256Digest: String, response: String): () => Unit = () => {
     ecrApiEndpoint.stubFor(post(urlEqualTo("/"))
       .withRequestBody(matchingJsonPath("$.repositoryName", equalTo("repo-name")))
       .withRequestBody(matchingJsonPath("$.imageId.imageDigest", equalTo(sha256Digest)))
