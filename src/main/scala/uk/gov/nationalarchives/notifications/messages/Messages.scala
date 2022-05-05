@@ -11,6 +11,7 @@ import sttp.model.MediaType
 import uk.gov.nationalarchives.aws.utils.Clients.{kms, ses, sqs}
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.aws.utils.{KMSUtils, SESUtils, SQSUtils}
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.{SlackMessage, SqsMessageDetails}
 
@@ -28,7 +29,7 @@ object Messages {
   val config = ConfigFactory.load
   val kmsUtils: KMSUtils = KMSUtils(kms(config.getString("kms.endpoint")), Map("LambdaFunctionName" -> config.getString("function.name")))
   val eventConfig: Map[String, String] = kmsUtils.decryptValuesFromConfig(
-    List("alerts.ecr-scan.mute", "ses.email.to", "slack.webhook.url", "sqs.queue.transform_engine_output", "s3.judgment_export_bucket"))
+    List("alerts.ecr-scan.mute", "ses.email.to", "slack.webhook.url", "slack.webhook.judgment_url", "sqs.queue.transform_engine_output", "s3.judgment_export_bucket"))
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
@@ -54,10 +55,17 @@ object Messages {
 
   private def sendSlackMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     messages.slack(incomingEvent, context).map(slackMessage => {
+      val url = incomingEvent match {
+        case ev: ExportStatusEvent => if(ev.environment == "prod") {
+          eventConfig("slack.webhook.judgment_url")
+        } else {
+          eventConfig("slack.webhook.url")
+        }
+      }
 
       AsyncHttpClientCatsBackend.resource[IO]().use { backend =>
         val request = basicRequest
-          .post(uri"${eventConfig("slack.webhook.url")}")
+          .post(uri"${url}")
           .body(slackMessage.asJson.noSpaces)
           .contentType(MediaType.ApplicationJson)
         for {

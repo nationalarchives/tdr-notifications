@@ -9,7 +9,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.Export
 import uk.gov.nationalarchives.notifications.messages.EventMessages.SqsExportMessageBody
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
-  def events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()]
+  def events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit]
 
   forAll(events) {
     (description, input, emailBody, slackBody, sqsMessage, stubContext) => {

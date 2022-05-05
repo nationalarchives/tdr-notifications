@@ -10,7 +10,7 @@ import scala.io.Source
 
 class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
 
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => ()] = Table(
+  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
     (
       "an ECR scan of 'latest' with a mix of severities",
@@ -111,7 +111,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
 
   case class ExpectedFindings(critical: Int, high: Int, medium: Int, low: Int, undefined: Int)
 
-  private def stubEcrApiResponse(sha256Digest: String, response: String): () => () = () => {
+  private def stubEcrApiResponse(sha256Digest: String, response: String): () => Unit = () => {
     ecrApiEndpoint.stubFor(post(urlEqualTo("/"))
       .withRequestBody(matchingJsonPath("$.repositoryName", equalTo("repo-name")))
       .withRequestBody(matchingJsonPath("$.imageId.imageDigest", equalTo(sha256Digest)))
