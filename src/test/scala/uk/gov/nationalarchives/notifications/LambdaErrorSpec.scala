@@ -20,7 +20,7 @@ class LambdaErrorSpec extends LambdaSpecUtils with MockEcrApi {
     val exception = intercept[Exception] {
       new Lambda().process(stream, null)
     }
-    exception.getMessage should be("null (Service: Ses, Status Code: 404, Request ID: null, Extended Request ID: null)")
+    exception.getMessage should be("null (Service: Ses, Status Code: 404, Request ID: null)")
   }
 
   "the process method" should "error if the slack service is unavailable" in {

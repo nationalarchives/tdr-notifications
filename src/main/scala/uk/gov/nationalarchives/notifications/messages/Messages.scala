@@ -61,6 +61,7 @@ object Messages {
         } else {
           eventConfig("slack.webhook.url")
         }
+        case _ => eventConfig("slack.webhook.url")
       }
 
       AsyncHttpClientCatsBackend.resource[IO]().use { backend =>
