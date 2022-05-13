@@ -9,6 +9,7 @@ This project is for sending slack/email/SQS messages in response to events. It s
 * Consignment export results. When the consignment export task finishes, a Slack message is sent with details of whether
   the export succeeded or failed. A message is also sent, if it is a `judgment` export, to a SQS queue belonging to the transformation engine.
 * Transfer Engine retry event. If the Transform Engine requires a retry for any reason, it sends a message to the TDR Transform Engine SQS queue, which triggers the lambda to send a new export message back to a SQS queue belonging to the Transformation Engine.
+  * Note: the Transfer Engine retry event does not tigger a re-export of the consignment.
 
 ## Run locally
 
