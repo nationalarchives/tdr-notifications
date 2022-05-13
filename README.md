@@ -1,6 +1,6 @@
 # TDR Notifications
 
-This project is for sending slack/email messages in response to cloudwatch events. It supports several types of event:
+This project is for sending slack/email/SQS messages in response to events. It supports several types of event:
 
 * ECR scan results. Each time there is an ECR repository scan, the scan results are checked. If there are any errors, a
   Slack and email message is sent.
@@ -8,6 +8,7 @@ This project is for sending slack/email messages in response to cloudwatch event
   a notification is sent.
 * Consignment export results. When the consignment export task finishes, a Slack message is sent with details of whether
   the export succeeded or failed. A message is also sent, if it is a `judgment` export, to a SQS queue belonging to the transformation engine.
+* Transfer Engine retry event. If the Transform Engine requires a retry for any reason, it sends a message to the TDR Transform Engine SQS queue, which triggers the lambda to send a new export message back to a SQS queue belonging to the Transformation Engine.
 
 ## Run locally
 
