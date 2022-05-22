@@ -16,7 +16,7 @@ object Dependencies {
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.12"
   lazy val wiremock = "com.github.tomakehurst" % "wiremock" % "2.27.2"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
-  lazy val typeSafeLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.4"
+  lazy val typeSafeLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5"
   lazy val elasticMq = "org.elasticmq" %% "elasticmq-server" % elasticMqVersion
   lazy val elasticMqSqs = "org.elasticmq" %% "elasticmq-rest-sqs" % elasticMqVersion
 }
