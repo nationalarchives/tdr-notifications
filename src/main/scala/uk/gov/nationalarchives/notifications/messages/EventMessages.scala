@@ -17,7 +17,6 @@ import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.DiskSpaceAlarmDecoder.DiskSpaceAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
-import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
@@ -163,22 +162,6 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: ScanEvent, context: ImageScanReport): Option[SqsMessageDetails] = Option.empty
-  }
-
-  implicit val maintenanceEventMessages: Messages[SSMMaintenanceEvent, Unit] = new Messages[SSMMaintenanceEvent, Unit] {
-    override def context(event: SSMMaintenanceEvent): IO[Unit] = IO.unit
-
-    override def email(scanDetail: SSMMaintenanceEvent, context: Unit): Option[Email] = Option.empty
-
-    override def slack(scanDetail: SSMMaintenanceEvent, context: Unit): Option[SlackMessage] = {
-      if (scanDetail.success) {
-        None
-      } else {
-        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", "The Jenkins backup has failed. Please check the maintenance window in systems manager")))).some
-      }
-    }
-
-    override def sqs(incomingEvent: SSMMaintenanceEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
