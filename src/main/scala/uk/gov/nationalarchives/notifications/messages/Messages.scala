@@ -2,7 +2,7 @@ package uk.gov.nationalarchives.notifications.messages
 
 import cats.effect.IO
 import cats.implicits._
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
@@ -13,6 +13,7 @@ import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.aws.utils.{KMSUtils, SESUtils, SQSUtils}
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
+import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.{SlackMessage, SqsMessageDetails}
 
 trait Messages[T <: IncomingEvent, TContext] {
@@ -26,10 +27,10 @@ trait Messages[T <: IncomingEvent, TContext] {
 }
 
 object Messages {
-  val config = ConfigFactory.load
+  val config: Config = ConfigFactory.load
   val kmsUtils: KMSUtils = KMSUtils(kms(config.getString("kms.endpoint")), Map("LambdaFunctionName" -> config.getString("function.name")))
   val eventConfig: Map[String, String] = kmsUtils.decryptValuesFromConfig(
-    List("alerts.ecr-scan.mute", "ses.email.to", "slack.webhook.url", "slack.webhook.judgment_url", "sqs.queue.transform_engine_output", "s3.judgment_export_bucket"))
+    List("alerts.ecr-scan.mute", "ses.email.to", "slack.webhook.url", "slack.webhook.judgment_url", "slack.webhook.tdr_url", "sqs.queue.transform_engine_output", "s3.judgment_export_bucket"))
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
@@ -56,17 +57,15 @@ object Messages {
   private def sendSlackMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     messages.slack(incomingEvent, context).map(slackMessage => {
       val url = incomingEvent match {
-        case ev: ExportStatusEvent => if(ev.environment == "prod") {
+        case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "judgment") =>
           eventConfig("slack.webhook.judgment_url")
-        } else {
-          eventConfig("slack.webhook.url")
-        }
+        case _: KeycloakEvent => eventConfig("slack.webhook.tdr_url")
         case _ => eventConfig("slack.webhook.url")
       }
 
       AsyncHttpClientCatsBackend.resource[IO]().use { backend =>
         val request = basicRequest
-          .post(uri"${url}")
+          .post(uri"$url")
           .body(slackMessage.asJson.noSpaces)
           .contentType(MediaType.ApplicationJson)
         for {

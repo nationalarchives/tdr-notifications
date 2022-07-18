@@ -3,16 +3,16 @@ package uk.gov.nationalarchives.notifications
 import com.github.tomakehurst.wiremock.client.WireMock.{equalTo, equalToJson, postRequestedFor, urlEqualTo}
 import io.circe.generic.auto._
 import io.circe.parser
-import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor6}
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor7}
 import software.amazon.awssdk.services.sqs.model.Message
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 import uk.gov.nationalarchives.notifications.messages.EventMessages.SqsExportMessageBody
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
-  def events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit]
+  def events: TableFor7[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit, String]
 
   forAll(events) {
-    (description, input, emailBody, slackBody, sqsMessage, stubContext) => {
+    (description, input, emailBody, slackBody, sqsMessage, stubContext, slackUrl) => {
       emailBody match {
         case Some(body) =>
           "the process method" should s"send an email message for $description" in {
@@ -40,7 +40,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSlackServer.verify(slackBody.size,
-              postRequestedFor(urlEqualTo("/webhook"))
+              postRequestedFor(urlEqualTo(slackUrl))
                 .withRequestBody(equalToJson(body))
             )
           }
@@ -50,7 +50,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSlackServer.verify(0,
-              postRequestedFor(urlEqualTo("/webhook"))
+              postRequestedFor(urlEqualTo(slackUrl))
             )
           }
       }

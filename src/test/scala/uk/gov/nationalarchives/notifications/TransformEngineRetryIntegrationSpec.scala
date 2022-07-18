@@ -1,23 +1,23 @@
 package uk.gov.nationalarchives.notifications
 
-import java.util.UUID
-
-import org.scalatest.prop.TableFor6
+import org.scalatest.prop.TableFor7
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 
+import java.util.UUID
+
 class TransformEngineRetryIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit] = Table(
-    ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
+  override lazy val events: TableFor7[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit, String] = Table(
+    ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext", "slackUrl"),
     ("a judgment transform engine retry event on intg",
-      transformEngineRetryEventInputText(judgmentRetryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => ()),
+      transformEngineRetryEventInputText(judgmentRetryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => (), "/webhook"),
     ("a standard transform engine retry event on intg",
-      transformEngineRetryEventInputText(standardRetryEvent), None, None, None, () => ()),
+      transformEngineRetryEventInputText(standardRetryEvent), None, None, None, () => (), "/webhook"),
     ("a judgment transform engine event on staging",
-      transformEngineRetryEventInputText(judgmentRetryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => ()),
+      transformEngineRetryEventInputText(judgmentRetryEvent), None, None, Some(SqsExpectedMessageDetails(successDetails, 2)), () => (), "/webhook"),
     ("a standard transform engine retry event on staging",
-      transformEngineRetryEventInputText(standardRetryEvent), None, None, None, () => ())
+      transformEngineRetryEventInputText(standardRetryEvent), None, None, None, () => (), "/webhook")
   )
 
   private lazy val successDetails = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "judgment", "judgment-export-bucket")

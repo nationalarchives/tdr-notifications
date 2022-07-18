@@ -1,14 +1,13 @@
 package uk.gov.nationalarchives.notifications
 
 import com.github.tomakehurst.wiremock.client.WireMock.{postRequestedFor, urlEqualTo}
-import org.scalatest.prop.TableFor6
-import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
+import org.scalatest.prop.TableFor7
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 
 class KeycloakEventIntegrationSpec extends LambdaIntegrationSpec {
-  override lazy val events: TableFor6[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit] = Table(
-    ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext"),
-    ("a keycloak event message", scanEventInputText(keycloakEvent), None, Some(expectedKeycloakEventSlackMessage), None, () => ())
+  override lazy val events: TableFor7[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit, String] = Table(
+    ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext", "slackUrl"),
+    ("a keycloak event message", scanEventInputText(keycloakEvent), None, Some(expectedKeycloakEventSlackMessage), None, () => (), "/webhook-tdr")
   )
   private lazy val keycloakEvent = KeycloakEvent("tdrEnv", "Some keycloak event message")
 
@@ -41,7 +40,7 @@ class KeycloakEventIntegrationSpec extends LambdaIntegrationSpec {
     val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
     new Lambda().process(stream, null)
     wiremockSlackServer.verify(0,
-      postRequestedFor(urlEqualTo("/webhook"))
+      postRequestedFor(urlEqualTo("/webhook-tdr"))
     )
   }
 }
