@@ -50,6 +50,8 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
 
   override def beforeEach(): Unit = {
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook")).willReturn(ok("")))
+    wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-judgment")).willReturn(ok("")))
+    wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-tdr")).willReturn(ok("")))
     wiremockSesEndpoint.stubFor(post(urlEqualTo("/"))
       .willReturn(ok(
         """
@@ -73,7 +75,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     wiremockSlackServer.resetAll()
     wiremockSesEndpoint.resetAll()
     wiremockKmsEndpoint.resetAll()
-    transformEngineQueueHelper.deleteQueue
+    transformEngineQueueHelper.deleteQueue()
 
     super.afterEach()
   }
@@ -115,7 +117,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     def createQueue: CreateQueueResponse = sqsClient.createQueue(
       CreateQueueRequest.builder.queueName(queueUrl.split("/")(4)).attributes(visibilityTimeoutAttributes).build()
     )
-    def deleteQueue: DeleteQueueResponse = sqsClient.deleteQueue(DeleteQueueRequest.builder.queueUrl(queueUrl).build())
+    def deleteQueue(): DeleteQueueResponse = sqsClient.deleteQueue(DeleteQueueRequest.builder.queueUrl(queueUrl).build())
   }
 
   val port = 8002
