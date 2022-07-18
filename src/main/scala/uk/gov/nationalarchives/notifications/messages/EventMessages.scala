@@ -14,10 +14,8 @@ import software.amazon.awssdk.services.ecr.model.FindingSeverity
 import uk.gov.nationalarchives.aws.utils.Clients.{s3, s3Async}
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
-import uk.gov.nationalarchives.notifications.decoders.DiskSpaceAlarmDecoder.DiskSpaceAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
-import uk.gov.nationalarchives.notifications.decoders.SSMMaintenanceDecoder.SSMMaintenanceEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
@@ -165,22 +163,6 @@ object EventMessages {
     override def sqs(incomingEvent: ScanEvent, context: ImageScanReport): Option[SqsMessageDetails] = Option.empty
   }
 
-  implicit val maintenanceEventMessages: Messages[SSMMaintenanceEvent, Unit] = new Messages[SSMMaintenanceEvent, Unit] {
-    override def context(event: SSMMaintenanceEvent): IO[Unit] = IO.unit
-
-    override def email(scanDetail: SSMMaintenanceEvent, context: Unit): Option[Email] = Option.empty
-
-    override def slack(scanDetail: SSMMaintenanceEvent, context: Unit): Option[SlackMessage] = {
-      if (scanDetail.success) {
-        None
-      } else {
-        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", "The Jenkins backup has failed. Please check the maintenance window in systems manager")))).some
-      }
-    }
-
-    override def sqs(incomingEvent: SSMMaintenanceEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
-  }
-
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
     private def sendToTransformEngine(ev: ExportStatusEvent): Boolean = {
       ev.success && ev.successDetails.exists(_.consignmentType == "judgment") && !ev.successDetails.exists(_.transferringBodyName.contains("MOCK"))
@@ -252,49 +234,6 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: KeycloakEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
-  }
-
-  implicit val diskSpaceAlarmMessages: Messages[DiskSpaceAlarmEvent, Unit] = new Messages[DiskSpaceAlarmEvent, Unit] {
-    override def context(incomingEvent: DiskSpaceAlarmEvent): IO[Unit] = IO.unit
-
-    override def email(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[Email] = Option.empty
-
-    override def slack(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[SlackMessage] = {
-      if(List("tdr-jenkins-disk-space-alarm-mgmt", "tdr-jenkins-prod-disk-space-alarm-mgmt").contains(incomingEvent.AlarmName)) {
-        val extraBlocks = Nil
-        val trigger = incomingEvent.Trigger
-        trigger.Dimensions.find(d => d.name == "server_name").map(_.`value`).map(serverName => {
-          if(incomingEvent.NewStateValue == "OK") {
-            slackMessage(
-              s":white_check_mark: $serverName disk space is now below ${trigger.Threshold} percent"
-            )
-          } else {
-            if(incomingEvent.NewStateReason.contains("no datapoints were received")) {
-              slackMessage(
-                s":warning: $serverName is not sending disk space data to Cloudwatch. This is most likely because Jenkins is restarting."
-              )
-            } else {
-              slackMessage(
-                s":warning: $serverName disk space is over ${trigger.Threshold} percent",
-                List("See <https://github.com/nationalarchives/tdr-dev-documentation/blob/master/manual/clear-jenkins-disk-space.md|the dev documentation> for details of how to clear disk space")
-              )
-            }
-          }
-        })
-      } else {
-        Option.empty
-      }
-    }
-
-    private def slackMessage(text: String, extraBlocksText: List[String] = Nil): SlackMessage = {
-      val slackBlocks = List(
-        SlackBlock("section", SlackText("mrkdwn", text)),
-        SlackBlock("section", SlackText("mrkdwn", "See <https://grafana.tdr-management.nationalarchives.gov.uk/d/eDVRAnI7z/jenkins-disk-space|this Grafana dashboard> to see the data"))
-      ) ++ extraBlocksText.map(text => SlackBlock("section", SlackText("mrkdwn", text)))
-      SlackMessage(slackBlocks)
-    }
-
-    override def sqs(incomingEvent: DiskSpaceAlarmEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 
   implicit val transformEngineRetryMessages: Messages[TransformEngineRetryEvent, Unit] = new Messages[TransformEngineRetryEvent, Unit] {
