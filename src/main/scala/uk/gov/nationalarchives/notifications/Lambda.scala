@@ -5,7 +5,6 @@ import java.io.{InputStream, OutputStream}
 import cats.effect._
 import cats.effect.unsafe.implicits.global
 import io.circe.parser.decode
-import uk.gov.nationalarchives.notifications.decoders.DiskSpaceAlarmDecoder.DiskSpaceAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
@@ -22,7 +21,6 @@ class Lambda {
       case scan: ScanEvent => sendMessages(scan)
       case exportStatus: ExportStatusEvent => sendMessages(exportStatus)
       case keycloakEvent: KeycloakEvent => sendMessages(keycloakEvent)
-      case diskSpaceAlarmEvent: DiskSpaceAlarmEvent => sendMessages(diskSpaceAlarmEvent)
       case transformEngineRetryEvent: TransformEngineRetryEvent => sendMessages(transformEngineRetryEvent)
     }).flatten.unsafeRunSync()
   }
