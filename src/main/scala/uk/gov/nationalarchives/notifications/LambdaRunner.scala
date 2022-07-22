@@ -77,7 +77,19 @@ object LambdaRunner extends App {
        |}
        |""".stripMargin
 
-  val inputStream = new ByteArrayInputStream(ecrScanMessage.getBytes)
+  val rotateSecretsMessage =
+    s"""
+       |{
+       | "Records": [
+       |   {
+       |     "Sns": {
+       |       "Message":  "{\\"results\\":[{\\"clientId\\":\\"failed\\",\\"success\\":false,\\"rotationResultErrorMessage\\":\\"An error\\"},{\\"clientId\\":\\"successful\\",\\"success\\":true,\\"rotationResultErrorMessage\\":null}]}"
+       |      }
+       |    }
+       |  ]}
+       |""".stripMargin
+
+  val inputStream = new ByteArrayInputStream(rotateSecretsMessage.getBytes)
 
   // The Lambda does not use the output stream, so it's safe to set it to null
   val outputStream = null
