@@ -13,7 +13,7 @@ object Dependencies {
   lazy val typesafe = "com.typesafe" % "config" % "1.4.2"
   lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.11.1"
   lazy val awsUtils =  "uk.gov.nationalarchives" %% "tdr-aws-utils" % "0.1.34"
-  lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.12"
+  lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.13"
   lazy val wiremock = "com.github.tomakehurst" % "wiremock" % "2.27.2"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
   lazy val typeSafeLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5"
