@@ -16,7 +16,7 @@ Set these environment variables, either on the command line or in IntelliJ depen
 
 * `SLACK_WEBHOOK`: the webhook URL of a Slack app. You can [create a new app][Slack-app] (steps 1-3) in Slack for testing purposes.
   Use the `#bot-testing` channel rather than a team channel to avoid confusion and spam. This webhook goes to the #da-tdr-notifications channel.
-* `SLACK_JUDGMENT_WEBHOOK` This webhook publishes to the #da-tdr-prod-exports-judgments channel.
+* `SLACK_JUDGMENT_WEBHOOK` This webhook publishes to the #da-tdr-prod-exports-judgments channel. This should only be used to send production judgment transfer notifications.
 * `SLACK_TDR_WEBHOOK` This webhook publishes to the #da-tdr channel. This is for priority notifications which need to be acted on quickly.
 * `TO_EMAIL`: the email address that alerts should be sent to. For testing purposes, this should normally be your own
   email address rather than a team one.
