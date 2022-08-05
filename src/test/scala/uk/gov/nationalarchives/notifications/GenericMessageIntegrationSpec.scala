@@ -12,7 +12,7 @@ class GenericMessageIntegrationSpec extends LambdaIntegrationSpec {
     val successfulMessageText = "A test message"
     val twoMessages: String =
       """ "{\"messages\":[{\"message\":\"A test message\"}, {\"message\":\"A second test message\"}]}" """
-    val failedMessageText = "A test message\nA second test message"
+    val failedMessageText = "A test message\\nA second test message"
 
     Table(
       ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext", "slackUrl"),
