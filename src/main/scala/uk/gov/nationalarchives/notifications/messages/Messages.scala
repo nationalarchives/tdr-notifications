@@ -62,11 +62,11 @@ object Messages {
         case _: KeycloakEvent => eventConfig("slack.webhook.tdr_url")
         case _ => eventConfig("slack.webhook.url")
       }
-
+      val requestBody = slackMessage.asJson.noSpaces
       AsyncHttpClientCatsBackend.resource[IO]().use { backend =>
         val request = basicRequest
           .post(uri"$url")
-          .body(slackMessage.asJson.noSpaces)
+          .body(requestBody)
           .contentType(MediaType.ApplicationJson)
         for {
           response <- backend.send(request)

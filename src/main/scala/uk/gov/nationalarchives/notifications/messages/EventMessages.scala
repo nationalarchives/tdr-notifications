@@ -1,7 +1,6 @@
 package uk.gov.nationalarchives.notifications.messages
 
 import java.net.URI
-
 import cats.effect.IO
 import cats.syntax.all._
 import com.typesafe.config.ConfigFactory
@@ -17,6 +16,7 @@ import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
+import uk.gov.nationalarchives.notifications.decoders.SecretRotationDecoder.RotationNotification
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
@@ -250,6 +250,25 @@ object EventMessages {
         Some(generateSqsExportMessageBody(judgmentBucket, incomingEvent))
       } else None
     }
+  }
+
+  implicit val secretRotationMessages: Messages[RotationNotification, Unit] = new Messages[RotationNotification, Unit] {
+    override def context(incomingEvent: RotationNotification): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: RotationNotification, context: Unit): Option[Email] = Option.empty
+
+    override def slack(incomingEvent: RotationNotification, context: Unit): Option[SlackMessage] = {
+      val message = incomingEvent.results.map(result => {
+        if(result.success) {
+          s"Client ${result.clientId} has been rotated successfully"
+        } else {
+          s"Client ${result.clientId} rotation has failed"
+        }
+      }).mkString("\n")
+      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).some
+    }
+
+    override def sqs(incomingEvent: RotationNotification, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 }
 
