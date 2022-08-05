@@ -5,9 +5,9 @@ import cats.effect._
 import cats.effect.unsafe.implicits.global
 import io.circe.parser.decode
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
-import uk.gov.nationalarchives.notifications.decoders.SecretRotationDecoder.RotationNotification
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.decoders._
 import uk.gov.nationalarchives.notifications.messages.EventMessages._
@@ -23,7 +23,7 @@ class Lambda {
       case exportStatus: ExportStatusEvent => sendMessages(exportStatus)
       case keycloakEvent: KeycloakEvent => sendMessages(keycloakEvent)
       case transformEngineRetryEvent: TransformEngineRetryEvent => sendMessages(transformEngineRetryEvent)
-      case rotationNotificationEvent: RotationNotification => sendMessages(rotationNotificationEvent)
+      case genericMessagesEvent: GenericMessagesEvent => sendMessages(genericMessagesEvent)
     }).flatten.unsafeRunSync()
   }
 }

@@ -10,13 +10,13 @@ import io.circe.syntax.EncoderOps
 import com.typesafe.scalalogging.Logger
 import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
-import uk.gov.nationalarchives.aws.utils.Clients.{s3, s3Async}
+import uk.gov.nationalarchives.aws.utils.Clients.s3Async
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
-import uk.gov.nationalarchives.notifications.decoders.SecretRotationDecoder.RotationNotification
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
@@ -221,7 +221,7 @@ object EventMessages {
     override def context(event: KeycloakEvent): IO[Unit] = IO.unit
 
     override def email(incomingEvent: KeycloakEvent, context: Unit): Option[Email] = {
-      logger.info(s"Skipping email for Keycloak event ${incomingEvent}")
+      logger.info(s"Skipping email for Keycloak event $incomingEvent")
       Option.empty
     }
 
@@ -252,23 +252,17 @@ object EventMessages {
     }
   }
 
-  implicit val secretRotationMessages: Messages[RotationNotification, Unit] = new Messages[RotationNotification, Unit] {
-    override def context(incomingEvent: RotationNotification): IO[Unit] = IO.unit
+  implicit val genericRotationMessages: Messages[GenericMessagesEvent, Unit] = new Messages[GenericMessagesEvent, Unit] {
+    override def context(incomingEvent: GenericMessagesEvent): IO[Unit] = IO.unit
 
-    override def email(incomingEvent: RotationNotification, context: Unit): Option[Email] = Option.empty
+    override def email(incomingEvent: GenericMessagesEvent, context: Unit): Option[Email] = Option.empty
 
-    override def slack(incomingEvent: RotationNotification, context: Unit): Option[SlackMessage] = {
-      val message = incomingEvent.results.map(result => {
-        if(result.success) {
-          s"Client ${result.clientId} has been rotated successfully"
-        } else {
-          s"Client ${result.clientId} rotation has failed"
-        }
-      }).mkString("\n")
+    override def slack(incomingEvent: GenericMessagesEvent, context: Unit): Option[SlackMessage] = {
+      val message = incomingEvent.messages.map(_.message).mkString("\n")
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).some
     }
 
-    override def sqs(incomingEvent: RotationNotification, context: Unit): Option[SqsMessageDetails] = Option.empty
+    override def sqs(incomingEvent: GenericMessagesEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 }
 
