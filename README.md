@@ -8,7 +8,7 @@ This project is for sending slack/email/SQS messages in response to events. It s
   the export succeeded or failed. A message is also sent, if it is a `judgment` export, to a SQS queue belonging to the transformation engine.
 * Transfer Engine retry event. If the Transform Engine requires a retry for any reason, it sends a message to the TDR Transform Engine SQS queue, which triggers the lambda to send a new export message back to a SQS queue belonging to the Transformation Engine.
   * Note: the Transfer Engine retry event does not tigger a re-export of the consignment.
-* Keycloak secret rotation messages. When the Keycloak secret rotation lambda runs, it will send success or failure messages to the notifications SNS topic.
+* Generic message event. This allows a service to send message text which is sent directly to Slack with no other processing.
 
 ## Run locally
 
