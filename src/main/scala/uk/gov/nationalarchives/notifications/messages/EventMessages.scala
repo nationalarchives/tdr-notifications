@@ -13,6 +13,7 @@ import software.amazon.awssdk.services.ecr.model.FindingSeverity
 import uk.gov.nationalarchives.aws.utils.Clients.s3Async
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
 import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
+import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
@@ -263,6 +264,26 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: GenericMessagesEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
+  }
+
+  implicit val cloudwatchAlarmMessages: Messages[CloudwatchAlarmEvent, Unit] = new Messages[CloudwatchAlarmEvent, Unit] {
+    override def context(incomingEvent: CloudwatchAlarmEvent): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[Email] = None
+
+    override def slack(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SlackMessage] = {
+      val messageList = List(
+        "*Cloudwatch Alarms*",
+        s"Alarm state ${incomingEvent.NewStateValue}",
+        s"Alarm triggered by ${incomingEvent.Trigger.MetricName}",
+        s"Reason: ${incomingEvent.NewStateReason}",
+        "",
+        "*Dimensions affected*"
+      ) ++ incomingEvent.Trigger.Dimensions.map(dimension => s"${dimension.name} - ${dimension.`value`}")
+      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
+    }
+
+    override def sqs(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SqsMessageDetails] = None
   }
 }
 

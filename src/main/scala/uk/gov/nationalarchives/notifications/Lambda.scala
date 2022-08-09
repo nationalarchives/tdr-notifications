@@ -4,6 +4,7 @@ import java.io.{InputStream, OutputStream}
 import cats.effect._
 import cats.effect.unsafe.implicits.global
 import io.circe.parser.decode
+import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
@@ -24,6 +25,7 @@ class Lambda {
       case keycloakEvent: KeycloakEvent => sendMessages(keycloakEvent)
       case transformEngineRetryEvent: TransformEngineRetryEvent => sendMessages(transformEngineRetryEvent)
       case genericMessagesEvent: GenericMessagesEvent => sendMessages(genericMessagesEvent)
+      case cloudwatchAlarmEvent: CloudwatchAlarmEvent => sendMessages(cloudwatchAlarmEvent)
     }).flatten.unsafeRunSync()
   }
 }
