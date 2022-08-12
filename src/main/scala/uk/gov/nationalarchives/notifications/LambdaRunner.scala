@@ -52,13 +52,13 @@ object LambdaRunner extends App {
          |
          |""".stripMargin
 
-  val diskSpaceFullMessage =
+  val cloudwatchAlarmMessage =
     s"""
        |{
        |    "Records": [
        |        {
        |            "Sns": {
-       |                "Message": "{\\"AlarmName\\":\\"tdr-jenkins-disk-space-alarm-mgmt\\",\\"NewStateValue\\":\\"OK\\",\\"Trigger\\":{\\"Dimensions\\":[{\\"value\\":\\"Jenkins\\",\\"name\\":\\"server_name\\"}],\\"Threshold\\":20.0}}"
+       |                "Message": "{\\"AlarmName\\":\\"DDoSDetectedAlarmForProtection\\",\\"NewStateValue\\":\\"ALARM\\",\\"NewStateReason\\":\\"Test Reason\\", \\"Trigger\\":{\\"MetricName\\": \\"TestName\\", \\"Dimensions\\":[{\\"value\\":\\"test-resource-arn\\",\\"name\\":\\"ResourceArn\\"}]}}"
        |            }
        |        }
        |    ]
@@ -89,7 +89,7 @@ object LambdaRunner extends App {
        |  ]}
        |""".stripMargin
 
-  val inputStream = new ByteArrayInputStream(genericMessage.getBytes)
+  val inputStream = new ByteArrayInputStream(cloudwatchAlarmMessage.getBytes)
 
   // The Lambda does not use the output stream, so it's safe to set it to null
   val outputStream = null
