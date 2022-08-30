@@ -52,6 +52,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook")).willReturn(ok("")))
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-judgment")).willReturn(ok("")))
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-tdr")).willReturn(ok("")))
+    wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-export")).willReturn(ok("")))
     wiremockSesEndpoint.stubFor(post(urlEqualTo("/"))
       .willReturn(ok(
         """

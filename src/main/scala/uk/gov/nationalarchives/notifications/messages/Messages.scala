@@ -30,7 +30,7 @@ object Messages {
   val config: Config = ConfigFactory.load
   val kmsUtils: KMSUtils = KMSUtils(kms(config.getString("kms.endpoint")), Map("LambdaFunctionName" -> config.getString("function.name")))
   val eventConfig: Map[String, String] = kmsUtils.decryptValuesFromConfig(
-    List("alerts.ecr-scan.mute", "ses.email.to", "slack.webhook.url", "slack.webhook.judgment_url", "slack.webhook.tdr_url", "sqs.queue.transform_engine_output", "s3.judgment_export_bucket"))
+    List("alerts.ecr-scan.mute", "ses.email.to", "slack.webhook.url", "slack.webhook.judgment_url", "slack.webhook.tdr_url", "slack.webhook.export_url", "sqs.queue.transform_engine_output", "s3.judgment_export_bucket"))
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
@@ -59,6 +59,7 @@ object Messages {
       val url = incomingEvent match {
         case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "judgment") =>
           eventConfig("slack.webhook.judgment_url")
+        case _: ExportStatusEvent => eventConfig("slack.webhook.export_url")
         case _: KeycloakEvent => eventConfig("slack.webhook.tdr_url")
         case _ => eventConfig("slack.webhook.url")
       }
