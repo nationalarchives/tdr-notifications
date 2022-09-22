@@ -72,13 +72,19 @@ object EventMessages {
     // tags) because they represent old images or ones which have not been deployed yet.
     private val releaseTags = Set("latest", "intg", "staging", "prod", "mgmt")
 
-    // Findings which should be included in alerts
-    private val relevantFindingLevels = Set(
+    // Findings which should be included in slack alerts
+    private val allFindingLevels = Set(
       FindingSeverity.CRITICAL,
       FindingSeverity.HIGH,
       FindingSeverity.MEDIUM,
       FindingSeverity.LOW,
       FindingSeverity.UNDEFINED
+    )
+
+    // Findings which should be included in email alerts
+    private val highAndCriticalFindingLevels = Set(
+      FindingSeverity.CRITICAL,
+      FindingSeverity.HIGH
     )
 
     private val mutedVulnerabilities: Set[String] = eventConfig("alerts.ecr-scan.mute")
@@ -93,11 +99,15 @@ object EventMessages {
     private def includesReleaseTags(imageTags: List[String]): Boolean =
       imageTags.toSet.intersect(releaseTags).nonEmpty
 
-    private def includesRelevantFindings(findings: Seq[Finding]): Boolean =
-      findings.map(_.severity).toSet.intersect(relevantFindingLevels).nonEmpty
+    private def includesRelevantFindings(findings: Seq[Finding], findingLevels: Set[FindingSeverity]): Boolean = {
+      findings.map(_.severity).toSet.intersect(findingLevels).nonEmpty
+    }
 
-    private def shouldSendNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
-      includesReleaseTags(detail.tags) && includesRelevantFindings(findings)
+    private def shouldSendSlackNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
+      includesReleaseTags(detail.tags) && includesRelevantFindings(findings, allFindingLevels)
+
+    private def shouldSendEmailNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
+      includesReleaseTags(detail.tags) && includesRelevantFindings(findings, highAndCriticalFindingLevels)
 
     private def filterReport(report: ImageScanReport): ImageScanReport = {
       val filteredFindings = report.findings.filterNot(finding => mutedVulnerabilities.contains(finding.name))
@@ -121,7 +131,7 @@ object EventMessages {
     override def slack(event: ScanEvent, report: ImageScanReport): Option[SlackMessage] = {
       val detail = event.detail
       val filteredReport = filterReport(report)
-      if (shouldSendNotification(detail, filteredReport.findings)) {
+      if (shouldSendSlackNotification(detail, filteredReport.findings)) {
         val headerBlock = slackBlock(s"*ECR image scan complete on image ${detail.repositoryName} ${detail.tags.mkString(",")}*")
 
         val criticalBlock = slackBlock(s"${filteredReport.criticalCount} critical severity vulnerabilities")
@@ -139,7 +149,7 @@ object EventMessages {
     override def email(event: ScanEvent, report: ImageScanReport): Option[SESUtils.Email] = {
       val detail = event.detail
       val filteredReport = filterReport(report)
-      if (shouldSendNotification(detail, filteredReport.findings)) {
+      if (shouldSendEmailNotification(detail, filteredReport.findings)) {
         val message = html(
           body(
             h1(s"Image scan results for ${detail.repositoryName}"),
