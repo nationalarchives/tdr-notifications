@@ -99,8 +99,9 @@ object EventMessages {
     private def includesReleaseTags(imageTags: List[String]): Boolean =
       imageTags.toSet.intersect(releaseTags).nonEmpty
 
-    private def includesRelevantFindings(findings: Seq[Finding], findingLevels: Set[FindingSeverity]): Boolean =
+    private def includesRelevantFindings(findings: Seq[Finding], findingLevels: Set[FindingSeverity]): Boolean = {
       findings.map(_.severity).toSet.intersect(findingLevels).nonEmpty
+    }
 
     private def shouldSendSlackNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
       includesReleaseTags(detail.tags) && includesRelevantFindings(findings, allFindingLevels)
