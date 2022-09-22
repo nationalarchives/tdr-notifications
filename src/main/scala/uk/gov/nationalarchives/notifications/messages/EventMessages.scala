@@ -4,7 +4,7 @@ import java.net.URI
 import cats.effect.IO
 import cats.syntax.all._
 import com.typesafe.config.ConfigFactory
-import io.circe.Encoder.AsObject.importedAsObjectEncoder
+import io.circe.Encoder.AsObject.{importedAsObjectEncoder, instance}
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import com.typesafe.scalalogging.Logger
@@ -18,7 +18,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.Export
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.{TransformEngineRetryEvent, TransformEngineV2RetryEvent}
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import scala.jdk.CollectionConverters.CollectionHasAsScala
@@ -45,6 +45,8 @@ object EventMessages {
 
   case class SqsMessageDetails(queueUrl: String, messageBody: String)
 
+  case class SnsMessageDetails(snsTopic: String, messageBody: String)
+
   case class SqsExportMessageBody(`consignment-reference`: String,
                                   `s3-bagit-url`: String,
                                   `s3-sha-url`: String,
@@ -65,6 +67,13 @@ object EventMessages {
     val queueUrl = eventConfig("sqs.queue.transform_engine_output")
     SqsMessageDetails(queueUrl, messageBody)
   }
+
+  private def generateSnsExportMessageBody(bucketName: String, exportMessage: ExportMessage): SnsMessageDetails = {
+    val topicArn = eventConfig("sns.topic.transform_engine_v2_in")
+    //Construct the SNS topic message: https://github.com/nationalarchives/da-transform-schemas/blob/main/json-examples/tdr-to-tre-example.json
+    SnsMessageDetails(topicArn, "")
+  }
+
 
   implicit val scanEventMessages: Messages[ScanEvent, ImageScanReport] = new Messages[ScanEvent, ImageScanReport] {
 
@@ -162,11 +171,17 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: ScanEvent, context: ImageScanReport): Option[SqsMessageDetails] = Option.empty
+
+    override def sns(incomingEvent: ScanEvent, context: ImageScanReport): Option[SnsMessageDetails] = Option.empty
   }
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
     private def sendToTransformEngine(ev: ExportStatusEvent): Boolean = {
       ev.success && ev.successDetails.exists(_.consignmentType == "judgment") && !ev.successDetails.exists(_.transferringBodyName.contains("MOCK"))
+    }
+
+    private def sendToTransformEngineV2(ev: ExportStatusEvent): Boolean = {
+      ev.environment == "intg" && ev.success
     }
 
     override def context(event: ExportStatusEvent): IO[Unit] = IO.unit
@@ -216,6 +231,16 @@ object EventMessages {
         None
       }
     }
+
+    override def sns(incomingEvent: ExportStatusEvent, context: Unit): Option[SnsMessageDetails] = {
+      if (sendToTransformEngineV2(incomingEvent)) {
+        val successDetails = incomingEvent.successDetails.get
+        val bucketName = successDetails.exportBucket
+        Some(generateSnsExportMessageBody(bucketName, successDetails))
+      } else {
+        None
+      }
+    }
   }
 
   implicit val keycloakEventMessages: Messages[KeycloakEvent, Unit] = new Messages[KeycloakEvent, Unit] {
@@ -235,6 +260,8 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: KeycloakEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
+
+    override def sns(incomingEvent: KeycloakEvent, context: Unit): Option[SnsMessageDetails] = Option.empty
   }
 
   implicit val transformEngineRetryMessages: Messages[TransformEngineRetryEvent, Unit] = new Messages[TransformEngineRetryEvent, Unit] {
@@ -251,6 +278,21 @@ object EventMessages {
         Some(generateSqsExportMessageBody(judgmentBucket, incomingEvent))
       } else None
     }
+
+    override def sns(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[SnsMessageDetails] = Option.empty
+  }
+
+  implicit val transformEngineV2RetryMessages: Messages[TransformEngineV2RetryEvent, Unit] = new Messages[TransformEngineV2RetryEvent, Unit] {
+    override def context(incomingEvent: TransformEngineV2RetryEvent): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[Email] = Option.empty
+
+    override def slack(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SlackMessage] = Option.empty
+
+    override def sqs(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
+
+    //To be implemented to handle the v2 retry message model
+    override def sns(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SnsMessageDetails] = Option.empty
   }
 
   implicit val genericRotationMessages: Messages[GenericMessagesEvent, Unit] = new Messages[GenericMessagesEvent, Unit] {
@@ -264,6 +306,8 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: GenericMessagesEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
+
+    override def sns(incomingEvent: GenericMessagesEvent, context: Unit): Option[SnsMessageDetails] = Option.empty
   }
 
   implicit val cloudwatchAlarmMessages: Messages[CloudwatchAlarmEvent, Unit] = new Messages[CloudwatchAlarmEvent, Unit] {
@@ -284,6 +328,8 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SqsMessageDetails] = None
+
+    override def sns(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SnsMessageDetails] = None
   }
 }
 

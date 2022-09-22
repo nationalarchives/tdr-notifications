@@ -11,4 +11,7 @@ object TransformEngineRetryDecoder {
     val consignmentType: String = `consignment-type`
     val numberOfRetries: Int = `number-of-retries`
   }
+
+  //This will be the case class for the new v2 retry message model
+  case class TransformEngineV2RetryEvent() extends IncomingEvent
 }

@@ -8,13 +8,13 @@ import io.circe.syntax._
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3.{basicRequest, _}
 import sttp.model.MediaType
-import uk.gov.nationalarchives.aws.utils.Clients.{kms, ses, sqs}
+import uk.gov.nationalarchives.aws.utils.Clients.{kms, ses, sns, sqs}
 import uk.gov.nationalarchives.aws.utils.SESUtils.Email
-import uk.gov.nationalarchives.aws.utils.{KMSUtils, SESUtils, SQSUtils}
+import uk.gov.nationalarchives.aws.utils.{KMSUtils, SESUtils, SNSUtils, SQSUtils}
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
-import uk.gov.nationalarchives.notifications.messages.EventMessages.{SlackMessage, SqsMessageDetails}
+import uk.gov.nationalarchives.notifications.messages.EventMessages.{SlackMessage, SnsMessageDetails, SqsMessageDetails}
 
 trait Messages[T <: IncomingEvent, TContext] {
   def context(incomingEvent: T): IO[TContext]
@@ -24,6 +24,8 @@ trait Messages[T <: IncomingEvent, TContext] {
   def slack(incomingEvent: T, context: TContext): Option[SlackMessage]
 
   def sqs(incomingEvent: T, context: TContext): Option[SqsMessageDetails]
+
+  def sns(incomingEvent: T, context: TContext): Option[SnsMessageDetails]
 }
 
 object Messages {
@@ -35,7 +37,8 @@ object Messages {
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
       context <- messages.context(incomingEvent)
-      result <- (sendEmailMessage(incomingEvent, context) |+| sendSlackMessage(incomingEvent, context) |+| sendSQSMessage(incomingEvent, context))
+      result <- (sendEmailMessage(incomingEvent, context) |+| sendSlackMessage(incomingEvent, context) |+| sendSQSMessage(incomingEvent, context)
+        |+| sendSNSMessage(incomingEvent, context))
         .getOrElse(IO.pure("No messages have been sent"))
     } yield result
   }
@@ -51,6 +54,15 @@ object Messages {
       val queueUrl = sqsMessageDetails.queueUrl
       val messageBody = sqsMessageDetails.messageBody
       IO(SQSUtils(sqs).send(queueUrl, messageBody).toString)
+    })
+  }
+
+  private def sendSNSMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
+    messages.sns(incomingEvent, context).map(snsMessageDetails => {
+      val endpoint = eventConfig("sns.endpoint")
+      val messageBody = snsMessageDetails.messageBody
+      val topicArn = snsMessageDetails.snsTopic
+      IO(SNSUtils(sns(endpoint)).publish(messageBody, topicArn).toString)
     })
   }
 
