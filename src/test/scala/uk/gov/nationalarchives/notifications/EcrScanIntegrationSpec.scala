@@ -21,9 +21,18 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       "/webhook"
     ),
     (
+      "an ECR scan of 'latest' with only medium severity vulnerabilities",
+      scanEventInputText(mediumSeverityEvent),
+      None,
+      Some(expectedSlackBody(mediumSeverityEvent, ExpectedFindings(0, 0, 1, 0, 0))),
+      None,
+      stubEcrApiResponse(mediumSeverityEvent.detail.imageDigest, mediumSeverityFindings),
+      "/webhook"
+      ),
+    (
       "an ECR scan of 'latest' with only low severity vulnerabilities",
       scanEventInputText(lowSeverityEvent),
-      Some(expectedEmailBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1, 0))),
+      None,
       Some(expectedSlackBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1, 0))),
       None,
       stubEcrApiResponse(lowSeverityEvent.detail.imageDigest, lowSeverityFindings),
@@ -32,7 +41,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
     (
       "an ECR scan of 'latest' with only undefined severity vulnerabilities",
       scanEventInputText(undefinedSeverityEvent),
-      Some(expectedEmailBody(undefinedSeverityEvent, ExpectedFindings(0, 0, 0, 0, 1))),
+      None,
       Some(expectedSlackBody(undefinedSeverityEvent, ExpectedFindings(0, 0, 0, 0, 1))),
       None,
       stubEcrApiResponse(undefinedSeverityEvent.detail.imageDigest, undefinedFindings),
@@ -96,6 +105,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
 
   private lazy val mixedSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd1", mixedCounts))
   private lazy val lowSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd2", lowSeverityCounts))
+  private lazy val mediumSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd2", mediumSeverityCounts))
   private lazy val informationalEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "1234", informationalCounts))
   private lazy val undefinedSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "1234", undefinedSeverityCounts))
   private lazy val noVulnerabilitiesEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd3", emptyCounts))
@@ -104,12 +114,14 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
 
   private lazy val mixedCounts = ScanFindingCounts(10, 100, 1000, 10000, 10, 1)
   private lazy val lowSeverityCounts = ScanFindingCounts(0, 0, 0, 10, 0, 0)
+  private lazy val mediumSeverityCounts = ScanFindingCounts(0, 0, 10, 0, 0, 0)
   private lazy val informationalCounts = ScanFindingCounts(0, 0, 0, 0, 10, 0)
   private lazy val undefinedSeverityCounts = ScanFindingCounts(0, 0, 0, 0, 10, 0)
   private lazy val emptyCounts = ScanFindingCounts(0, 0, 0, 0, 0, 0)
   private lazy val zeroCounts = ScanFindingCounts(0, 0, 0, 0, 0, 0)
 
   private lazy val mixedSeverityFindings = Source.fromResource("ecr-findings/mixed-severity.json").getLines.mkString
+  private lazy val mediumSeverityFindings = Source.fromResource("ecr-findings/medium-severity.json").getLines.mkString
   private lazy val lowSeverityFindings = Source.fromResource("ecr-findings/low-severity.json").getLines.mkString
   private lazy val undefinedFindings = Source.fromResource("ecr-findings/undefined-severity.json").getLines.mkString
   private lazy val informationalFindings = Source.fromResource("ecr-findings/informational.json").getLines.mkString
