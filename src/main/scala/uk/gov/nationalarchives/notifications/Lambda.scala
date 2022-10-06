@@ -8,6 +8,7 @@ import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.Clo
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
+import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDecoder.GovUkNotifyKeyRotationEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.decoders._
@@ -26,6 +27,7 @@ class Lambda {
       case transformEngineRetryEvent: TransformEngineRetryEvent => sendMessages(transformEngineRetryEvent)
       case genericMessagesEvent: GenericMessagesEvent => sendMessages(genericMessagesEvent)
       case cloudwatchAlarmEvent: CloudwatchAlarmEvent => sendMessages(cloudwatchAlarmEvent)
+      case govUkNotifyKeyRotationEvent: GovUkNotifyKeyRotationEvent => sendMessages(govUkNotifyKeyRotationEvent)
     }).flatten.unsafeRunSync()
   }
 }
