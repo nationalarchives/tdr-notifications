@@ -1,13 +1,12 @@
 package uk.gov.nationalarchives.notifications.messages
 
-import java.net.URI
 import cats.effect.IO
 import cats.syntax.all._
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.Logger
 import io.circe.Encoder.AsObject.importedAsObjectEncoder
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
-import com.typesafe.scalalogging.Logger
 import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
 import uk.gov.nationalarchives.aws.utils.Clients.s3Async
@@ -16,12 +15,13 @@ import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
-import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDecoder.GovUkNotifyKeyRotationEvent
+import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
+import java.net.URI
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object EventMessages {
@@ -304,10 +304,10 @@ object EventMessages {
 
     override def slack(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[SlackMessage] = {
       val ssmParameter: String = incomingEvent.detail.`parameter-name`
-      val message: String = incomingEvent.detail.`action-reason`
+      val reason: String = incomingEvent.detail.`action-reason`
       val messageList = List(
         "*Rotate GOVUK Notify API Key*",
-        s"'*$ssmParameter*': $message"
+        s"*$ssmParameter*: $reason"
       )
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
     }
