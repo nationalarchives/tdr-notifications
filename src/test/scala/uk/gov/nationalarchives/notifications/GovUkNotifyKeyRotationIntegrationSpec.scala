@@ -47,7 +47,7 @@ class GovUkNotifyKeyRotationIntegrationSpec extends LambdaIntegrationSpec {
        |      "type": "section",
        |      "text": {
        |        "type": "mrkdwn",
-       |        "text": "*Rotate GOVUK Notify API Key*\\n*$ssmParameter*: $reason"
+       |        "text": "*Rotate GOV.UK Notify API Key*\\n*$ssmParameter*: $reason\\nSee here for instructions to rotate GOV.UK Notify API Keys: https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/govuk-notify.md#rotating-api-key"
        |      }
        |    }
        |  ]
