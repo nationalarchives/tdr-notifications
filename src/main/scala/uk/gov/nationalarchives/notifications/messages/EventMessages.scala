@@ -18,9 +18,11 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.Export
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.{TransformEngineRetryEvent, TransformEngineV2RetryEvent}
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoderV2.{NewBagit, Parameters, Producer, Resource, ResourceValidation, TransformEngineV2RetryEvent, UUIDs}
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
+import java.util.UUID
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object EventMessages {
@@ -53,6 +55,8 @@ object EventMessages {
                                   `consignment-type`: String,
                                   `number-of-retries`: Int) extends TransformEngineSqsMessage
 
+  //This is what we send to TRE
+
   private def generateSqsExportMessageBody(bucketName: String, exportMessage: ExportMessage): SqsMessageDetails = {
     val retryCount: Int = exportMessage match {
       case e: TransformEngineRetryEvent => e.numberOfRetries
@@ -68,10 +72,27 @@ object EventMessages {
     SqsMessageDetails(queueUrl, messageBody)
   }
 
-  private def generateSnsExportMessageBody(bucketName: String, exportMessage: ExportMessage): SnsMessageDetails = {
-    val topicArn = eventConfig("sns.topic.transform_engine_v2_in")
+  private def generateSnsExportMessageBody(incomingEvent: ExportStatusEvent): SnsMessageDetails = {
+    val topicArn = "arn:aws:sns:eu-west-2:675407525008:tre-in"//eventConfig("sns.topic.transform_engine_v2_in")
     //Construct the SNS topic message: https://github.com/nationalarchives/da-transform-schemas/blob/main/json-examples/tdr-to-tre-example.json
-    SnsMessageDetails(topicArn, "")
+    val s3Utils = S3Utils(s3Async)
+    val exportMessage = incomingEvent.successDetails.get
+    val bucketName = exportMessage.exportBucket
+
+    val consignmentRef = exportMessage.consignmentReference
+    val consignmentType = exportMessage.consignmentType
+    val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz").toString
+    val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256").toString
+
+    val uuids = List(UUIDs("TDR-UUID", UUID.randomUUID.toString))
+    val producer = Producer(incomingEvent.environment, "TDR", "tdr-export-process", "new-bagit", consignmentType)
+    val resource = Resource("Object", "url", packageSignedUrl)
+    val resourceValidation = ResourceValidation("Object", "url", "SHA256", packageShaSignedUrl)
+    val newBagit = NewBagit(resource, resourceValidation, exportMessage.consignmentReference)
+    val parameters = Parameters(newBagit)
+    val messageBody = TransformEngineV2RetryEvent("1.0.0",1661155064747274000L, uuids, producer, parameters).asJson.toString()
+
+    SnsMessageDetails(topicArn, messageBody)
   }
 
 
@@ -182,7 +203,8 @@ object EventMessages {
 
     //For now only integration should send messages to TRE v2 until its deployed to the other TRE environments
     private def sendToTransformEngineV2(ev: ExportStatusEvent): Boolean = {
-      ev.environment == "intg" && ev.success
+//      ev.environment == "intg" && ev.success
+      true
     }
 
     override def context(event: ExportStatusEvent): IO[Unit] = IO.unit
@@ -192,7 +214,8 @@ object EventMessages {
       Option.empty
     }
 
-    override def slack(incomingEvent: ExportStatusEvent, context: Unit): Option[SlackMessage] = {
+    override def slack(incomingEvent: ExportStatusEvent, context: Unit): Option[SlackMessage] = None
+/*    {
       if(incomingEvent.environment != "intg" || !incomingEvent.success) {
 
         val exportInfoMessage = constructExportInfoMessage(incomingEvent)
@@ -210,7 +233,7 @@ object EventMessages {
       } else {
         Option.empty
       }
-    }
+    }*/
 
     private def constructExportInfoMessage(incomingEvent: ExportStatusEvent): String = {
      if (incomingEvent.successDetails.isDefined) {
@@ -223,7 +246,8 @@ object EventMessages {
       } else ""
     }
 
-    override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessageDetails] = {
+    override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessageDetails] = None
+/*    {
       if (sendToTransformEngine(incomingEvent)) {
         val successDetails = incomingEvent.successDetails.get
         val bucketName = successDetails.exportBucket
@@ -231,13 +255,14 @@ object EventMessages {
       } else {
         None
       }
-    }
+    }*/
 
     override def sns(incomingEvent: ExportStatusEvent, context: Unit): Option[SnsMessageDetails] = {
       if (sendToTransformEngineV2(incomingEvent)) {
-        val successDetails = incomingEvent.successDetails.get
-        val bucketName = successDetails.exportBucket
-        Some(generateSnsExportMessageBody(bucketName, successDetails))
+//        val successDetails = incomingEvent.successDetails.get
+//        val bucketName = successDetails.exportBucket
+        //Send the whole incomingEvent in order to get details like environment
+        Some(generateSnsExportMessageBody(incomingEvent))
       } else {
         None
       }
@@ -293,7 +318,9 @@ object EventMessages {
     override def sqs(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
 
     //To be implemented to handle the v2 retry message model
-    override def sns(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SnsMessageDetails] = Option.empty
+    override def sns(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SnsMessageDetails] = {
+      Some(SnsMessageDetails("test", "test"))
+    }
   }
 
   implicit val genericRotationMessages: Messages[GenericMessagesEvent, Unit] = new Messages[GenericMessagesEvent, Unit] {

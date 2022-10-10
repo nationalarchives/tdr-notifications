@@ -59,7 +59,7 @@ object Messages {
 
   private def sendSNSMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     messages.sns(incomingEvent, context).map(snsMessageDetails => {
-      val endpoint = eventConfig("sns.endpoint")
+      val endpoint = "https://sns.eu-west-2.amazonaws.com"//eventConfig("sns.endpoint")
       val messageBody = snsMessageDetails.messageBody
       val topicArn = snsMessageDetails.snsTopic
       IO(SNSUtils(sns(endpoint)).publish(messageBody, topicArn).toString)
