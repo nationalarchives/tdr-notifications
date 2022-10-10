@@ -84,13 +84,13 @@ object EventMessages {
     val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz").toString
     val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256").toString
 
-    val uuids = List(UUIDs("TDR-UUID", UUID.randomUUID.toString))
+    val uuids = List(("TDR-UUID", UUID.randomUUID.toString))
     val producer = Producer(incomingEvent.environment, "TDR", "tdr-export-process", "new-bagit", consignmentType)
     val resource = Resource("Object", "url", packageSignedUrl)
     val resourceValidation = ResourceValidation("Object", "url", "SHA256", packageShaSignedUrl)
     val newBagit = NewBagit(resource, resourceValidation, exportMessage.consignmentReference)
-    val parameters = Parameters(newBagit)
-    val messageBody = TransformEngineV2RetryEvent("1.0.0",1661155064747274000L, uuids, producer, parameters).asJson.toString()
+    val parameters = Parameters(Some(newBagit), None)
+    val messageBody = TransformEngineV2RetryEvent("1.0.0",1661155064747274000L, List(Map()), producer, parameters).asJson.toString()
 
     SnsMessageDetails(topicArn, messageBody)
   }
@@ -319,7 +319,12 @@ object EventMessages {
 
     //To be implemented to handle the v2 retry message model
     override def sns(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SnsMessageDetails] = {
-      Some(SnsMessageDetails("test", "test"))
+      val x = incomingEvent.parameters.`bagit-validation-error`.get.reference
+      val uuids = incomingEvent.UUIDs
+      val y = "breakpoint"
+
+      None
+      //Some(SnsMessageDetails("test", "test"))
     }
   }
 
