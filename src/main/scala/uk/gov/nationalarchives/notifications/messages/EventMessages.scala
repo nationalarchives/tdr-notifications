@@ -1,13 +1,12 @@
 package uk.gov.nationalarchives.notifications.messages
 
-import java.net.URI
 import cats.effect.IO
 import cats.syntax.all._
 import com.typesafe.config.ConfigFactory
+import com.typesafe.scalalogging.Logger
 import io.circe.Encoder.AsObject.importedAsObjectEncoder
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
-import com.typesafe.scalalogging.Logger
 import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
 import uk.gov.nationalarchives.aws.utils.Clients.s3Async
@@ -16,11 +15,13 @@ import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
+import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDecoder.GovUkNotifyKeyRotationEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
+import java.net.URI
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object EventMessages {
@@ -294,6 +295,25 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SqsMessageDetails] = None
+  }
+
+  implicit val govUkNotifyKeyRotationMessage: Messages[GovUkNotifyKeyRotationEvent, Unit] = new Messages[GovUkNotifyKeyRotationEvent, Unit] {
+    override def context(incomingEvent: GovUkNotifyKeyRotationEvent): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[Email] = None
+
+    override def slack(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[SlackMessage] = {
+      val ssmParameter: String = incomingEvent.detail.`parameter-name`
+      val reason: String = incomingEvent.detail.`action-reason`
+      val messageList = List(
+        "*Rotate GOV.UK Notify API Key*",
+        s"*$ssmParameter*: $reason",
+        s"See here for instructions to rotate GOV.UK Notify API Keys: https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/govuk-notify.md#rotating-api-key"
+      )
+      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
+    }
+
+    override def sqs(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[SqsMessageDetails] = None
   }
 }
 
