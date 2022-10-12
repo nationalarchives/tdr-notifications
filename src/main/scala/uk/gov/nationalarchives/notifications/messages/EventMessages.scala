@@ -16,12 +16,15 @@ import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
+import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoderV2.{NewBagit, Parameters, Producer, Resource, ResourceValidation, TransformEngineV2RetryEvent, UUIDs}
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
+import java.sql.Timestamp
+import java.time.Instant.now
 import java.util.UUID
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
@@ -84,13 +87,13 @@ object EventMessages {
     val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz").toString
     val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256").toString
 
-    val uuids = List(("TDR-UUID", UUID.randomUUID.toString))
+    val uuids = List(Map("TDR-UUID" -> UUID.randomUUID.toString))
     val producer = Producer(incomingEvent.environment, "TDR", "tdr-export-process", "new-bagit", consignmentType)
     val resource = Resource("Object", "url", packageSignedUrl)
     val resourceValidation = ResourceValidation("Object", "url", "SHA256", packageShaSignedUrl)
-    val newBagit = NewBagit(resource, resourceValidation, exportMessage.consignmentReference)
+    val newBagit = NewBagit(resource, resourceValidation, consignmentRef)
     val parameters = Parameters(Some(newBagit), None)
-    val messageBody = TransformEngineV2RetryEvent("1.0.0",1661155064747274000L, List(Map()), producer, parameters).asJson.toString()
+    val messageBody = TransformEngineV2RetryEvent("1.0.0",Timestamp.from(now).getTime, uuids, producer, parameters).asJson.toString()
 
     SnsMessageDetails(topicArn, messageBody)
   }
@@ -262,7 +265,8 @@ object EventMessages {
 //        val successDetails = incomingEvent.successDetails.get
 //        val bucketName = successDetails.exportBucket
         //Send the whole incomingEvent in order to get details like environment
-        Some(generateSnsExportMessageBody(incomingEvent))
+//        Some(generateSnsExportMessageBody(incomingEvent))
+        Some(generateSnsMessage(incomingEvent))
       } else {
         None
       }
@@ -319,12 +323,35 @@ object EventMessages {
 
     //To be implemented to handle the v2 retry message model
     override def sns(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SnsMessageDetails] = {
-      val x = incomingEvent.parameters.`bagit-validation-error`.get.reference
-      val uuids = incomingEvent.UUIDs
-      val y = "breakpoint"
+/*      val topicArn = "arn:aws:sns:eu-west-2:675407525008:tre-in"//eventConfig("sns.topic.transform_engine_v2_in")
+      val s3Utils = S3Utils(s3Async)
 
+      val consignmentRef = incomingEvent.parameters.`bagit-validation-error`.get.reference
+      val uuids = incomingEvent.UUIDs
+      //Append a new UUID to the above UUIDs
+
+      val incomingProducer = incomingEvent.producer
+      val bucketName = if (incomingProducer.`type` == "judgment") {
+        eventConfig("s3.judgment_export_bucket")
+      } else {
+        eventConfig("s3.standard_export_bucket")
+      }
+      val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz").toString
+      val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256").toString
+
+      val producer = Producer(incomingProducer.environment, incomingProducer.name, incomingProducer.process, incomingProducer.`event-name`, incomingProducer.`type`)
+
+      val resource = Resource("Object", "url", packageSignedUrl)
+      val resourceValidation = ResourceValidation("Object", "url", "SHA256", packageShaSignedUrl)
+      val newBagit = NewBagit(resource, resourceValidation, consignmentRef)
+      val parameters = Parameters(Some(newBagit), None)
+
+      val y = "breakpoint"
       None
-      //Some(SnsMessageDetails("test", "test"))
+      val messageBody = TransformEngineV2RetryEvent("1.0.0", Timestamp.from(now).getTime, uuids, producer, parameters).asJson.toString()
+
+      Some(SnsMessageDetails(topicArn, messageBody))*/
+      Some(generateSnsMessage(incomingEvent))
     }
   }
 
@@ -363,6 +390,46 @@ object EventMessages {
     override def sqs(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SqsMessageDetails] = None
 
     override def sns(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SnsMessageDetails] = None
+  }
+
+  private def generateSnsMessage[T <: IncomingEvent](incomingEvent: T) = {
+    val topicArn = "arn:aws:sns:eu-west-2:675407525008:tre-in" //eventConfig("sns.topic.transform_engine_v2_in")
+    val s3Utils = S3Utils(s3Async)
+
+    val snsTuple = incomingEvent match {
+      case exportStatus: ExportStatusEvent => {
+        val exportMessage = exportStatus.successDetails.get
+        val bucketName = exportMessage.exportBucket
+
+        val consignmentRef = exportMessage.consignmentReference
+        val consignmentType = exportMessage.consignmentType
+        val uuids = List(Map("TDR-UUID" -> UUID.randomUUID.toString))
+        val producer = Producer(exportStatus.environment, "TDR", "tdr-export-process", "new-bagit", consignmentType)
+        (bucketName, consignmentRef, uuids, producer)
+      }
+      case transformEngineV2RetryEvent: TransformEngineV2RetryEvent => {
+        val consignmentRef = transformEngineV2RetryEvent.parameters.`bagit-validation-error`.get.reference
+        val incomingProducer = transformEngineV2RetryEvent.producer
+        val bucketName = if (incomingProducer.`type` == "judgment") {
+          eventConfig("s3.judgment_export_bucket")
+        } else {
+          eventConfig("s3.standard_export_bucket")
+        }
+        //Append a new UUID to the existing UUIDs
+        val uuids = transformEngineV2RetryEvent.UUIDs :+ Map("TDR-UUID" -> UUID.randomUUID.toString)
+        val producer = Producer(incomingProducer.environment, incomingProducer.name, incomingProducer.process, incomingProducer.`event-name`, incomingProducer.`type`)
+        (bucketName, consignmentRef, uuids, producer)
+      }
+    }
+    val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(snsTuple._1, s"${snsTuple._2}.tar.gz").toString
+    val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(snsTuple._1, s"${snsTuple._2}.tar.gz.sha256").toString
+    val resource = Resource("Object", "url", packageSignedUrl)
+    val resourceValidation = ResourceValidation("Object", "url", "SHA256", packageShaSignedUrl)
+    val newBagit = NewBagit(resource, resourceValidation, snsTuple._2)
+    val parameters = Parameters(Some(newBagit), None)
+    val messageBody = TransformEngineV2RetryEvent("1.0.0",Timestamp.from(now).getTime, snsTuple._3, snsTuple._4, parameters).asJson.toString()
+
+    SnsMessageDetails(topicArn, messageBody)
   }
 }
 
