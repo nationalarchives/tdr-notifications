@@ -306,9 +306,9 @@ object EventMessages {
       val ssmParameter: String = incomingEvent.detail.`parameter-name`
       val reason: String = incomingEvent.detail.`action-reason`
       val messageList = List(
-        "*Rotate GOV.UK Notify API Key*",
+        ":warning: *Rotate GOV.UK Notify API Key*",
         s"*$ssmParameter*: $reason",
-        s"See here for instructions to rotate GOV.UK Notify API Keys: https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/govuk-notify.md#rotating-api-key"
+        s"\nSee here for instructions to rotate GOV.UK Notify API Keys: https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/govuk-notify.md#rotating-api-key"
       )
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
     }
