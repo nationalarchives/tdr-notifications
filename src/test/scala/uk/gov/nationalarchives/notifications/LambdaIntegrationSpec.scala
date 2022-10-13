@@ -3,16 +3,16 @@ package uk.gov.nationalarchives.notifications
 import com.github.tomakehurst.wiremock.client.WireMock.{equalTo, equalToJson, postRequestedFor, urlEqualTo}
 import io.circe.generic.auto._
 import io.circe.parser
-import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor7}
+import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor8}
 import software.amazon.awssdk.services.sqs.model.Message
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 import uk.gov.nationalarchives.notifications.messages.EventMessages.SqsExportMessageBody
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
-  def events: TableFor7[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit, String]
+  def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String]
 
   forAll(events) {
-    (description, input, emailBody, slackBody, sqsMessage, stubContext, slackUrl) => {
+    (description, input, emailBody, slackBody, sqsMessage, snsMessage, stubContext, slackUrl) => {
       emailBody match {
         case Some(body) =>
           "the process method" should s"send an email message for $description" in {
@@ -90,8 +90,20 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             messages.size shouldBe 0
           }
       }
+
+      snsMessage match {
+        case Some(expectedMessageDetails) => {}
+        case None =>
+          "the process method" should s"not send a sns message for $description" in {
+            stubContext()
+            val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
+            new Lambda().process(stream, null)
+            val messages: Unit = transformEngineTopicHelper.receive
+          }
+      }
     }
   }
 }
 
 case class SqsExpectedMessageDetails(successDetails: ExportSuccessDetails, retryCount: Int)
+case class SnsExpectedMessageDetails()

@@ -394,6 +394,8 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[SqsMessageDetails] = None
+
+    override def sns(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[SnsMessageDetails] = None
   }
 }
 
