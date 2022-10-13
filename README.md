@@ -18,6 +18,7 @@ Set these environment variables, either on the command line or in IntelliJ depen
   Use the `#bot-testing` channel rather than a team channel to avoid confusion and spam. This webhook goes to the #da-tdr-notifications channel.
 * `SLACK_JUDGMENT_WEBHOOK` This webhook publishes to the #da-tdr-prod-exports-judgments channel. This should only be used to send production judgment transfer notifications.
 * `SLACK_TDR_WEBHOOK` This webhook publishes to the #da-tdr channel. This is for priority notifications which need to be acted on quickly.
+* `SLACK_EXPORT_WEBHOOK` This webhook publishes to the #da-tdr-export-notifications channel. This is for all non-judgment export notifications for staging and production.
 * `TO_EMAIL`: the email address that alerts should be sent to. For testing purposes, this should normally be your own
   email address rather than a team one.
 * `TRANSFORM_ENGINE_OUTPUT_SQS`: set this in the SQS queue where the message should be sent. Need to ensure have permissions to send to the SQS queue

@@ -15,12 +15,14 @@ import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
+import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDecoder.GovUkNotifyKeyRotationEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2RetryDecoder._
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
+import java.net.URI
 import java.net.URI
 import java.sql.Timestamp
 import java.time.Instant.now
@@ -83,13 +85,19 @@ object EventMessages {
     // tags) because they represent old images or ones which have not been deployed yet.
     private val releaseTags = Set("latest", "intg", "staging", "prod", "mgmt")
 
-    // Findings which should be included in alerts
-    private val relevantFindingLevels = Set(
+    // Findings which should be included in slack alerts
+    private val allFindingLevels = Set(
       FindingSeverity.CRITICAL,
       FindingSeverity.HIGH,
       FindingSeverity.MEDIUM,
       FindingSeverity.LOW,
       FindingSeverity.UNDEFINED
+    )
+
+    // Findings which should be included in email alerts
+    private val highAndCriticalFindingLevels = Set(
+      FindingSeverity.CRITICAL,
+      FindingSeverity.HIGH
     )
 
     private val mutedVulnerabilities: Set[String] = eventConfig("alerts.ecr-scan.mute")
@@ -104,11 +112,15 @@ object EventMessages {
     private def includesReleaseTags(imageTags: List[String]): Boolean =
       imageTags.toSet.intersect(releaseTags).nonEmpty
 
-    private def includesRelevantFindings(findings: Seq[Finding]): Boolean =
-      findings.map(_.severity).toSet.intersect(relevantFindingLevels).nonEmpty
+    private def includesRelevantFindings(findings: Seq[Finding], findingLevels: Set[FindingSeverity]): Boolean = {
+      findings.map(_.severity).toSet.intersect(findingLevels).nonEmpty
+    }
 
-    private def shouldSendNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
-      includesReleaseTags(detail.tags) && includesRelevantFindings(findings)
+    private def shouldSendSlackNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
+      includesReleaseTags(detail.tags) && includesRelevantFindings(findings, allFindingLevels)
+
+    private def shouldSendEmailNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
+      includesReleaseTags(detail.tags) && includesRelevantFindings(findings, highAndCriticalFindingLevels)
 
     private def filterReport(report: ImageScanReport): ImageScanReport = {
       val filteredFindings = report.findings.filterNot(finding => mutedVulnerabilities.contains(finding.name))
@@ -132,7 +144,7 @@ object EventMessages {
     override def slack(event: ScanEvent, report: ImageScanReport): Option[SlackMessage] = {
       val detail = event.detail
       val filteredReport = filterReport(report)
-      if (shouldSendNotification(detail, filteredReport.findings)) {
+      if (shouldSendSlackNotification(detail, filteredReport.findings)) {
         val headerBlock = slackBlock(s"*ECR image scan complete on image ${detail.repositoryName} ${detail.tags.mkString(",")}*")
 
         val criticalBlock = slackBlock(s"${filteredReport.criticalCount} critical severity vulnerabilities")
@@ -150,7 +162,7 @@ object EventMessages {
     override def email(event: ScanEvent, report: ImageScanReport): Option[SESUtils.Email] = {
       val detail = event.detail
       val filteredReport = filterReport(report)
-      if (shouldSendNotification(detail, filteredReport.findings)) {
+      if (shouldSendEmailNotification(detail, filteredReport.findings)) {
         val message = html(
           body(
             h1(s"Image scan results for ${detail.repositoryName}"),
@@ -363,6 +375,25 @@ object EventMessages {
     val messageBody = TransformEngineV2RetryEvent("1.0.0", Timestamp.from(now).getTime, uuids, producer, parameters).asJson.toString()
 
     SnsMessageDetails(topicArn, messageBody)
+  }
+
+  implicit val govUkNotifyKeyRotationMessage: Messages[GovUkNotifyKeyRotationEvent, Unit] = new Messages[GovUkNotifyKeyRotationEvent, Unit] {
+    override def context(incomingEvent: GovUkNotifyKeyRotationEvent): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[Email] = None
+
+    override def slack(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[SlackMessage] = {
+      val ssmParameter: String = incomingEvent.detail.`parameter-name`
+      val reason: String = incomingEvent.detail.`action-reason`
+      val messageList = List(
+        "*Rotate GOV.UK Notify API Key*",
+        s"*$ssmParameter*: $reason",
+        s"See here for instructions to rotate GOV.UK Notify API Keys: https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/govuk-notify.md#rotating-api-key"
+      )
+      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
+    }
+
+    override def sqs(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[SqsMessageDetails] = None
   }
 }
 

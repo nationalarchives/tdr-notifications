@@ -76,6 +76,20 @@ object LambdaRunner extends App {
        |  ]
        |}
        |""".stripMargin
+
+  val notifyRotationMessage =
+    s"""
+       |{
+       |    "Records": [
+       |        {
+       |            "Sns": {
+       |                "Message": "{\\"detail\\":{\\"parameter-name\\":\\"/some/ssm/parameter\\",\\"action-reason\\":\\"The parameter has not been changed for 1 hour. This notification was generated based on the policy created at 2022-10-05T06:02:08.334338Z.\\"}}"
+       |            }
+       |        }
+       |    ]
+       |}
+       |""".stripMargin
+
   val transformEngineV2RetryMessage =
     s"""{
        |  "Records" : [
@@ -96,7 +110,7 @@ object LambdaRunner extends App {
        |    }
        |  ]}
        |""".stripMargin
-  
+
   val inputStream = new ByteArrayInputStream(transformEngineV2RetryMessage.getBytes)
 
   // The Lambda does not use the output stream, so it's safe to set it to null
