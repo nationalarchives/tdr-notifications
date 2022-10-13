@@ -32,7 +32,18 @@ object Messages {
   val config: Config = ConfigFactory.load
   val kmsUtils: KMSUtils = KMSUtils(kms(config.getString("kms.endpoint")), Map("LambdaFunctionName" -> config.getString("function.name")))
   val eventConfig: Map[String, String] = kmsUtils.decryptValuesFromConfig(
-    List("alerts.ecr-scan.mute", "ses.email.to", "slack.webhook.url", "slack.webhook.judgment_url", "slack.webhook.tdr_url", "slack.webhook.export_url", "sqs.queue.transform_engine_output", "s3.judgment_export_bucket"))
+    List(
+      "alerts.ecr-scan.mute",
+      "ses.email.to",
+      "slack.webhook.url",
+      "slack.webhook.judgment_url",
+      "slack.webhook.tdr_url",
+      "slack.webhook.export_url",
+      "sqs.queue.transform_engine_output",
+      "s3.judgment_export_bucket",
+      "s3.standard_export_bucket",
+      "sns.topic.transform_engine_v2_in"
+    ))
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
@@ -59,7 +70,7 @@ object Messages {
 
   private def sendSNSMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     messages.sns(incomingEvent, context).map(snsMessageDetails => {
-      val endpoint = "https://sns.eu-west-2.amazonaws.com"//eventConfig("sns.endpoint")
+      val endpoint = config.getString("sns.endpoint")
       val messageBody = snsMessageDetails.messageBody
       val topicArn = snsMessageDetails.snsTopic
       IO(SNSUtils(sns(endpoint)).publish(messageBody, topicArn).toString)

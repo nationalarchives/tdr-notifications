@@ -9,8 +9,8 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.Export
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.{TransformEngineRetryEvent}
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoderV2.TransformEngineV2RetryEvent
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2RetryDecoder.TransformEngineV2RetryEvent
 import uk.gov.nationalarchives.notifications.decoders._
 import uk.gov.nationalarchives.notifications.messages.EventMessages._
 import uk.gov.nationalarchives.notifications.messages.Messages._

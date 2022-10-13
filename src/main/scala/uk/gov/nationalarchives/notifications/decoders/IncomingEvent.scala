@@ -10,7 +10,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.Export
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoderV2.TransformEngineV2RetryEvent
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2RetryDecoder.TransformEngineV2RetryEvent
 
 trait IncomingEvent {
 }

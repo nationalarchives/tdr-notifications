@@ -1,13 +1,12 @@
 package uk.gov.nationalarchives.notifications.messages
 
-import java.net.URI
 import cats.effect.IO
 import cats.syntax.all._
 import com.typesafe.config.ConfigFactory
-import io.circe.Encoder.AsObject.{importedAsObjectEncoder, instance}
+import com.typesafe.scalalogging.Logger
+import io.circe.Encoder.AsObject.importedAsObjectEncoder
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
-import com.typesafe.scalalogging.Logger
 import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
 import uk.gov.nationalarchives.aws.utils.Clients.s3Async
@@ -16,13 +15,13 @@ import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
-import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoderV2.{NewBagit, Parameters, Producer, Resource, ResourceValidation, TransformEngineV2RetryEvent, UUIDs}
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2RetryDecoder._
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
+import java.net.URI
 import java.sql.Timestamp
 import java.time.Instant.now
 import java.util.UUID
@@ -58,18 +57,21 @@ object EventMessages {
                                   `consignment-type`: String,
                                   `number-of-retries`: Int) extends TransformEngineSqsMessage
 
-  //This is what we send to TRE
+  private def generateS3SignedUrl(bucketName: String, keyName: String): String = {
+    val s3Utils = S3Utils(s3Async)
+    s3Utils.generateGetObjectSignedUrl(bucketName, keyName).toString
+  }
 
   private def generateSqsExportMessageBody(bucketName: String, exportMessage: ExportMessage): SqsMessageDetails = {
     val retryCount: Int = exportMessage match {
       case e: TransformEngineRetryEvent => e.numberOfRetries
       case _ => 0
     }
-    val s3Utils = S3Utils(s3Async)
+
     val consignmentRef = exportMessage.consignmentReference
     val consignmentType = exportMessage.consignmentType
-    val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz").toString
-    val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256").toString
+    val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef.tar.gz")
+    val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256")
     val messageBody = SqsExportMessageBody(consignmentRef, packageSignedUrl, packageShaSignedUrl, consignmentType, retryCount).asJson.toString
     val queueUrl = eventConfig("sqs.queue.transform_engine_output")
     SqsMessageDetails(queueUrl, messageBody)
@@ -182,8 +184,7 @@ object EventMessages {
 
     //For now only integration should send messages to TRE v2 until its deployed to the other TRE environments
     private def sendToTransformEngineV2(ev: ExportStatusEvent): Boolean = {
-//      ev.environment == "intg" && ev.success
-      true
+      ev.success && ev.environment == "intg" && !ev.successDetails.exists(_.transferringBodyName.contains("MOCK"))
     }
 
     override def context(event: ExportStatusEvent): IO[Unit] = IO.unit
@@ -193,8 +194,7 @@ object EventMessages {
       Option.empty
     }
 
-    override def slack(incomingEvent: ExportStatusEvent, context: Unit): Option[SlackMessage] = None
-/*    {
+    override def slack(incomingEvent: ExportStatusEvent, context: Unit): Option[SlackMessage] = {
       if(incomingEvent.environment != "intg" || !incomingEvent.success) {
 
         val exportInfoMessage = constructExportInfoMessage(incomingEvent)
@@ -212,7 +212,7 @@ object EventMessages {
       } else {
         Option.empty
       }
-    }*/
+    }
 
     private def constructExportInfoMessage(incomingEvent: ExportStatusEvent): String = {
      if (incomingEvent.successDetails.isDefined) {
@@ -225,8 +225,7 @@ object EventMessages {
       } else ""
     }
 
-    override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessageDetails] = None
-/*    {
+    override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessageDetails] = {
       if (sendToTransformEngine(incomingEvent)) {
         val successDetails = incomingEvent.successDetails.get
         val bucketName = successDetails.exportBucket
@@ -234,7 +233,7 @@ object EventMessages {
       } else {
         None
       }
-    }*/
+    }
 
     override def sns(incomingEvent: ExportStatusEvent, context: Unit): Option[SnsMessageDetails] = {
       if (sendToTransformEngineV2(incomingEvent)) {
@@ -299,14 +298,13 @@ object EventMessages {
 
     override def sqs(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
 
-    //To be implemented to handle the v2 retry message model
     override def sns(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SnsMessageDetails] = {
       val consignmentRef = incomingEvent.parameters.`bagit-validation-error`.get.reference
       val incomingProducer = incomingEvent.producer
       val bucketName = if (incomingProducer.`type` == "judgment") {
         eventConfig("s3.judgment_export_bucket")
       } else {
-        eventConfig("s3.judgment_export_bucket")
+        eventConfig("s3.standard_export_bucket")
       }
       val uuids = incomingEvent.UUIDs :+ Map("TDR-UUID" -> UUID.randomUUID.toString)
       val producer = Producer(incomingProducer.environment, incomingProducer.name, incomingProducer.process, incomingProducer.`event-name`, incomingProducer.`type`)
@@ -355,12 +353,9 @@ object EventMessages {
                                            consignmentRef: String,
                                            uuids: List[Map[String, String]],
                                            producer: Producer): SnsMessageDetails = {
-    //Probably need to use a different topicArn depending on tre-in or tre-out
-    val topicArn = "arn:aws:sns:eu-west-2:675407525008:tre-in" //eventConfig("sns.topic.transform_engine_v2_in")
-    val s3Utils = S3Utils(s3Async)
-
-    val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz").toString
-    val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256").toString
+    val topicArn = eventConfig("sns.topic.transform_engine_v2_in")
+    val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef.tar.gz")
+    val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256")
     val resource = Resource("Object", "url", packageSignedUrl)
     val resourceValidation = ResourceValidation("Object", "url", "SHA256", packageShaSignedUrl)
     val newBagit = NewBagit(resource, resourceValidation, consignmentRef)
