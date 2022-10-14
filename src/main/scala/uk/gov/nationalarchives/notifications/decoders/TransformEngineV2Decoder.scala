@@ -1,12 +1,16 @@
 package uk.gov.nationalarchives.notifications.decoders
 
+import io.circe.{Encoder, Json}
+
+import java.util.UUID
+
 object TransformEngineV2Decoder {
 
   trait TransformEngineV2Event
 
   trait Parameters
 
-  case class UUIDs()
+  trait UUIDs
 
   case class ErrorParameters(`bagit-validation-error`: BagitValidationError) extends Parameters
 
@@ -26,11 +30,21 @@ object TransformEngineV2Decoder {
 
   case class BagitValidationError(reference: String, errors: Option[List[String]])
 
-  case class TransformEngineV2RetryEvent(`version`: String, `timestamp`: Long, UUIDs: List[Map[String, String]],
+  case class TdrUUID(`TDR-UUID`: UUID) extends UUIDs
+
+  case class TreUUID(`TRE-UUID`: UUID) extends UUIDs
+
+  case class TransformEngineV2RetryEvent(`version`: String, `timestamp`: Long, UUIDs: List[UUIDs],
                                          producer: Producer,
                                          parameters: ErrorParameters) extends IncomingEvent with TransformEngineV2Event
 
-  case class TransferEngineV2NewBagitEvent(`version`: String, `timestamp`: Long, UUIDs: List[Map[String, String]],
+  case class TransferEngineV2NewBagitEvent(`version`: String, `timestamp`: Long, UUIDs: List[UUIDs],
                                            producer: Producer,
                                            parameters: NewBagitParameters) extends IncomingEvent with TransformEngineV2Event
+
+
+  implicit val encodeUUIDs: Encoder[UUIDs] = {
+    case TdrUUID(uuid) => Json.obj(("TDR-UUID", Json.fromString(uuid.toString)))
+    case TreUUID(uuid) => Json.obj(("TRE-UUID", Json.fromString(uuid.toString)))
+  }
 }
