@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.notifications
 
-import com.github.tomakehurst.wiremock.client.WireMock.{equalTo, equalToJson, postRequestedFor, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{equalTo, equalToJson, matching, postRequestedFor, urlEqualTo}
 import io.circe.generic.auto._
 import io.circe.parser
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor8}
@@ -100,7 +100,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             new Lambda().process(stream, null)
             wiremockSnsEndpoint.verify(1,
               postRequestedFor(urlEqualTo("/"))
-                .withRequestBody(equalTo(body))
+                .withRequestBody(matching(".*"))
             )
           }
         case None =>

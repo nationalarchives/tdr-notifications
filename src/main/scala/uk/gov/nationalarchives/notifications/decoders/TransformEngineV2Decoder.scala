@@ -2,9 +2,11 @@ package uk.gov.nationalarchives.notifications.decoders
 
 object TransformEngineV2Decoder {
 
-  trait TransformEngineV2
+  trait TransformEngineV2Event
 
   trait Parameters
+
+  case class UUIDs()
 
   case class ErrorParameters(`bagit-validation-error`: BagitValidationError) extends Parameters
 
@@ -22,9 +24,9 @@ object TransformEngineV2Decoder {
 
   case class TransformEngineV2RetryEvent(`version`: String, `timestamp`: Long, UUIDs: List[Map[String, String]],
                                          producer: Producer,
-                                         parameters: ErrorParameters) extends IncomingEvent with TransformEngineV2
+                                         parameters: ErrorParameters) extends IncomingEvent with TransformEngineV2Event
 
-  case class TransferEngineV2Event(`version`: String, `timestamp`: Long, UUIDs: List[Map[String, String]],
-                                   producer: Producer,
-                                   parameters:NewBagitParameters) extends IncomingEvent with TransformEngineV2
+  case class TransferEngineV2NewBagitEvent(`version`: String, `timestamp`: Long, UUIDs: List[Map[String, String]],
+                                           producer: Producer,
+                                           parameters: NewBagitParameters) extends IncomingEvent with TransformEngineV2Event
 }

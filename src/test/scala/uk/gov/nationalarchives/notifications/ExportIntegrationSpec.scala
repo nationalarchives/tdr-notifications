@@ -9,52 +9,36 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
 
   override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[String], () => Unit, String] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
-    //should send an SNS message
     ("a successful standard export event on intg",
       exportStatusEventInputText(exportStatus1), None, None, None, expectedSnsMessage(exportStatus1), () => (), "/webhook-export"),
-    //should not send an SNS message
     ("a successful standard export event using a mock transferring body on intg",
       exportStatusEventInputText(exportStatus3), None, None, None, None, () => (), "/webhook-export"),
-    //should send an SNS message
     ("a successful judgment export event on intg",
-      exportStatusEventInputText(exportStatus2), None, None, expectedSqsMessage(exportStatus2), None, () => (), "/webhook-export"),
-    //should not send an SNS message
+      exportStatusEventInputText(exportStatus2), None, None, expectedSqsMessage(exportStatus2), expectedSnsMessage(exportStatus2), () => (), "/webhook-export"),
     ("a successful judgment export event using a mock transferring body on intg",
       exportStatusEventInputText(exportStatus3), None, None, None, None, () => (), "/webhook-export"),
-    //should not send an SNS message
     ("a failed export event on intg",
       exportStatusEventInputText(exportStatus4), None, Some(expectedSlackMessage(exportStatus4)), None, None, () => (), "/webhook-export"),
-    //should send an SNS message
     ("a successful standard export event on staging",
       exportStatusEventInputText(exportStatus5), None, Some(expectedSlackMessage(exportStatus5)), None, None, () => (), "/webhook-export"),
-    //should not send an SNS message
     ("a successful standard export event using a mock transferring body on staging",
       exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, None, () => (), "/webhook-export"),
-    //should send an SNS message
     ("a successful judgment export event on staging",
       exportStatusEventInputText(exportStatus6), None, Some(expectedSlackMessage(exportStatus6)), expectedSqsMessage(exportStatus6), None, () => (), "/webhook-export"),
-    //should not send an SNS message
     ("a successful judgment export event using a mock transferring body on staging",
       exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, None, () => (), "/webhook-export"),
-    //should not send an SNS message
     ("a failed export event on staging",
       exportStatusEventInputText(exportStatus8), None, Some(expectedSlackMessage(exportStatus8)), None, None, () => (), "/webhook-export"),
-    //should not send an SNS message
     ("a failed export on intg with no error details",
       exportStatusEventInputText(exportStatus9), None, Some(expectedSlackMessage(exportStatus9)), None, None, () => (), "/webhook-export"),
-    //should not send an SNS message
     ("a failed export on staging with no error details",
       exportStatusEventInputText(exportStatus10), None, Some(expectedSlackMessage(exportStatus10)), None, None, () => (), "/webhook-export"),
-    //should send an SNS message
     ("a successful standard export event on prod",
       exportStatusEventInputText(exportStatus11), None, Some(expectedSlackMessage(exportStatus11)), None, None, () => (), "/webhook-export"),
-    //should not send an SNS message
     ("a failed standard export event on prod",
       exportStatusEventInputText(exportStatus12), None, Some(expectedSlackMessage(exportStatus12)), None, None, () => (), "/webhook-export"),
-    //should not send an SNS message
     ("a successful standard export event using a mock transferring body on prod",
       exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, None, () => (), "/webhook-export"),
-    //should send an SNS message
     ("a successful judgment export on prod",
     exportStatusEventInputText(exportStatus13), None, Some(expectedSlackMessage(exportStatus13)), expectedSqsMessage(exportStatus13), None, () => (), "/webhook-judgment")
   )

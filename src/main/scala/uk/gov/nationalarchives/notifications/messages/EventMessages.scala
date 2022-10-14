@@ -314,7 +314,7 @@ object EventMessages {
       val consignmentRef: String = incomingEvent.parameters match {
         case p: ErrorParameters => p.`bagit-validation-error`.reference
       }
-      //val consignmentRef = incomingEvent.parameters.`bagit-validation-error`.get.reference
+
       val incomingProducer = incomingEvent.producer
       val bucketName = if (incomingProducer.`type` == "judgment") {
         eventConfig("s3.judgment_export_bucket")
@@ -375,7 +375,7 @@ object EventMessages {
     val resourceValidation = ResourceValidation("Object", "url", "SHA256", packageShaSignedUrl)
     val newBagit = NewBagit(resource, resourceValidation, consignmentRef)
     val parameters = NewBagitParameters(newBagit)
-    val messageBody = TransferEngineV2Event("1.0.0", Timestamp.from(now).getTime, uuids, producer, parameters).asJson.toString()
+    val messageBody = TransferEngineV2NewBagitEvent("1.0.0", Timestamp.from(now).getTime, uuids, producer, parameters).asJson.toString()
 
     SnsMessageDetails(topicArn, messageBody)
   }
