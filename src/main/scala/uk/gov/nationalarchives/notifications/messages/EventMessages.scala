@@ -4,7 +4,7 @@ import cats.effect.IO
 import cats.syntax.all._
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-import io.circe.Encoder.AsObject.importedAsObjectEncoder
+import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import scalatags.Text.all._
@@ -22,7 +22,6 @@ import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecode
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder._
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
-import java.net.URI
 import java.net.URI
 import java.sql.Timestamp
 import java.time.Instant.now
@@ -74,7 +73,7 @@ object EventMessages {
     val consignmentType = exportMessage.consignmentType
     val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef.tar.gz")
     val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256")
-    val messageBody = SqsExportMessageBody(consignmentRef, packageSignedUrl, packageShaSignedUrl, consignmentType, retryCount).asJson.toString
+    val messageBody = SqsExportMessageBody(consignmentRef, packageSignedUrl, packageShaSignedUrl, consignmentType, retryCount).asJson.printWith(Printer.noSpaces)
     val queueUrl = eventConfig("sqs.queue.transform_engine_output")
     SqsMessageDetails(queueUrl, messageBody)
   }
@@ -253,7 +252,7 @@ object EventMessages {
         val bucketName = exportMessage.exportBucket
         val consignmentRef = exportMessage.consignmentReference
         val consignmentType = exportMessage.consignmentType
-        val uuids = List(Map("TDR-UUID" -> UUID.randomUUID.toString))
+        val uuids = List(TdrUUID(UUID.randomUUID()))
         val producer = Producer(incomingEvent.environment, "TDR", "tdr-export-process", "new-bagit", consignmentType)
         Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
       } else {
@@ -321,7 +320,7 @@ object EventMessages {
       } else {
         eventConfig("s3.standard_export_bucket")
       }
-      val uuids = incomingEvent.UUIDs :+ Map("TDR-UUID" -> UUID.randomUUID.toString)
+      val uuids = incomingEvent.UUIDs :+ TdrUUID(UUID.randomUUID())
       val producer = Producer(incomingProducer.environment, incomingProducer.name, incomingProducer.process, incomingProducer.`event-name`, incomingProducer.`type`)
       Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
     }
@@ -366,7 +365,7 @@ object EventMessages {
 
   private def generateSnsExportMessageBody(bucketName: String,
                                            consignmentRef: String,
-                                           uuids: List[Map[String, String]],
+                                           uuids: List[UUIDs],
                                            producer: Producer): SnsMessageDetails = {
     val topicArn = eventConfig("sns.topic.transform_engine_v2_in")
     val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef.tar.gz")
@@ -375,7 +374,7 @@ object EventMessages {
     val resourceValidation = ResourceValidation("Object", "url", "SHA256", packageShaSignedUrl)
     val newBagit = NewBagit(resource, resourceValidation, consignmentRef)
     val parameters = NewBagitParameters(newBagit)
-    val messageBody = TransferEngineV2NewBagitEvent("1.0.0", Timestamp.from(now).getTime, uuids, producer, parameters).asJson.toString()
+    val messageBody = TransferEngineV2NewBagitEvent("1.0.0", Timestamp.from(now).getTime, uuids, producer, parameters).asJson.printWith(Printer.noSpaces)
 
     SnsMessageDetails(topicArn, messageBody)
   }
