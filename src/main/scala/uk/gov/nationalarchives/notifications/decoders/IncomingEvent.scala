@@ -11,7 +11,7 @@ import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.Keycl
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDecoder.GovUkNotifyKeyRotationEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2RetryDecoder.TransformEngineV2RetryEvent
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.TransformEngineV2RetryEvent
 
 trait IncomingEvent {
 }

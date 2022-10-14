@@ -19,7 +19,7 @@ import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDeco
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2RetryDecoder._
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder._
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import java.net.URI
@@ -311,7 +311,10 @@ object EventMessages {
     override def sqs(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
 
     override def sns(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SnsMessageDetails] = {
-      val consignmentRef = incomingEvent.parameters.`bagit-validation-error`.get.reference
+      val consignmentRef: String = incomingEvent.parameters match {
+        case p: ErrorParameters => p.`bagit-validation-error`.reference
+      }
+      //val consignmentRef = incomingEvent.parameters.`bagit-validation-error`.get.reference
       val incomingProducer = incomingEvent.producer
       val bucketName = if (incomingProducer.`type` == "judgment") {
         eventConfig("s3.judgment_export_bucket")
@@ -371,8 +374,8 @@ object EventMessages {
     val resource = Resource("Object", "url", packageSignedUrl)
     val resourceValidation = ResourceValidation("Object", "url", "SHA256", packageShaSignedUrl)
     val newBagit = NewBagit(resource, resourceValidation, consignmentRef)
-    val parameters = Parameters(Some(newBagit), None)
-    val messageBody = TransformEngineV2RetryEvent("1.0.0", Timestamp.from(now).getTime, uuids, producer, parameters).asJson.toString()
+    val parameters = NewBagitParameters(newBagit)
+    val messageBody = TransferEngineV2Event("1.0.0", Timestamp.from(now).getTime, uuids, producer, parameters).asJson.toString()
 
     SnsMessageDetails(topicArn, messageBody)
   }

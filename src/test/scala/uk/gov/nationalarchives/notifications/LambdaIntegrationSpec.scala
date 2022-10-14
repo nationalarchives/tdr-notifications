@@ -9,7 +9,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.Export
 import uk.gov.nationalarchives.notifications.messages.EventMessages.SqsExportMessageBody
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
-  def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String]
+  def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[String], () => Unit, String]
 
   forAll(events) {
     (description, input, emailBody, slackBody, sqsMessage, snsMessage, stubContext, slackUrl) => {
@@ -92,13 +92,23 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
       }
 
       snsMessage match {
-        case Some(expectedMessageDetails) => {}
+        case Some(body) =>
+          "the process method" should s"send an sns message for $description" in {
+            stubContext()
+            val x = body
+            val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
+            new Lambda().process(stream, null)
+            wiremockSnsEndpoint.verify(1,
+              postRequestedFor(urlEqualTo("/"))
+                .withRequestBody(equalTo(body))
+            )
+          }
         case None =>
           "the process method" should s"not send a sns message for $description" in {
             stubContext()
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
-            val messages: Unit = transformEngineTopicHelper.receive
+            wiremockSnsEndpoint.verify(0, postRequestedFor(urlEqualTo("/")))
           }
       }
     }

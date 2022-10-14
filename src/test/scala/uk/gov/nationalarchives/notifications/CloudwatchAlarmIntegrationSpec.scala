@@ -34,7 +34,7 @@ class CloudwatchAlarmIntegrationSpec extends LambdaIntegrationSpec {
        |""".stripMargin.some
   }
 
-  override def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
+  override def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[String], () => Unit, String] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
     (
       "Alarm Test1 with state OK, reason TestReason1, dimensions test1Name - test1Value",

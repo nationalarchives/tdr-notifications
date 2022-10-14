@@ -6,7 +6,7 @@ import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDeco
 
 class GovUkNotifyKeyRotationIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
+  override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[String], () => Unit, String] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
     ("a GovUk key rotation event on intg",
       keyRotationEventInputText(intgRotationEvent), None, expectedSlackMessage(intgRotationEvent), None, None, () => (), "/webhook"),

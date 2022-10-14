@@ -11,7 +11,7 @@ import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.Keycl
 import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDecoder.GovUkNotifyKeyRotationEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2RetryDecoder.TransformEngineV2RetryEvent
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.TransformEngineV2RetryEvent
 import uk.gov.nationalarchives.notifications.decoders._
 import uk.gov.nationalarchives.notifications.messages.EventMessages._
 import uk.gov.nationalarchives.notifications.messages.Messages._

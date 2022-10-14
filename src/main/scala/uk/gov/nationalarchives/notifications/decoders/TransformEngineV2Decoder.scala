@@ -1,10 +1,14 @@
 package uk.gov.nationalarchives.notifications.decoders
 
-//Incoming messages what TRE send to us
-object TransformEngineV2RetryDecoder {
+object TransformEngineV2Decoder {
 
-  //This will be the case class for the new v2 retry message model
-  //case class UUIDs(producerName: Option[String], uuid: Option[String])
+  trait TransformEngineV2
+
+  trait Parameters
+
+  case class ErrorParameters(`bagit-validation-error`: BagitValidationError) extends Parameters
+
+  case class NewBagitParameters(`new-bagit`: NewBagit) extends Parameters
 
   case class Producer(environment: String, name: String, process: String, `event-name`: String, `type`: String)
 
@@ -16,9 +20,11 @@ object TransformEngineV2RetryDecoder {
 
   case class BagitValidationError(reference: String, errors: Option[List[String]])
 
-  case class Parameters(`new-bagit`: Option[NewBagit] = None, `bagit-validation-error`: Option[BagitValidationError] = None)
-
   case class TransformEngineV2RetryEvent(`version`: String, `timestamp`: Long, UUIDs: List[Map[String, String]],
                                          producer: Producer,
-                                         parameters: Parameters) extends IncomingEvent
+                                         parameters: ErrorParameters) extends IncomingEvent with TransformEngineV2
+
+  case class TransferEngineV2Event(`version`: String, `timestamp`: Long, UUIDs: List[Map[String, String]],
+                                   producer: Producer,
+                                   parameters:NewBagitParameters) extends IncomingEvent with TransformEngineV2
 }
