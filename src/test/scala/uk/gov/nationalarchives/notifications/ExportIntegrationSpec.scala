@@ -7,7 +7,7 @@ import java.util.UUID
 
 class ExportIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[String], () => Unit, String] = Table(
+  override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
     ("a successful standard export event on intg",
       exportStatusEventInputText(exportStatus1), None, None, None, expectedSnsMessage(exportStatus1), () => (), "/webhook-export"),
@@ -119,54 +119,17 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     } else None
   }
 
-  private def expectedSnsMessage(exportStatusEvent: ExportStatusEvent): Option[String] = {
+  private def expectedSnsMessage(exportStatusEvent: ExportStatusEvent): Option[SnsExpectedMessageDetails] = {
 
     if (exportStatusEvent.success && exportStatusEvent.successDetails.isDefined) {
       val successDetails = exportStatusEvent.successDetails.get
       val consignmentRef: String = successDetails.consignmentReference
       val consignmentType: String = successDetails.consignmentType
       val bucket: String = successDetails.exportBucket
+      val environment: String = exportStatusEvent.environment
 
-      Some(s"""
-         | {
-         |  "Records": {
-         |    "Sns": {
-         |      "Message": "{
-         |        \\"version\\": \\"1.0.0\\",
-         |        \\"timestamp\\": 1661155064747274000,
-         |        \\"UUIDs\\": [
-         |          {
-         |            \\"TDR-UUID\\": \\"45be6508-b693-441d-a0d6-defb3f41c1fb\\"
-         |          }
-         |        ],
-         |        \\"producer\\": {
-         |          \\"environment\\": \\"dev\\",
-         |          \\"name\\": \\"TDR\\",
-         |          \\"process\\": \\"tdr-export-process\\",
-         |          \\"event-name\\": \\"new-bagit\\",
-         |          \\"type\\": \\"$consignmentType\\"
-         |         },
-         |         \\"parameters\\": {
-         |           \\"new-bagit\\": {
-         |             \\"resource\\": {
-         |               \\"resource-type\\": \\"Object\\",
-         |               \\"access-type\\": \\"url\\",
-         |               \\"value\\": \\"https://s3.eu-west-2.amazonaws.com/$bucket/$consignmentRef.tar.gz?X-Amz-...\\"
-         |              },
-         |            \\"resource-validation\\": {
-         |              \\"resource-type\\": \\"Object\\",
-         |              \\"access-type\\": \\"url\\",
-         |              \\"validation-method\\": \\"SHA256\\",
-         |              \\"value\\": \\"https://s3.eu-west-2.amazonaws.com/$bucket/$consignmentRef.tar.gz.sha256?X-Amz-...\\"
-         |             },
-         |             \\"reference\\": \\"$consignmentRef\\"
-         |           }
-         |         }
-         |      }"
-         |    }
-         |  }
-         |}
-         |""".stripMargin)
+      Some(SnsExpectedMessageDetails(consignmentRef, consignmentType, bucket, environment))
+
     } else None
   }
 }

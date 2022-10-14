@@ -12,7 +12,11 @@ object TransformEngineV2Decoder {
 
   case class NewBagitParameters(`new-bagit`: NewBagit) extends Parameters
 
-  case class Producer(environment: String, name: String, process: String, `event-name`: String, `type`: String)
+  case class Producer(environment: String,
+                      name: String = "TDR",
+                      process: String = "tdr-export-process",
+                      `event-name`: String = "new-bagit",
+                      `type`: String)
 
   case class Resource(`resource-type`: String, `access-type`: String, value: String)
 

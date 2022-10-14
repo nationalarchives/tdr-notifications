@@ -5,7 +5,7 @@ import org.scalatest.prop.TableFor8
 
 class GenericMessageIntegrationSpec extends LambdaIntegrationSpec {
 
-  override def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[String], () => Unit, String] = {
+  override def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = {
     val oneMessage: String =
       """ "{\"messages\":[{\"message\":\"A test message\"}]}" """
     val oneMessageText = "A test message"

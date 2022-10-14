@@ -1,6 +1,6 @@
 package uk.gov.nationalarchives.notifications
 
-import com.github.tomakehurst.wiremock.client.WireMock.{equalTo, equalToJson, matching, postRequestedFor, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock.{containing, equalTo, equalToJson, matching, postRequestedFor, urlEqualTo}
 import io.circe.generic.auto._
 import io.circe.parser
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor8}
@@ -9,7 +9,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.Export
 import uk.gov.nationalarchives.notifications.messages.EventMessages.SqsExportMessageBody
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
-  def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[String], () => Unit, String]
+  def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String]
 
   forAll(events) {
     (description, input, emailBody, slackBody, sqsMessage, snsMessage, stubContext, slackUrl) => {
@@ -92,15 +92,22 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
       }
 
       snsMessage match {
-        case Some(body) =>
+        case Some(expectedDetails) =>
           "the process method" should s"send an sns message for $description" in {
             stubContext()
-            val x = body
+            val fieldValueSeparator: String = "%22+%3A+%22"
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSnsEndpoint.verify(1,
               postRequestedFor(urlEqualTo("/"))
-                .withRequestBody(matching(".*"))
+                .withRequestBody(
+                  containing("environment" + fieldValueSeparator + expectedDetails.environment))
+                .withRequestBody(
+                  containing("type" + fieldValueSeparator + expectedDetails.consignmentType))
+                .withRequestBody(
+                  containing("value" + fieldValueSeparator + s"https%3A%2F%2F${expectedDetails.bucketName}.s3.eu-west-2.amazonaws.com%2F${expectedDetails.consignmentReference}.tar.gz"))
+                .withRequestBody(
+                  containing("value" + fieldValueSeparator + s"https%3A%2F%2F${expectedDetails.bucketName}.s3.eu-west-2.amazonaws.com%2F${expectedDetails.consignmentReference}.tar.gz.sha256"))
             )
           }
         case None =>
@@ -116,4 +123,8 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
 }
 
 case class SqsExpectedMessageDetails(successDetails: ExportSuccessDetails, retryCount: Int)
-case class SnsExpectedMessageDetails()
+
+case class SnsExpectedMessageDetails(consignmentReference: String,
+                                     consignmentType: String,
+                                     bucketName: String,
+                                     environment: String)

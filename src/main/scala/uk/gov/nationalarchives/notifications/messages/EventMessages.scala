@@ -254,7 +254,7 @@ object EventMessages {
         val consignmentRef = exportMessage.consignmentReference
         val consignmentType = exportMessage.consignmentType
         val uuids = List(Map("TDR-UUID" -> UUID.randomUUID.toString))
-        val producer = Producer(incomingEvent.environment, "TDR", "tdr-export-process", "new-bagit", consignmentType)
+        val producer = Producer(incomingEvent.environment, `type` = consignmentType)
         Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
       } else {
         None
@@ -311,9 +311,7 @@ object EventMessages {
     override def sqs(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
 
     override def sns(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SnsMessageDetails] = {
-      val consignmentRef: String = incomingEvent.parameters match {
-        case p: ErrorParameters => p.`bagit-validation-error`.reference
-      }
+      val consignmentRef: String = incomingEvent.parameters.`bagit-validation-error`.reference
 
       val incomingProducer = incomingEvent.producer
       val bucketName = if (incomingProducer.`type` == "judgment") {
@@ -322,7 +320,7 @@ object EventMessages {
         eventConfig("s3.standard_export_bucket")
       }
       val uuids = incomingEvent.UUIDs :+ Map("TDR-UUID" -> UUID.randomUUID.toString)
-      val producer = Producer(incomingProducer.environment, incomingProducer.name, incomingProducer.process, incomingProducer.`event-name`, incomingProducer.`type`)
+      val producer = Producer(incomingEvent.producer.environment, `type` = incomingProducer.`type`)
       Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
     }
   }
