@@ -59,6 +59,6 @@ class TransformEngineV2RetryIntegrationSpec extends LambdaIntegrationSpec {
     val producer = Producer("dev", "tre", "dev-tre-validate-bagit", "bagit-validation-error", consignmentType)
     val validationError = BagitValidationError("ABC-1234-DEF", Some(List("some error message")))
     val parameters = ErrorParameters(validationError)
-    TransformEngineV2RetryEvent("1.0.0", 1661340417609575000L, List(), producer, parameters)
+    TransformEngineV2RetryEvent(`timestamp` = 1661340417609575000L, UUIDs = List(), producer = producer, parameters = parameters)
   }
 }

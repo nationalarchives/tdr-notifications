@@ -373,7 +373,8 @@ object EventMessages {
     val resourceValidation = ResourceValidation(value = packageShaSignedUrl)
     val newBagit = NewBagit(resource, resourceValidation, consignmentRef)
     val parameters = NewBagitParameters(newBagit)
-    val messageBody = TransferEngineV2NewBagitEvent(treVersion, Timestamp.from(now).getTime, uuids, producer, parameters).asJson.printWith(Printer.noSpaces)
+    val messageBody = TransferEngineV2NewBagitEvent(
+      `timestamp` = Timestamp.from(now).getTime, UUIDs = uuids, producer= producer, parameters = parameters).asJson.printWith(Printer.noSpaces)
 
     SnsMessageDetails(topicArn, messageBody)
   }

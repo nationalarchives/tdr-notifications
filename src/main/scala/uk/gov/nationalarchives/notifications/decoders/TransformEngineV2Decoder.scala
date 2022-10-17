@@ -6,12 +6,32 @@ import java.util.UUID
 
 object TransformEngineV2Decoder {
   val treVersion = "1.0.0"
-
-  trait TransformEngineV2Event
+  val resourceType = "Object"
+  val accessType = "url"
 
   trait Parameters
 
   trait UUIDs
+
+  trait TransformEngineV2Event {
+    def `version`: String
+
+    def `timestamp`: Long
+
+    def UUIDs: List[UUIDs]
+
+    def producer: Producer
+
+    def parameters: Parameters
+  }
+
+  trait ResourceDetails {
+    def `resource-type`: String
+
+    def `access-type`: String
+
+    def value: String
+  }
 
   case class ErrorParameters(`bagit-validation-error`: BagitValidationError) extends Parameters
 
@@ -23,12 +43,12 @@ object TransformEngineV2Decoder {
                       `event-name`: String = "new-bagit",
                       `type`: String)
 
-  case class Resource(`resource-type`: String = "Object", `access-type`: String = "url", value: String)
+  case class Resource(`resource-type`: String = resourceType, `access-type`: String = accessType, value: String) extends ResourceDetails
 
-  case class ResourceValidation(`resource-type`: String = "Object",
-                                `access-type`: String = "url",
+  case class ResourceValidation(`resource-type`: String = resourceType,
+                                `access-type`: String = accessType,
                                 `validation-method`: String = "SHA256",
-                                value: String)
+                                value: String) extends ResourceDetails
 
   case class NewBagit(resource: Resource, resourceValidation: ResourceValidation, reference: String)
 
@@ -38,11 +58,11 @@ object TransformEngineV2Decoder {
 
   case class TreUUID(`TRE-UUID`: UUID) extends UUIDs
 
-  case class TransformEngineV2RetryEvent(`version`: String, `timestamp`: Long, UUIDs: List[UUIDs],
+  case class TransformEngineV2RetryEvent(`version`: String = treVersion, `timestamp`: Long, UUIDs: List[UUIDs],
                                          producer: Producer,
                                          parameters: ErrorParameters) extends IncomingEvent with TransformEngineV2Event
 
-  case class TransferEngineV2NewBagitEvent(`version`: String, `timestamp`: Long, UUIDs: List[UUIDs],
+  case class TransferEngineV2NewBagitEvent(`version`: String = treVersion, `timestamp`: Long, UUIDs: List[UUIDs],
                                            producer: Producer,
                                            parameters: NewBagitParameters) extends IncomingEvent with TransformEngineV2Event
 
