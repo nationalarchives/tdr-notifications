@@ -6,6 +6,7 @@ import io.circe.parser
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor8}
 import software.amazon.awssdk.services.sqs.model.Message
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.treVersion
 import uk.gov.nationalarchives.notifications.messages.EventMessages.SqsExportMessageBody
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
@@ -101,7 +102,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             wiremockSnsEndpoint.verify(1,
               postRequestedFor(urlEqualTo("/"))
                 .withRequestBody(containing("UUIDs"))
-                .withRequestBody(containing("version"))
+                .withRequestBody(containing("version" + fieldValueSeparator + treVersion))
                 .withRequestBody(containing("timestamp"))
                 .withRequestBody(containing("producer"))
                 .withRequestBody(containing("environment" + fieldValueSeparator + expectedDetails.environment))

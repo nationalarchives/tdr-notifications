@@ -139,35 +139,10 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     def deleteQueue(): DeleteQueueResponse = sqsClient.deleteQueue(DeleteQueueRequest.builder.queueUrl(queueUrl).build())
   }
 
-  case class TopicHelper(topicArn: String) {
-    val snsClient: SnsClient = SnsClient.builder()
-      .region(Region.EU_WEST_2)
-      .endpointOverride(URI.create("http://localhost:8002"))
-      .build()
-
-    def createTopic: CreateTopicResponse = snsClient.createTopic(
-      CreateTopicRequest.builder().name(topicArn).build()
-    )
-
-    def deleteTopic(): DeleteTopicResponse = snsClient.deleteTopic(
-      DeleteTopicRequest.builder.topicArn(topicArn).build()
-    )
-
-    def publish(message: String): String = {
-      snsClient.publish(PublishRequest.builder
-      .topicArn(topicArn)
-      .message(message)
-      .build)
-
-      message
-    }
-  }
-
   val port = 8002
   val transformEngineQueueName = "transform_engine_sqs_queue"
   val sqsApi: SQSRestServer = SQSRestServerBuilder.withPort(port).withAWSRegion(Region.EU_WEST_2.toString).start()
 
   val transformEngineQueue = s"http://localhost:$port/queue/$transformEngineQueueName"
   val transformEngineQueueHelper: QueueHelper = QueueHelper(transformEngineQueue)
-  val transformEngineTopicHelper: TopicHelper = TopicHelper("tre-in-topic-arn")
 }
