@@ -120,7 +120,6 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
   }
 
   private def expectedSnsMessage(exportStatusEvent: ExportStatusEvent): Option[SnsExpectedMessageDetails] = {
-
     if (exportStatusEvent.success && exportStatusEvent.successDetails.isDefined) {
       val successDetails = exportStatusEvent.successDetails.get
       val consignmentRef: String = successDetails.consignmentReference

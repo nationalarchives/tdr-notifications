@@ -316,7 +316,6 @@ object EventMessages {
 
     override def sns(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SnsMessageDetails] = {
       val consignmentRef: String = incomingEvent.parameters.`bagit-validation-error`.reference
-
       val incomingProducer = incomingEvent.producer
       val bucketName = if (incomingProducer.`type` == "judgment") { judgmentBucket } else { standardBucket }
       val uuids = incomingEvent.UUIDs :+ TdrUUID(UUID.randomUUID())

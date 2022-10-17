@@ -111,7 +111,7 @@ object LambdaRunner extends App {
        |  ]}
        |""".stripMargin
 
-  val inputStream = new ByteArrayInputStream(transformEngineV2RetryMessage.getBytes)
+  val inputStream = new ByteArrayInputStream(cloudwatchAlarmMessage.getBytes)
 
   // The Lambda does not use the output stream, so it's safe to set it to null
   val outputStream = null
