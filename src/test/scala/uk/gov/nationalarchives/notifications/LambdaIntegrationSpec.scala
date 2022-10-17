@@ -95,19 +95,31 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
         case Some(expectedDetails) =>
           "the process method" should s"send an sns message for $description" in {
             stubContext()
-            val fieldValueSeparator: String = "%22+%3A+%22"
+            val fieldValueSeparator: String = "%22%3A%22"
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSnsEndpoint.verify(1,
               postRequestedFor(urlEqualTo("/"))
-                .withRequestBody(
-                  containing("environment" + fieldValueSeparator + expectedDetails.environment))
-                .withRequestBody(
-                  containing("type" + fieldValueSeparator + expectedDetails.consignmentType))
-                .withRequestBody(
-                  containing("value" + fieldValueSeparator + s"https%3A%2F%2F${expectedDetails.bucketName}.s3.eu-west-2.amazonaws.com%2F${expectedDetails.consignmentReference}.tar.gz"))
-                .withRequestBody(
-                  containing("value" + fieldValueSeparator + s"https%3A%2F%2F${expectedDetails.bucketName}.s3.eu-west-2.amazonaws.com%2F${expectedDetails.consignmentReference}.tar.gz.sha256"))
+                .withRequestBody(containing("UUIDs"))
+                .withRequestBody(containing("version"))
+                .withRequestBody(containing("timestamp"))
+                .withRequestBody(containing("producer"))
+                .withRequestBody(containing("environment" + fieldValueSeparator + expectedDetails.environment))
+                .withRequestBody(containing("name" + fieldValueSeparator + "TDR"))
+                .withRequestBody(containing("process" + fieldValueSeparator + "tdr-export-process"))
+                .withRequestBody(containing("event-name" + fieldValueSeparator + "new-bagit"))
+                .withRequestBody(containing("type" + fieldValueSeparator + expectedDetails.consignmentType))
+                .withRequestBody(containing("parameters"))
+                .withRequestBody(containing("new-bagit"))
+                .withRequestBody(containing("resource"))
+                .withRequestBody(containing("resource-type" + fieldValueSeparator + "Object"))
+                .withRequestBody(containing("access-type" + fieldValueSeparator + "url"))
+                .withRequestBody(containing("value" +
+                  fieldValueSeparator + s"https%3A%2F%2F${expectedDetails.bucketName}.s3.eu-west-2.amazonaws.com%2F${expectedDetails.consignmentReference}.tar.gz"))
+                .withRequestBody(containing("resourceValidation"))
+                .withRequestBody(containing("validation-method" + fieldValueSeparator + "SHA256"))
+                .withRequestBody(containing("value" +
+                  fieldValueSeparator + s"https%3A%2F%2F${expectedDetails.bucketName}.s3.eu-west-2.amazonaws.com%2F${expectedDetails.consignmentReference}.tar.gz.sha256"))
             )
           }
         case None =>

@@ -5,6 +5,7 @@ import io.circe.{Encoder, Json}
 import java.util.UUID
 
 object TransformEngineV2Decoder {
+  val treVersion = "1.0.0"
 
   trait TransformEngineV2Event
 
@@ -22,9 +23,12 @@ object TransformEngineV2Decoder {
                       `event-name`: String = "new-bagit",
                       `type`: String)
 
-  case class Resource(`resource-type`: String, `access-type`: String, value: String)
+  case class Resource(`resource-type`: String = "Object", `access-type`: String = "url", value: String)
 
-  case class ResourceValidation(`resource-type`: String, `access-type`: String, `validation-method`: String, value: String)
+  case class ResourceValidation(`resource-type`: String = "Object",
+                                `access-type`: String = "url",
+                                `validation-method`: String = "SHA256",
+                                value: String)
 
   case class NewBagit(resource: Resource, resourceValidation: ResourceValidation, reference: String)
 

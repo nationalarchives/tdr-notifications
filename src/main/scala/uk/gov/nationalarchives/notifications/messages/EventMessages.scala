@@ -29,7 +29,13 @@ import java.util.UUID
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object EventMessages {
+  private val tarExtension: String = ".tar.gz"
+  private val sh256256Extension: String = ".tar.gz.sha256"
+
   val logger: Logger = Logger(this.getClass)
+  val s3Utils: S3Utils = S3Utils(s3Async)
+  val judgmentBucket: String = eventConfig("s3.judgment_export_bucket")
+  val standardBucket: String = eventConfig("s3.standard_export_bucket")
 
   trait ExportMessage {
     val consignmentReference: String
@@ -59,7 +65,6 @@ object EventMessages {
                                   `number-of-retries`: Int) extends TransformEngineSqsMessage
 
   private def generateS3SignedUrl(bucketName: String, keyName: String): String = {
-    val s3Utils = S3Utils(s3Async)
     s3Utils.generateGetObjectSignedUrl(bucketName, keyName).toString
   }
 
@@ -71,8 +76,8 @@ object EventMessages {
 
     val consignmentRef = exportMessage.consignmentReference
     val consignmentType = exportMessage.consignmentType
-    val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef.tar.gz")
-    val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256")
+    val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$tarExtension")
+    val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$sh256256Extension")
     val messageBody = SqsExportMessageBody(consignmentRef, packageSignedUrl, packageShaSignedUrl, consignmentType, retryCount).asJson.printWith(Printer.noSpaces)
     val queueUrl = eventConfig("sqs.queue.transform_engine_output")
     SqsMessageDetails(queueUrl, messageBody)
@@ -190,12 +195,13 @@ object EventMessages {
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
     private def sendToTransformEngine(ev: ExportStatusEvent): Boolean = {
-      ev.success && ev.successDetails.exists(_.consignmentType == "judgment") && !ev.successDetails.exists(_.transferringBodyName.contains("MOCK"))
+      ev.success && ev.successDetails.exists(_.consignmentType == "judgment") && !ev.mockEvent
     }
 
     //For now only integration should send messages to TRE v2 until its deployed to the other TRE environments
+    //Exclude e2e test transfers
     private def sendToTransformEngineV2(ev: ExportStatusEvent): Boolean = {
-      ev.success && ev.environment == "intg" && !ev.successDetails.exists(_.transferringBodyName.contains("MOCK"))
+      ev.success && ev.environment == "intg" && !ev.mockEvent
     }
 
     override def context(event: ExportStatusEvent): IO[Unit] = IO.unit
@@ -292,7 +298,6 @@ object EventMessages {
     override def sqs(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[SqsMessageDetails] = {
       //Will only receive judgment retry events as only sending judgment notification at the moment.
       if (incomingEvent.consignmentType == "judgment") {
-        val judgmentBucket = eventConfig("s3.judgment_export_bucket")
         Some(generateSqsExportMessageBody(judgmentBucket, incomingEvent))
       } else None
     }
@@ -313,11 +318,7 @@ object EventMessages {
       val consignmentRef: String = incomingEvent.parameters.`bagit-validation-error`.reference
 
       val incomingProducer = incomingEvent.producer
-      val bucketName = if (incomingProducer.`type` == "judgment") {
-        eventConfig("s3.judgment_export_bucket")
-      } else {
-        eventConfig("s3.standard_export_bucket")
-      }
+      val bucketName = if (incomingProducer.`type` == "judgment") { judgmentBucket } else { standardBucket }
       val uuids = incomingEvent.UUIDs :+ TdrUUID(UUID.randomUUID())
       val producer = Producer(incomingEvent.producer.environment, `type` = incomingProducer.`type`)
       Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
@@ -366,13 +367,13 @@ object EventMessages {
                                            uuids: List[UUIDs],
                                            producer: Producer): SnsMessageDetails = {
     val topicArn = eventConfig("sns.topic.transform_engine_v2_in")
-    val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef.tar.gz")
-    val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256")
-    val resource = Resource("Object", "url", packageSignedUrl)
-    val resourceValidation = ResourceValidation("Object", "url", "SHA256", packageShaSignedUrl)
+    val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$tarExtension")
+    val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$sh256256Extension")
+    val resource = Resource(value = packageSignedUrl)
+    val resourceValidation = ResourceValidation(value = packageShaSignedUrl)
     val newBagit = NewBagit(resource, resourceValidation, consignmentRef)
     val parameters = NewBagitParameters(newBagit)
-    val messageBody = TransferEngineV2NewBagitEvent("1.0.0", Timestamp.from(now).getTime, uuids, producer, parameters).asJson.printWith(Printer.noSpaces)
+    val messageBody = TransferEngineV2NewBagitEvent(treVersion, Timestamp.from(now).getTime, uuids, producer, parameters).asJson.printWith(Printer.noSpaces)
 
     SnsMessageDetails(topicArn, messageBody)
   }
