@@ -25,7 +25,7 @@ trait Messages[T <: IncomingEvent, TContext] {
 
   def sqs(incomingEvent: T, context: TContext): Option[SqsMessageDetails]
 
-  def sns(incomingEvent: T, context: TContext): Option[SnsMessageDetails]
+  def sns(incomingEvent: T, context: TContext): Option[SnsMessageDetails] = None
 }
 
 object Messages {

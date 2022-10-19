@@ -64,7 +64,7 @@ object TransformEngineV2Decoder {
 
   case class TransferEngineV2NewBagitEvent(`version`: String = treVersion, `timestamp`: Long, UUIDs: List[UUIDs],
                                            producer: Producer,
-                                           parameters: NewBagitParameters) extends IncomingEvent with TransformEngineV2Event
+                                           parameters: NewBagitParameters) extends TransformEngineV2Event
 
 
   implicit val encodeUUIDs: Encoder[UUIDs] = {

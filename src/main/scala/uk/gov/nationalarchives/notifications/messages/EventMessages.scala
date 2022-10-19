@@ -189,8 +189,6 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: ScanEvent, context: ImageScanReport): Option[SqsMessageDetails] = Option.empty
-
-    override def sns(incomingEvent: ScanEvent, context: ImageScanReport): Option[SnsMessageDetails] = Option.empty
   }
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
@@ -284,8 +282,6 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: KeycloakEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
-
-    override def sns(incomingEvent: KeycloakEvent, context: Unit): Option[SnsMessageDetails] = Option.empty
   }
 
   implicit val transformEngineRetryMessages: Messages[TransformEngineRetryEvent, Unit] = new Messages[TransformEngineRetryEvent, Unit] {
@@ -301,8 +297,6 @@ object EventMessages {
         Some(generateSqsExportMessageBody(judgmentBucket, incomingEvent))
       } else None
     }
-
-    override def sns(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[SnsMessageDetails] = Option.empty
   }
 
   implicit val transformEngineV2RetryMessages: Messages[TransformEngineV2RetryEvent, Unit] = new Messages[TransformEngineV2RetryEvent, Unit] {
@@ -335,8 +329,6 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: GenericMessagesEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
-
-    override def sns(incomingEvent: GenericMessagesEvent, context: Unit): Option[SnsMessageDetails] = Option.empty
   }
 
   implicit val cloudwatchAlarmMessages: Messages[CloudwatchAlarmEvent, Unit] = new Messages[CloudwatchAlarmEvent, Unit] {
@@ -357,8 +349,6 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SqsMessageDetails] = None
-
-    override def sns(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SnsMessageDetails] = None
   }
 
   private def generateSnsExportMessageBody(bucketName: String,
@@ -395,8 +385,6 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[SqsMessageDetails] = None
-
-    override def sns(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[SnsMessageDetails] = None
   }
 }
 
