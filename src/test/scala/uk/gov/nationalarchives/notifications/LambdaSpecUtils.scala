@@ -4,7 +4,6 @@ import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.util
-
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock.{ok, post, urlEqualTo}
@@ -20,6 +19,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import software.amazon.awssdk.regions.Region
+import software.amazon.awssdk.services.sns.SnsClient
+import software.amazon.awssdk.services.sns.model.{CreateTopicRequest, CreateTopicResponse, DeleteTopicRequest, DeleteTopicResponse, PublishRequest, PublishResponse}
 import software.amazon.awssdk.services.sqs.SqsClient
 import software.amazon.awssdk.services.sqs.model._
 
@@ -45,6 +46,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     }
     override def getName: String = ""
   }))
+  val wiremockSnsEndpoint = new WireMockServer(9005)
 
   def stubKmsResponse: StubMapping = wiremockKmsEndpoint.stubFor(post(urlEqualTo("/")))
 
@@ -66,6 +68,19 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
           |</SendEmailResponse>
           |""".stripMargin)))
 
+    wiremockSnsEndpoint.stubFor(post(urlEqualTo("/"))
+      .willReturn(ok(
+      """
+        |<PublishResponse xmlns="https://sns.amazonaws.com/doc/2010-03-31/">
+        |    <PublishResult>
+        |        <MessageId>567910cd-659e-55d4-8ccb-5aaf14679dc0</MessageId>
+        |    </PublishResult>
+        |    <ResponseMetadata>
+        |        <RequestId>d74b8436-ae13-5ab4-a9ff-ce54dfea72a0</RequestId>
+        |    </ResponseMetadata>
+        |</PublishResponse>
+        |""".stripMargin))
+    )
     stubKmsResponse
     transformEngineQueueHelper.createQueue
 
@@ -76,6 +91,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     wiremockSlackServer.resetAll()
     wiremockSesEndpoint.resetAll()
     wiremockKmsEndpoint.resetAll()
+    wiremockSnsEndpoint.resetAll()
     transformEngineQueueHelper.deleteQueue()
 
     super.afterEach()
@@ -85,6 +101,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     wiremockSlackServer.start()
     wiremockSesEndpoint.start()
     wiremockKmsEndpoint.start()
+    wiremockSnsEndpoint.start()
 
     super.beforeAll()
   }
@@ -93,6 +110,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     wiremockSlackServer.stop()
     wiremockSesEndpoint.stop()
     wiremockKmsEndpoint.stop()
+    wiremockSnsEndpoint.stop()
 
     super.afterAll()
   }

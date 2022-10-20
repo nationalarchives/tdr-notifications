@@ -90,6 +90,15 @@ object LambdaRunner extends App {
        |}
        |""".stripMargin
 
+  val transformEngineV2RetryMessage =
+    s"""{
+       |  "Records" : [
+       |      {
+       |         "body": "{\\"version\\": \\"1.0.0\\",\\"timestamp\\": 1661340417609575000,\\"UUIDs\\": [{\\"TDR-UUID\\": \\"c73e5ca7-cf87-442a-8248-e05f81361ae0\\"},{\\"TRE-UUID\\": \\"ec506d7f-f531-4e63-833e-841918105e41\\"},{\\"TRE-UUID\\":\\"3c1db304-090f-4b19-abfc-8618cc0e5875\\"}],\\"producer\\": {\\"environment\\": \\"dev\\",\\"name\\": \\"TRE\\",\\"process\\": \\"dev-tre-validate-bagit\\",\\"event-name\\": \\"bagit-validation-error\\",\\"type\\": \\"standard\\"},\\"parameters\\": {\\"bagit-validation-error\\": {\\"reference\\": \\"ABC-1234-DEF\\"}}}"
+       |      }
+       |   ]
+       |}
+       |""".stripMargin
   val genericMessage =
     s"""
        |{

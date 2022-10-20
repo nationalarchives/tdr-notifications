@@ -11,6 +11,7 @@ import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.Keycl
 import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDecoder.GovUkNotifyKeyRotationEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.TransformEngineV2RetryEvent
 import uk.gov.nationalarchives.notifications.decoders._
 import uk.gov.nationalarchives.notifications.messages.EventMessages._
 import uk.gov.nationalarchives.notifications.messages.Messages._
@@ -25,6 +26,7 @@ class Lambda {
       case exportStatus: ExportStatusEvent => sendMessages(exportStatus)
       case keycloakEvent: KeycloakEvent => sendMessages(keycloakEvent)
       case transformEngineRetryEvent: TransformEngineRetryEvent => sendMessages(transformEngineRetryEvent)
+      case transformEngineV2RetryEvent: TransformEngineV2RetryEvent => sendMessages(transformEngineV2RetryEvent)
       case genericMessagesEvent: GenericMessagesEvent => sendMessages(genericMessagesEvent)
       case cloudwatchAlarmEvent: CloudwatchAlarmEvent => sendMessages(cloudwatchAlarmEvent)
       case govUkNotifyKeyRotationEvent: GovUkNotifyKeyRotationEvent => sendMessages(govUkNotifyKeyRotationEvent)

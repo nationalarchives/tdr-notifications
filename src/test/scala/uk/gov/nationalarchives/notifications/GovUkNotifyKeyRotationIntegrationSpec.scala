@@ -1,19 +1,19 @@
 package uk.gov.nationalarchives.notifications
 
 import cats.implicits.catsSyntaxOptionId
-import org.scalatest.prop.TableFor7
+import org.scalatest.prop.TableFor8
 import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDecoder.{Detail, GovUkNotifyKeyRotationEvent}
 
 class GovUkNotifyKeyRotationIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor7[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit, String] = Table(
-    ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext", "slackUrl"),
+  override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
+    ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
     ("a GovUk key rotation event on intg",
-      keyRotationEventInputText(intgRotationEvent), None, expectedSlackMessage(intgRotationEvent), None, () => (), "/webhook"),
+      keyRotationEventInputText(intgRotationEvent), None, expectedSlackMessage(intgRotationEvent), None, None, () => (), "/webhook"),
     ("a GovUk key rotation event on staging",
-      keyRotationEventInputText(stagingRotationEvent), None, expectedSlackMessage(stagingRotationEvent), None, () => (), "/webhook"),
+      keyRotationEventInputText(stagingRotationEvent), None, expectedSlackMessage(stagingRotationEvent), None, None, () => (), "/webhook"),
     ("a GovUk key rotation event on prod",
-      keyRotationEventInputText(prodRotationEvent), None, expectedSlackMessage(prodRotationEvent), None, () => (), "/webhook")
+      keyRotationEventInputText(prodRotationEvent), None, expectedSlackMessage(prodRotationEvent), None, None, () => (), "/webhook")
   )
 
   private lazy val intgRotationEvent = GovUkNotifyKeyRotationEvent(Detail("/intg/parameter/name", "No change notification message"))

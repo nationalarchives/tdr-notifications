@@ -4,7 +4,7 @@ import cats.effect.IO
 import cats.syntax.all._
 import com.typesafe.config.ConfigFactory
 import com.typesafe.scalalogging.Logger
-import io.circe.Encoder.AsObject.importedAsObjectEncoder
+import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import scalatags.Text.all._
@@ -19,13 +19,23 @@ import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDeco
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder._
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import java.net.URI
+import java.sql.Timestamp
+import java.time.Instant.now
+import java.util.UUID
 import scala.jdk.CollectionConverters.CollectionHasAsScala
 
 object EventMessages {
+  private val tarExtension: String = ".tar.gz"
+  private val sh256256Extension: String = ".tar.gz.sha256"
+
   val logger: Logger = Logger(this.getClass)
+  val s3Utils: S3Utils = S3Utils(s3Async)
+  val judgmentBucket: String = eventConfig("s3.judgment_export_bucket")
+  val standardBucket: String = eventConfig("s3.standard_export_bucket")
 
   trait ExportMessage {
     val consignmentReference: String
@@ -46,23 +56,29 @@ object EventMessages {
 
   case class SqsMessageDetails(queueUrl: String, messageBody: String)
 
+  case class SnsMessageDetails(snsTopic: String, messageBody: String)
+
   case class SqsExportMessageBody(`consignment-reference`: String,
                                   `s3-bagit-url`: String,
                                   `s3-sha-url`: String,
                                   `consignment-type`: String,
                                   `number-of-retries`: Int) extends TransformEngineSqsMessage
 
+  private def generateS3SignedUrl(bucketName: String, keyName: String): String = {
+    s3Utils.generateGetObjectSignedUrl(bucketName, keyName).toString
+  }
+
   private def generateSqsExportMessageBody(bucketName: String, exportMessage: ExportMessage): SqsMessageDetails = {
     val retryCount: Int = exportMessage match {
       case e: TransformEngineRetryEvent => e.numberOfRetries
       case _ => 0
     }
-    val s3Utils = S3Utils(s3Async)
+
     val consignmentRef = exportMessage.consignmentReference
     val consignmentType = exportMessage.consignmentType
-    val packageSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz").toString
-    val packageShaSignedUrl = s3Utils.generateGetObjectSignedUrl(bucketName, s"$consignmentRef.tar.gz.sha256").toString
-    val messageBody = SqsExportMessageBody(consignmentRef, packageSignedUrl, packageShaSignedUrl, consignmentType, retryCount).asJson.toString
+    val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$tarExtension")
+    val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$sh256256Extension")
+    val messageBody = SqsExportMessageBody(consignmentRef, packageSignedUrl, packageShaSignedUrl, consignmentType, retryCount).asJson.printWith(Printer.noSpaces)
     val queueUrl = eventConfig("sqs.queue.transform_engine_output")
     SqsMessageDetails(queueUrl, messageBody)
   }
@@ -177,7 +193,13 @@ object EventMessages {
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
     private def sendToTransformEngine(ev: ExportStatusEvent): Boolean = {
-      ev.success && ev.successDetails.exists(_.consignmentType == "judgment") && !ev.successDetails.exists(_.transferringBodyName.contains("MOCK"))
+      ev.success && ev.successDetails.exists(_.consignmentType == "judgment") && !ev.mockEvent
+    }
+
+    //For now only integration should send messages to TRE v2 until its deployed to the other TRE environments
+    //Exclude e2e test transfers
+    private def sendToTransformEngineV2(ev: ExportStatusEvent): Boolean = {
+      ev.success && ev.environment == "intg" && !ev.mockEvent
     }
 
     override def context(event: ExportStatusEvent): IO[Unit] = IO.unit
@@ -227,6 +249,20 @@ object EventMessages {
         None
       }
     }
+
+    override def sns(incomingEvent: ExportStatusEvent, context: Unit): Option[SnsMessageDetails] = {
+      if (sendToTransformEngineV2(incomingEvent)) {
+        val exportMessage = incomingEvent.successDetails.get
+        val bucketName = exportMessage.exportBucket
+        val consignmentRef = exportMessage.consignmentReference
+        val consignmentType = exportMessage.consignmentType
+        val uuids = List(TdrUUID(UUID.randomUUID()))
+        val producer = Producer(incomingEvent.environment, `type` = consignmentType)
+        Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
+      } else {
+        None
+      }
+    }
   }
 
   implicit val keycloakEventMessages: Messages[KeycloakEvent, Unit] = new Messages[KeycloakEvent, Unit] {
@@ -258,9 +294,27 @@ object EventMessages {
     override def sqs(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[SqsMessageDetails] = {
       //Will only receive judgment retry events as only sending judgment notification at the moment.
       if (incomingEvent.consignmentType == "judgment") {
-        val judgmentBucket = eventConfig("s3.judgment_export_bucket")
         Some(generateSqsExportMessageBody(judgmentBucket, incomingEvent))
       } else None
+    }
+  }
+
+  implicit val transformEngineV2RetryMessages: Messages[TransformEngineV2RetryEvent, Unit] = new Messages[TransformEngineV2RetryEvent, Unit] {
+    override def context(incomingEvent: TransformEngineV2RetryEvent): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[Email] = Option.empty
+
+    override def slack(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SlackMessage] = Option.empty
+
+    override def sqs(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
+
+    override def sns(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SnsMessageDetails] = {
+      val consignmentRef: String = incomingEvent.parameters.`bagit-validation-error`.reference
+      val incomingProducer = incomingEvent.producer
+      val bucketName = if (incomingProducer.`type` == "judgment") { judgmentBucket } else { standardBucket }
+      val uuids = incomingEvent.UUIDs :+ TdrUUID(UUID.randomUUID())
+      val producer = Producer(incomingEvent.producer.environment, `type` = incomingProducer.`type`)
+      Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
     }
   }
 
@@ -295,6 +349,23 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SqsMessageDetails] = None
+  }
+
+  private def generateSnsExportMessageBody(bucketName: String,
+                                           consignmentRef: String,
+                                           uuids: List[UUIDs],
+                                           producer: Producer): SnsMessageDetails = {
+    val topicArn = eventConfig("sns.topic.transform_engine_v2_in")
+    val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$tarExtension")
+    val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$sh256256Extension")
+    val resource = Resource(value = packageSignedUrl)
+    val resourceValidation = ResourceValidation(value = packageShaSignedUrl)
+    val newBagit = NewBagit(resource, resourceValidation, consignmentRef)
+    val parameters = NewBagitParameters(newBagit)
+    val messageBody = TransferEngineV2NewBagitEvent(
+      `timestamp` = Timestamp.from(now).getTime, UUIDs = uuids, producer= producer, parameters = parameters).asJson.printWith(Printer.noSpaces)
+
+    SnsMessageDetails(topicArn, messageBody)
   }
 
   implicit val govUkNotifyKeyRotationMessage: Messages[GovUkNotifyKeyRotationEvent, Unit] = new Messages[GovUkNotifyKeyRotationEvent, Unit] {

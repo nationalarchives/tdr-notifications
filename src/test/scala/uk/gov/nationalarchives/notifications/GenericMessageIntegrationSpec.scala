@@ -1,11 +1,11 @@
 package uk.gov.nationalarchives.notifications
 
 import cats.implicits.catsSyntaxOptionId
-import org.scalatest.prop.TableFor7
+import org.scalatest.prop.TableFor8
 
 class GenericMessageIntegrationSpec extends LambdaIntegrationSpec {
 
-  override def events: TableFor7[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit, String] = {
+  override def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = {
     val oneMessage: String =
       """ "{\"messages\":[{\"message\":\"A test message\"}]}" """
     val oneMessageText = "A test message"
@@ -14,11 +14,11 @@ class GenericMessageIntegrationSpec extends LambdaIntegrationSpec {
     val twoMessagesText = "A test message\\nA second test message"
 
     Table(
-      ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext", "slackUrl"),
+      ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
       ("one message",
-        genericEventInput(oneMessage), None, slackMsg(oneMessageText).some, None, () => (), "/webhook"),
+        genericEventInput(oneMessage), None, slackMsg(oneMessageText).some, None, None, () => (), "/webhook"),
       ("two messages",
-        genericEventInput(twoMessages), None, slackMsg(twoMessagesText).some, None, () => (), "/webhook")
+        genericEventInput(twoMessages), None, slackMsg(twoMessagesText).some, None, None, () => (), "/webhook")
     )
   }
 

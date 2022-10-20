@@ -1,7 +1,7 @@
 package uk.gov.nationalarchives.notifications
 
-import org.scalatest.prop.TableFor7
 import cats.syntax.all._
+import org.scalatest.prop.TableFor8
 
 class CloudwatchAlarmIntegrationSpec extends LambdaIntegrationSpec {
   private def event(status: String, metricName: String, newStateReason: String, dimensionName: String, dimensionValue: String): String = {
@@ -34,13 +34,14 @@ class CloudwatchAlarmIntegrationSpec extends LambdaIntegrationSpec {
        |""".stripMargin.some
   }
 
-  override def events: TableFor7[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit, String] = Table(
-    ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext", "slackUrl"),
+  override def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
+    ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
     (
       "Alarm Test1 with state OK, reason TestReason1, dimensions test1Name - test1Value",
       event("OK", "Test1", "TestReason1", "test1Name", "test1Value"),
       None,
       slackMessage("OK", "Test1", "TestReason1", "test1Name - test1Value"),
+      None,
       None,
       () => (),
       "/webhook"
@@ -50,6 +51,7 @@ class CloudwatchAlarmIntegrationSpec extends LambdaIntegrationSpec {
       event("ALARM", "Test2", "TestReason2", "test2Name", "test2Value"),
       None,
       slackMessage("ALARM", "Test2", "TestReason2", "test2Name - test2Value"),
+      None,
       None,
       () => (),
       "/webhook"

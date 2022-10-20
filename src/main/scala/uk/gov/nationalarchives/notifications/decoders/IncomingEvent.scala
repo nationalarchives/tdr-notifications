@@ -1,5 +1,6 @@
 package uk.gov.nationalarchives.notifications.decoders
 
+import cats.implicits.toFunctorOps
 import io.circe.CursorOp.DownField
 import io.circe.parser.parse
 import io.circe.generic.auto._
@@ -11,14 +12,16 @@ import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.Keycl
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDecoder.GovUkNotifyKeyRotationEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.{TransformEngineV2RetryEvent, UUIDs, TdrUUID, TreUUID}
 
 trait IncomingEvent {
 }
 
 object IncomingEvent {
+  implicit val uuidDecoder: Decoder[UUIDs] = Decoder[TdrUUID].widen or Decoder[TreUUID].widen
   implicit val allDecoders: Decoder[IncomingEvent] = decodeScanEvent or decodeSnsEvent[ExportStatusEvent] or
     decodeSnsEvent[KeycloakEvent] or decodeSqsEvent[TransformEngineRetryEvent] or decodeSnsEvent[GenericMessagesEvent] or
-    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[GovUkNotifyKeyRotationEvent]
+    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[GovUkNotifyKeyRotationEvent] or decodeSqsEvent[TransformEngineV2RetryEvent]
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- c.downField("Records").as[List[SnsRecord]]

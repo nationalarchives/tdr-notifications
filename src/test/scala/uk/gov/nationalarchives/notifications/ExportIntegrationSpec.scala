@@ -1,40 +1,46 @@
 package uk.gov.nationalarchives.notifications
 
-import org.scalatest.prop.TableFor7
+import org.scalatest.prop.TableFor8
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportStatusEvent, ExportSuccessDetails}
 
 import java.util.UUID
 
 class ExportIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor7[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], () => Unit, String] = Table(
-    ("description", "input", "emailBody", "slackBody", "sqsMessage", "stubContext", "slackUrl"),
+  override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
+    ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
     ("a successful standard export event on intg",
-      exportStatusEventInputText(exportStatus1), None, None, None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus1), None, None, None, expectedSnsMessage(exportStatus1), () => (), "/webhook-export"),
+    ("a successful standard export event using a mock transferring body on intg",
+      exportStatusEventInputText(exportStatus3), None, None, None, None, () => (), "/webhook-export"),
     ("a successful judgment export event on intg",
-      exportStatusEventInputText(exportStatus2), None, None, expectedSqsMessage(exportStatus2), () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus2), None, None, expectedSqsMessage(exportStatus2), expectedSnsMessage(exportStatus2), () => (), "/webhook-export"),
     ("a successful judgment export event using a mock transferring body on intg",
-      exportStatusEventInputText(exportStatus3), None, None, None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus3), None, None, None, None, () => (), "/webhook-export"),
     ("a failed export event on intg",
-      exportStatusEventInputText(exportStatus4), None, Some(expectedSlackMessage(exportStatus4)), None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus4), None, Some(expectedSlackMessage(exportStatus4)), None, None, () => (), "/webhook-export"),
     ("a successful standard export event on staging",
-      exportStatusEventInputText(exportStatus5), None, Some(expectedSlackMessage(exportStatus5)), None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus5), None, Some(expectedSlackMessage(exportStatus5)), None, None, () => (), "/webhook-export"),
+    ("a successful standard export event using a mock transferring body on staging",
+      exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, None, () => (), "/webhook-export"),
     ("a successful judgment export event on staging",
-      exportStatusEventInputText(exportStatus6), None, Some(expectedSlackMessage(exportStatus6)), expectedSqsMessage(exportStatus6), () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus6), None, Some(expectedSlackMessage(exportStatus6)), expectedSqsMessage(exportStatus6), None, () => (), "/webhook-export"),
     ("a successful judgment export event using a mock transferring body on staging",
-      exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, None, () => (), "/webhook-export"),
     ("a failed export event on staging",
-      exportStatusEventInputText(exportStatus8), None, Some(expectedSlackMessage(exportStatus8)), None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus8), None, Some(expectedSlackMessage(exportStatus8)), None, None, () => (), "/webhook-export"),
     ("a failed export on intg with no error details",
-      exportStatusEventInputText(exportStatus9), None, Some(expectedSlackMessage(exportStatus9)), None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus9), None, Some(expectedSlackMessage(exportStatus9)), None, None, () => (), "/webhook-export"),
     ("a failed export on staging with no error details",
-      exportStatusEventInputText(exportStatus10), None, Some(expectedSlackMessage(exportStatus10)), None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus10), None, Some(expectedSlackMessage(exportStatus10)), None, None, () => (), "/webhook-export"),
     ("a successful standard export event on prod",
-      exportStatusEventInputText(exportStatus11), None, Some(expectedSlackMessage(exportStatus11)), None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus11), None, Some(expectedSlackMessage(exportStatus11)), None, None, () => (), "/webhook-export"),
     ("a failed standard export event on prod",
-      exportStatusEventInputText(exportStatus12), None, Some(expectedSlackMessage(exportStatus12)), None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus12), None, Some(expectedSlackMessage(exportStatus12)), None, None, () => (), "/webhook-export"),
+    ("a successful standard export event using a mock transferring body on prod",
+      exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, None, () => (), "/webhook-export"),
     ("a successful judgment export on prod",
-    exportStatusEventInputText(exportStatus13), None, Some(expectedSlackMessage(exportStatus13)), expectedSqsMessage(exportStatus13), () => (), "/webhook-judgment")
+    exportStatusEventInputText(exportStatus13), None, Some(expectedSlackMessage(exportStatus13)), expectedSqsMessage(exportStatus13), None, () => (), "/webhook-judgment")
   )
 
   private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")
@@ -110,6 +116,19 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
   private def expectedSqsMessage(exportStatusEvent: ExportStatusEvent): Option[SqsExpectedMessageDetails] = {
     if (exportStatusEvent.success && exportStatusEvent.successDetails.isDefined) {
       Some(SqsExpectedMessageDetails(exportStatusEvent.successDetails.get, 0))
+    } else None
+  }
+
+  private def expectedSnsMessage(exportStatusEvent: ExportStatusEvent): Option[SnsExpectedMessageDetails] = {
+    if (exportStatusEvent.success && exportStatusEvent.successDetails.isDefined) {
+      val successDetails = exportStatusEvent.successDetails.get
+      val consignmentRef: String = successDetails.consignmentReference
+      val consignmentType: String = successDetails.consignmentType
+      val bucket: String = successDetails.exportBucket
+      val environment: String = exportStatusEvent.environment
+
+      Some(SnsExpectedMessageDetails(consignmentRef, consignmentType, bucket, environment))
+
     } else None
   }
 }
