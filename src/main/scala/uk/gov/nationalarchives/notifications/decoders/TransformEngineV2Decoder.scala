@@ -39,7 +39,7 @@ object TransformEngineV2Decoder {
 
   case class ErrorParameters(`bagit-validation-error`: BagitValidationError) extends Parameters
 
-  case class NewBagitParameters(`bagit-available`: NewBagit) extends Parameters
+  case class NewBagitParameters(`new-bagit`: NewBagit) extends Parameters
 
   case class Producer(environment: String,
                       name: String = "TDR",
