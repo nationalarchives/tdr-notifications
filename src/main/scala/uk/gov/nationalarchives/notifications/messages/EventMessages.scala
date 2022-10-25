@@ -299,22 +299,28 @@ object EventMessages {
     }
   }
 
-  implicit val transformEngineV2RetryMessages: Messages[TransformEngineV2RetryEvent, Unit] = new Messages[TransformEngineV2RetryEvent, Unit] {
-    override def context(incomingEvent: TransformEngineV2RetryEvent): IO[Unit] = IO.unit
+  implicit val transformEngineV2RetryMessages: Messages[TransformEngineV2OutEvent, Unit] = new Messages[TransformEngineV2OutEvent, Unit] {
+    override def context(incomingEvent: TransformEngineV2OutEvent): IO[Unit] = IO.unit
 
-    override def email(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[Email] = Option.empty
+    override def email(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[Email] = Option.empty
 
-    override def slack(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SlackMessage] = Option.empty
+    override def slack(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SlackMessage] = Option.empty
 
-    override def sqs(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
+    override def sqs(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
 
-    override def sns(incomingEvent: TransformEngineV2RetryEvent, context: Unit): Option[SnsMessageDetails] = {
-      val consignmentRef: String = incomingEvent.parameters.`bagit-validation-error`.reference
-      val incomingProducer = incomingEvent.producer
-      val bucketName = if (incomingProducer.`type` == "judgment") { judgmentBucket } else { standardBucket }
-      val uuids = incomingEvent.UUIDs :+ TdrUUID(UUID.randomUUID())
-      val producer = Producer(incomingEvent.producer.environment, `type` = incomingProducer.`type`)
-      Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
+    override def sns(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SnsMessageDetails] = {
+      if (incomingEvent.retryEvent) {
+        val consignmentRef: String = incomingEvent.parameters.`bagit-validation-error`.reference
+        val incomingProducer = incomingEvent.producer
+        val bucketName = if (incomingProducer.`type` == "judgment") {
+          judgmentBucket
+        } else {
+          standardBucket
+        }
+        val uuids = incomingEvent.UUIDs :+ TdrUUID(UUID.randomUUID())
+        val producer = Producer(incomingEvent.producer.environment, `type` = incomingProducer.`type`)
+        Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
+      } else None
     }
   }
 
@@ -362,7 +368,7 @@ object EventMessages {
     val resourceValidation = ResourceValidation(value = packageShaSignedUrl)
     val newBagit = NewBagit(resource, resourceValidation, consignmentRef)
     val parameters = NewBagitParameters(newBagit)
-    val messageBody = TransferEngineV2NewBagitEvent(
+    val messageBody = TransferEngineV2InEvent(
       `timestamp` = Timestamp.from(now).getTime, UUIDs = uuids, producer= producer, parameters = parameters).asJson.printWith(Printer.noSpaces)
 
     SnsMessageDetails(topicArn, messageBody)

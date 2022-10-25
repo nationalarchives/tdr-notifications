@@ -23,6 +23,10 @@ object TransformEngineV2Decoder {
     def producer: Producer
 
     def parameters: Parameters
+
+    def retryEvent: Boolean = {
+      producer.`event-name` == "bagit-validation-error"
+    }
   }
 
   trait ResourceDetails {
@@ -58,13 +62,13 @@ object TransformEngineV2Decoder {
 
   case class TreUUID(`TRE-UUID`: UUID) extends UUIDs
 
-  case class TransformEngineV2RetryEvent(`version`: String = treVersion, `timestamp`: Long, UUIDs: List[UUIDs],
-                                         producer: Producer,
-                                         parameters: ErrorParameters) extends IncomingEvent with TransformEngineV2Event
+  case class TransformEngineV2OutEvent(`version`: String = treVersion, `timestamp`: Long, UUIDs: List[UUIDs],
+                                       producer: Producer,
+                                       parameters: ErrorParameters) extends IncomingEvent with TransformEngineV2Event
 
-  case class TransferEngineV2NewBagitEvent(`version`: String = treVersion, `timestamp`: Long, UUIDs: List[UUIDs],
-                                           producer: Producer,
-                                           parameters: NewBagitParameters) extends TransformEngineV2Event
+  case class TransferEngineV2InEvent(`version`: String = treVersion, `timestamp`: Long, UUIDs: List[UUIDs],
+                                     producer: Producer,
+                                     parameters: NewBagitParameters) extends TransformEngineV2Event
 
 
   implicit val encodeUUIDs: Encoder[UUIDs] = {
