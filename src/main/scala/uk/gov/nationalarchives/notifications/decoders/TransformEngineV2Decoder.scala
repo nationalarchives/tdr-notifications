@@ -54,7 +54,7 @@ object TransformEngineV2Decoder {
                                 `validation-method`: String = "SHA256",
                                 value: String) extends ResourceDetails
 
-  case class BagitAvailable(resource: Resource, resourceValidation: ResourceValidation, reference: String)
+  case class BagitAvailable(resource: Resource, `resource-validation`: ResourceValidation, reference: String)
 
   case class BagitValidationError(reference: String, errors: Option[List[String]])
 

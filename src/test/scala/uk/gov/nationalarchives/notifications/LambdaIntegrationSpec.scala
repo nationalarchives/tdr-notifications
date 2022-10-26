@@ -117,7 +117,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
                 .withRequestBody(containing("access-type" + fieldValueSeparator + "url"))
                 .withRequestBody(containing("value" +
                   fieldValueSeparator + s"https%3A%2F%2F${expectedDetails.bucketName}.s3.eu-west-2.amazonaws.com%2F${expectedDetails.consignmentReference}.tar.gz"))
-                .withRequestBody(containing("resourceValidation"))
+                .withRequestBody(containing("resource-validation"))
                 .withRequestBody(containing("validation-method" + fieldValueSeparator + "SHA256"))
                 .withRequestBody(containing("value" +
                   fieldValueSeparator + s"https%3A%2F%2F${expectedDetails.bucketName}.s3.eu-west-2.amazonaws.com%2F${expectedDetails.consignmentReference}.tar.gz.sha256"))
