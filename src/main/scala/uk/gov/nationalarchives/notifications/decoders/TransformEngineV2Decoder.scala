@@ -39,7 +39,7 @@ object TransformEngineV2Decoder {
 
   case class ErrorParameters(`bagit-validation-error`: BagitValidationError) extends Parameters
 
-  case class NewBagitParameters(`new-bagit`: NewBagit) extends Parameters
+  case class BagitAvailableParameters(`bagit-available`: BagitAvailable) extends Parameters
 
   case class Producer(environment: String,
                       name: String = "TDR",
@@ -54,7 +54,7 @@ object TransformEngineV2Decoder {
                                 `validation-method`: String = "SHA256",
                                 value: String) extends ResourceDetails
 
-  case class NewBagit(resource: Resource, resourceValidation: ResourceValidation, reference: String)
+  case class BagitAvailable(resource: Resource, resourceValidation: ResourceValidation, reference: String)
 
   case class BagitValidationError(reference: String, errors: Option[List[String]])
 
@@ -68,7 +68,7 @@ object TransformEngineV2Decoder {
 
   case class TransferEngineV2InEvent(`version`: String = treVersion, `timestamp`: Long, UUIDs: List[UUIDs],
                                      producer: Producer,
-                                     parameters: NewBagitParameters) extends TransformEngineV2Event
+                                     parameters: BagitAvailableParameters) extends TransformEngineV2Event
 
 
   implicit val encodeUUIDs: Encoder[UUIDs] = {

@@ -366,8 +366,8 @@ object EventMessages {
     val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$sh256256Extension")
     val resource = Resource(value = packageSignedUrl)
     val resourceValidation = ResourceValidation(value = packageShaSignedUrl)
-    val newBagit = NewBagit(resource, resourceValidation, consignmentRef)
-    val parameters = NewBagitParameters(newBagit)
+    val newBagit = BagitAvailable(resource, resourceValidation, consignmentRef)
+    val parameters = BagitAvailableParameters(newBagit)
     val messageBody = TransferEngineV2InEvent(
       `timestamp` = Timestamp.from(now).getTime, UUIDs = uuids, producer= producer, parameters = parameters).asJson.printWith(Printer.noSpaces)
 
