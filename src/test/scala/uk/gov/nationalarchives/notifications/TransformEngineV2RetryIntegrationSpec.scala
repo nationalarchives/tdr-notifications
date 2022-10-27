@@ -50,7 +50,7 @@ class TransformEngineV2RetryIntegrationSpec extends LambdaIntegrationSpec {
        |{
        |  "Records": [
        |        {
-       |          "body": "{\\"version\\": \\"1.0.0\\",\\"timestamp\\" :1661340417609575000,\\"UUIDs\\": [{\\"TDR-UUID\\": \\"c73e5ca7-cf87-442a-8248-e05f81361ae0\\"},{\\"TRE-UUID\\": \\"ec506d7f-f531-4e63-833e-841918105e41\\"}],\\"producer\\": {\\"environment\\": \\"dev\\",\\"name\\": \\"TRE\\",\\"process\\": \\"dev-tre-validate-bagit\\",\\"event-name\\": \\"$eventName\\",\\"type\\": \\"$consignmentType\\"},\\"parameters\\": {\\"bagit-validation-error\\": {\\"reference\\": \\"ABC-1234-DEF\\",\\"errors\\": [\\"some error message\\"]}}}"
+       |          "body": "\\"Message\\" : \\"{\\"XXXXversion\\": \\"1.0.0\\",\\"timestamp\\" :1661340417609575000,\\"UUIDs\\": [{\\"TDR-UUID\\": \\"c73e5ca7-cf87-442a-8248-e05f81361ae0\\"},{\\"TRE-UUID\\": \\"ec506d7f-f531-4e63-833e-841918105e41\\"}],\\"producer\\": {\\"environment\\": \\"dev\\",\\"name\\": \\"TRE\\",\\"process\\": \\"dev-tre-validate-bagit\\",\\"event-name\\": \\"$eventName\\",\\"type\\": \\"$consignmentType\\"},\\"parameters\\": {\\"bagit-validation-error\\": {\\"reference\\": \\"ABC-1234-DEF\\",\\"errors\\": [\\"some error message\\"]}}}\\""
        |        }
        |    ]
        |}
