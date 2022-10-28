@@ -70,7 +70,6 @@ object TransformEngineV2Decoder {
                                      producer: Producer,
                                      parameters: BagitAvailableParameters) extends TransformEngineV2Event
 
-
   implicit val encodeUUIDs: Encoder[UUIDs] = {
     case TdrUUID(uuid) => Json.obj(("TDR-UUID", Json.fromString(uuid.toString)))
     case TreUUID(uuid) => Json.obj(("TRE-UUID", Json.fromString(uuid.toString)))
