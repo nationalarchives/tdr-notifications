@@ -37,7 +37,9 @@ object IncomingEvent {
   def decodeSqsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- c.downField("Records").as[List[SqsRecord]]
     json <- parseSqsMessage(messages.head.body)
-    event <- json.as[T]
+    x <- json.as[SNS].map(m => m.Message)
+    y <- parseSNSMessage(x)
+    event <- y.as[T]
   } yield event
 
   def parseSqsMessage(sqsRecord: String): Either[DecodingFailure, Json] = {

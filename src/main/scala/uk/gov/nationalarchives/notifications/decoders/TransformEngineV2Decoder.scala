@@ -70,7 +70,7 @@ object TransformEngineV2Decoder {
                                      producer: Producer,
                                      parameters: BagitAvailableParameters) extends TransformEngineV2Event
 
-  case class Message(Message: TransformEngineV2Event)
+  case class Message(Message: String)
 
 
   implicit val encodeUUIDs: Encoder[UUIDs] = {

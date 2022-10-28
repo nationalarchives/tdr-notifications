@@ -3,7 +3,7 @@ package uk.gov.nationalarchives.notifications
 import org.scalatest.prop.TableFor8
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.{BagitValidationError, ErrorParameters, Producer, TransformEngineV2OutEvent}
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.{BagitValidationError, ErrorParameters, Producer, TransformEngineV2OutEvent, treVersion}
 
 import java.util.UUID
 
@@ -50,7 +50,7 @@ class TransformEngineV2RetryIntegrationSpec extends LambdaIntegrationSpec {
        |{
        |  "Records": [
        |        {
-       |          "body": "\\"Message\\" : \\"{\\"XXXXversion\\": \\"1.0.0\\",\\"timestamp\\" :1661340417609575000,\\"UUIDs\\": [{\\"TDR-UUID\\": \\"c73e5ca7-cf87-442a-8248-e05f81361ae0\\"},{\\"TRE-UUID\\": \\"ec506d7f-f531-4e63-833e-841918105e41\\"}],\\"producer\\": {\\"environment\\": \\"dev\\",\\"name\\": \\"TRE\\",\\"process\\": \\"dev-tre-validate-bagit\\",\\"event-name\\": \\"$eventName\\",\\"type\\": \\"$consignmentType\\"},\\"parameters\\": {\\"bagit-validation-error\\": {\\"reference\\": \\"ABC-1234-DEF\\",\\"errors\\": [\\"some error message\\"]}}}\\""
+       |          "body": "{\\"Message\\": \\"{\\\\\\"version\\\\\\": \\\\\\"$treVersion\\\\\\", \\\\\\"timestamp\\\\\\": 1666862366766127442, \\\\\\"UUIDs\\\\\\": [{\\\\\\"TDR-UUID\\\\\\": \\\\\\"d717b01e-f094-4dea-8a94-737441be4c70\\\\\\"}, {\\\\\\"TRE-UUID\\\\\\": \\\\\\"e912e1e2-0312-43c9-a880-23aa49d66155\\\\\\"}], \\\\\\"producer\\\\\\": {\\\\\\"environment\\\\\\": \\\\\\"int\\\\\\", \\\\\\"name\\\\\\": \\\\\\"TRE\\\\\\", \\\\\\"process\\\\\\": \\\\\\"int-tre-validate-bagit\\\\\\", \\\\\\"event-name\\\\\\": \\\\\\"$eventName\\\\\\", \\\\\\"type\\\\\\": \\\\\\"$consignmentType\\\\\\"}, \\\\\\"parameters\\\\\\": {\\\\\\"bagit-validation-error\\\\\\": {\\\\\\"reference\\\\\\": \\\\\\"ABC-1234-DEF\\\\\\", \\\\\\"errors\\\\\\": [\\\\\\"some error message\\\\\\"]}}}\\"}"
        |        }
        |    ]
        |}
@@ -71,7 +71,7 @@ class TransformEngineV2RetryIntegrationSpec extends LambdaIntegrationSpec {
   }
 
   private def createRetryEvent(consignmentType: String, eventName: String = "bagit-validation-error"): TransformEngineV2OutEvent = {
-    val producer = Producer("dev", "tre", "dev-tre-validate-bagit", eventName, consignmentType)
+    val producer = Producer("int", "TRE", "int-tre-validate-bagit", eventName, consignmentType)
     val validationError = BagitValidationError("ABC-1234-DEF", Some(List("some error message")))
     val parameters = ErrorParameters(validationError)
     TransformEngineV2OutEvent(`timestamp` = 1661340417609575000L, UUIDs = List(), producer = producer, parameters = parameters)
