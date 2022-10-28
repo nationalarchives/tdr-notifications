@@ -21,7 +21,7 @@ object IncomingEvent {
   implicit val uuidDecoder: Decoder[UUIDs] = Decoder[TdrUUID].widen or Decoder[TreUUID].widen
   implicit val allDecoders: Decoder[IncomingEvent] = decodeScanEvent or decodeSnsEvent[ExportStatusEvent] or
     decodeSnsEvent[KeycloakEvent] or decodeSqsEvent[TransformEngineRetryEvent] or decodeSnsEvent[GenericMessagesEvent] or
-    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[GovUkNotifyKeyRotationEvent] or decodeSqsEvent[TransformEngineV2OutEvent]
+    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[GovUkNotifyKeyRotationEvent] or decodeSqsWithSnsMessageEvent[TransformEngineV2OutEvent]
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- c.downField("Records").as[List[SnsRecord]]
@@ -37,9 +37,15 @@ object IncomingEvent {
   def decodeSqsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- c.downField("Records").as[List[SqsRecord]]
     json <- parseSqsMessage(messages.head.body)
-    x <- json.as[SNS].map(m => m.Message)
-    y <- parseSNSMessage(x)
-    event <- y.as[T]
+    event <- json.as[T]
+  } yield event
+
+  def decodeSqsWithSnsMessageEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
+    messages <- c.downField("Records").as[List[SqsRecord]]
+    json <- parseSqsMessage(messages.head.body)
+    snsMessage <- json.as[SNS].map(m => m.Message)
+    snsMessageJson <- parseSNSMessage(snsMessage)
+    event <- snsMessageJson.as[T]
   } yield event
 
   def parseSqsMessage(sqsRecord: String): Either[DecodingFailure, Json] = {
