@@ -309,9 +309,10 @@ object EventMessages {
     override def sqs(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
 
     override def sns(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SnsMessageDetails] = {
+      logger.info("****TRE Retry v2 Message****")
+      logger.info(s"$incomingEvent")
       if (incomingEvent.retryEvent) {
-        logger.info("****TRE Retry v2 Message****")
-        logger.info(s"$incomingEvent")
+        logger.info("**** SNS Message Creation ****")
         val consignmentRef: String = incomingEvent.parameters.`bagit-validation-error`.reference
         val incomingProducer = incomingEvent.producer
         val bucketName = if (incomingProducer.`type` == "judgment") {
