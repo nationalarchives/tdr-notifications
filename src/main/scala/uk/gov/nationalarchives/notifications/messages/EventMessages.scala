@@ -243,6 +243,8 @@ object EventMessages {
     override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessageDetails] = {
       if (sendToTransformEngine(incomingEvent)) {
         val successDetails = incomingEvent.successDetails.get
+        logger.info(s"Transform Engine v1 export event for ${successDetails.consignmentReference}")
+
         val bucketName = successDetails.exportBucket
         Some(generateSqsExportMessageBody(bucketName, successDetails))
       } else {
@@ -255,6 +257,8 @@ object EventMessages {
         val exportMessage = incomingEvent.successDetails.get
         val bucketName = exportMessage.exportBucket
         val consignmentRef = exportMessage.consignmentReference
+        logger.info(s"Transform Engine v2 export event for $consignmentRef")
+
         val consignmentType = exportMessage.consignmentType
         val uuids = List(TdrUUID(UUID.randomUUID()))
         val producer = Producer(incomingEvent.environment, `type` = consignmentType)
@@ -294,6 +298,7 @@ object EventMessages {
     override def sqs(incomingEvent: TransformEngineRetryEvent, context: Unit): Option[SqsMessageDetails] = {
       //Will only receive judgment retry events as only sending judgment notification at the moment.
       if (incomingEvent.consignmentType == "judgment") {
+        logger.info(s"Transform Engine v1 retry event for ${incomingEvent.consignmentReference}")
         Some(generateSqsExportMessageBody(judgmentBucket, incomingEvent))
       } else None
     }
@@ -309,11 +314,10 @@ object EventMessages {
     override def sqs(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
 
     override def sns(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SnsMessageDetails] = {
-      logger.info("****TRE Retry v2 Message****")
-      logger.info(s"$incomingEvent")
       if (incomingEvent.retryEvent) {
-        logger.info("**** SNS Message Creation ****")
         val consignmentRef: String = incomingEvent.parameters.`bagit-validation-error`.reference
+        logger.info(s"Transform Engine v2 retry event for $consignmentRef")
+
         val incomingProducer = incomingEvent.producer
         val bucketName = if (incomingProducer.`type` == "judgment") {
           judgmentBucket
