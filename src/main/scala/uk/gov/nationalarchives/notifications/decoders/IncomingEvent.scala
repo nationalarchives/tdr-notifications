@@ -10,7 +10,7 @@ import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.decodeScanEven
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
-import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDecoder.GovUkNotifyKeyRotationEvent
+import uk.gov.nationalarchives.notifications.decoders.SNSNotifyDecoder.SNSNotifyEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.{TransformEngineV2OutEvent, UUIDs, TdrUUID, TreUUID}
 
@@ -21,7 +21,7 @@ object IncomingEvent {
   implicit val uuidDecoder: Decoder[UUIDs] = Decoder[TdrUUID].widen or Decoder[TreUUID].widen
   implicit val allDecoders: Decoder[IncomingEvent] = decodeScanEvent or decodeSnsEvent[ExportStatusEvent] or
     decodeSnsEvent[KeycloakEvent] or decodeSqsEvent[TransformEngineRetryEvent] or decodeSnsEvent[GenericMessagesEvent] or
-    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[GovUkNotifyKeyRotationEvent] or decodeSqsWithSnsMessageEvent[TransformEngineV2OutEvent]
+    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[SNSNotifyEvent] or decodeSqsWithSnsMessageEvent[TransformEngineV2OutEvent]
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- c.downField("Records").as[List[SnsRecord]]
