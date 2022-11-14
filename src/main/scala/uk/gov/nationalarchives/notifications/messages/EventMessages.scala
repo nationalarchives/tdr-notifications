@@ -15,7 +15,7 @@ import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
-import uk.gov.nationalarchives.notifications.decoders.SNSNotifyDecoder.SNSNotifyEvent
+import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
@@ -381,16 +381,16 @@ object EventMessages {
     SnsMessageDetails(topicArn, messageBody)
   }
 
-  implicit val snsNotifyMessage: Messages[SNSNotifyEvent, Unit] = new Messages[SNSNotifyEvent, Unit] {
+  implicit val snsNotifyMessage: Messages[ParameterStoreExpiryEvent, Unit] = new Messages[ParameterStoreExpiryEvent, Unit] {
 
     val githubAccessTokenParameterName = "/github/access_token"
     val govukNotifyApiKeyParameterName = "/keycloak/govuk_notify/api_key"
 
-    override def context(incomingEvent: SNSNotifyEvent): IO[Unit] = IO.unit
+    override def context(incomingEvent: ParameterStoreExpiryEvent): IO[Unit] = IO.unit
 
-    override def email(incomingEvent: SNSNotifyEvent, context: Unit): Option[Email] = None
+    override def email(incomingEvent: ParameterStoreExpiryEvent, context: Unit): Option[Email] = None
 
-    override def slack(incomingEvent: SNSNotifyEvent, context: Unit): Option[SlackMessage] = {
+    override def slack(incomingEvent: ParameterStoreExpiryEvent, context: Unit): Option[SlackMessage] = {
       val ssmParameter: String = incomingEvent.detail.`parameter-name`
       val reason: String = incomingEvent.detail.`action-reason`
 
@@ -408,7 +408,7 @@ object EventMessages {
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
     }
 
-    override def sqs(incomingEvent: SNSNotifyEvent, context: Unit): Option[SqsMessageDetails] = None
+    override def sqs(incomingEvent: ParameterStoreExpiryEvent, context: Unit): Option[SqsMessageDetails] = None
 
     def getMessageListForGovtUKNotifyApiKeyEvent(ssmParameter: String, reason: String): List[String] =
       List(

@@ -2,9 +2,9 @@ package uk.gov.nationalarchives.notifications
 
 import cats.implicits.catsSyntaxOptionId
 import org.scalatest.prop.TableFor8
-import uk.gov.nationalarchives.notifications.decoders.SNSNotifyDecoder.{Detail, SNSNotifyEvent}
+import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.{Detail, ParameterStoreExpiryEvent}
 
-class SNSNotifySpec extends LambdaIntegrationSpec {
+class ParameterStoreExpiryEventSpec extends LambdaIntegrationSpec {
 
   override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
     ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
@@ -20,14 +20,14 @@ class SNSNotifySpec extends LambdaIntegrationSpec {
       rotationEventInputText(unknownEvent), None, expectedSlackMessageForUnknownEven, None, None, () => (), "/webhook")
   )
 
-  private lazy val intgApiKeyRotationEvent = SNSNotifyEvent(Detail("/intg/keycloak/govuk_notify/api_key", "No change notification message"))
-  private lazy val stagingApiKeyRotationEvent = SNSNotifyEvent(Detail("/staging/keycloak/govuk_notify/api_key", "No change notification message"))
-  private lazy val prodApiKeyRotationEvent = SNSNotifyEvent(Detail("/prod/keycloak/govuk_notify/api_key", "No change notification message"))
+  private lazy val intgApiKeyRotationEvent = ParameterStoreExpiryEvent(Detail("/intg/keycloak/govuk_notify/api_key", "No change notification message"))
+  private lazy val stagingApiKeyRotationEvent = ParameterStoreExpiryEvent(Detail("/staging/keycloak/govuk_notify/api_key", "No change notification message"))
+  private lazy val prodApiKeyRotationEvent = ParameterStoreExpiryEvent(Detail("/prod/keycloak/govuk_notify/api_key", "No change notification message"))
 
-  private lazy val mgmtApiKeyRotationEvent = SNSNotifyEvent(Detail("/mgmt/github/access_token", "No change notification message"))
-  private lazy val unknownEvent = SNSNotifyEvent(Detail("/intg/parameter/unknown", "No change notification message"))
+  private lazy val mgmtApiKeyRotationEvent = ParameterStoreExpiryEvent(Detail("/mgmt/github/access_token", "No change notification message"))
+  private lazy val unknownEvent = ParameterStoreExpiryEvent(Detail("/intg/parameter/unknown", "No change notification message"))
 
-  private def rotationEventInputText(keyRotationEvent: SNSNotifyEvent): String = {
+  private def rotationEventInputText(keyRotationEvent: ParameterStoreExpiryEvent): String = {
     val parameterName = keyRotationEvent.detail.`parameter-name`
     val reason = keyRotationEvent.detail.`action-reason`
 
@@ -44,7 +44,7 @@ class SNSNotifySpec extends LambdaIntegrationSpec {
        |""".stripMargin
   }
 
-  private def expectedSlackMessageForApiKey(rotationEvent: SNSNotifyEvent): Option[String] = {
+  private def expectedSlackMessageForApiKey(rotationEvent: ParameterStoreExpiryEvent): Option[String] = {
     val ssmParameter: String = rotationEvent.detail.`parameter-name`
     val reason: String = rotationEvent.detail.`action-reason`
 
@@ -62,7 +62,7 @@ class SNSNotifySpec extends LambdaIntegrationSpec {
        |""".stripMargin.some
   }
 
-  private def expectedSlackMessageForGitHubAccessToken(rotationEvent: SNSNotifyEvent): Option[String] = {
+  private def expectedSlackMessageForGitHubAccessToken(rotationEvent: ParameterStoreExpiryEvent): Option[String] = {
     val ssmParameter: String = rotationEvent.detail.`parameter-name`
     val reason: String = rotationEvent.detail.`action-reason`
 
