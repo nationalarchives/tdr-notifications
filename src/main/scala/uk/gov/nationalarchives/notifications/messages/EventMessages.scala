@@ -15,7 +15,7 @@ import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
-import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyKeyRotationDecoder.GovUkNotifyKeyRotationEvent
+import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
@@ -381,23 +381,48 @@ object EventMessages {
     SnsMessageDetails(topicArn, messageBody)
   }
 
-  implicit val govUkNotifyKeyRotationMessage: Messages[GovUkNotifyKeyRotationEvent, Unit] = new Messages[GovUkNotifyKeyRotationEvent, Unit] {
-    override def context(incomingEvent: GovUkNotifyKeyRotationEvent): IO[Unit] = IO.unit
+  implicit val snsNotifyMessage: Messages[ParameterStoreExpiryEvent, Unit] = new Messages[ParameterStoreExpiryEvent, Unit] {
 
-    override def email(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[Email] = None
+    val githubAccessTokenParameterName = "/github/access_token"
+    val govukNotifyApiKeyParameterName = "/keycloak/govuk_notify/api_key"
 
-    override def slack(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[SlackMessage] = {
+    override def context(incomingEvent: ParameterStoreExpiryEvent): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: ParameterStoreExpiryEvent, context: Unit): Option[Email] = None
+
+    override def slack(incomingEvent: ParameterStoreExpiryEvent, context: Unit): Option[SlackMessage] = {
       val ssmParameter: String = incomingEvent.detail.`parameter-name`
       val reason: String = incomingEvent.detail.`action-reason`
-      val messageList = List(
+
+      val messageList = if (ssmParameter.contains(govukNotifyApiKeyParameterName)) {
+        getMessageListForGovtUKNotifyApiKeyEvent(ssmParameter, reason)
+      } else if (ssmParameter.contains(githubAccessTokenParameterName)) {
+        getMessageListForGitHubAccessTokenEvent(ssmParameter, reason)
+      } else {
+        List(
+          ":error: *Unknown notify event*",
+          s"*$ssmParameter*: $reason",
+        )
+      }
+
+      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
+    }
+
+    override def sqs(incomingEvent: ParameterStoreExpiryEvent, context: Unit): Option[SqsMessageDetails] = None
+
+    def getMessageListForGovtUKNotifyApiKeyEvent(ssmParameter: String, reason: String): List[String] =
+      List(
         ":warning: *Rotate GOV.UK Notify API Key*",
         s"*$ssmParameter*: $reason",
         s"\nSee here for instructions to rotate GOV.UK Notify API Keys: https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/govuk-notify.md#rotating-api-key"
       )
-      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
-    }
 
-    override def sqs(incomingEvent: GovUkNotifyKeyRotationEvent, context: Unit): Option[SqsMessageDetails] = None
+    def getMessageListForGitHubAccessTokenEvent(ssmParameter: String, reason: String): List[String] =
+      List(
+        ":warning: *Rotate GitHub access token*",
+        s"*$ssmParameter*: $reason",
+        s"\nSee here for instructions to rotate GitHub access token: https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/notify-github-access-token.md#rotate-github-personal-access-token"
+      )
   }
 }
 
