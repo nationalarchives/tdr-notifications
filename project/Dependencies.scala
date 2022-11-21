@@ -12,7 +12,12 @@ object Dependencies {
   lazy val circeParser = "io.circe" %% "circe-parser" % circeVersion
   lazy val typesafe = "com.typesafe" % "config" % "1.4.2"
   lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.12.0"
-  lazy val awsUtils =  "uk.gov.nationalarchives" %% "tdr-aws-utils" % "0.1.53"
+  lazy val kmsUtils =  "uk.gov.nationalarchives" %% "kms-utils" % "0.1.55"
+  lazy val s3Utils =  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.55"
+  lazy val sesUtils =  "uk.gov.nationalarchives" %% "ses-utils" % "0.1.55"
+  lazy val sqsUtils =  "uk.gov.nationalarchives" %% "sqs-utils" % "0.1.55"
+  lazy val snsUtils =  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.55"
+  lazy val ecrUtils =  "uk.gov.nationalarchives" %% "ecr-utils" % "0.1.55"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.14"
   lazy val wiremock = "com.github.tomakehurst" % "wiremock" % "2.27.2"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
