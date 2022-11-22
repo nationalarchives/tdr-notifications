@@ -4,6 +4,7 @@ object Dependencies {
   private val circeVersion = "0.14.3"
   private val sttpClient3Version = "3.8.3"
   private val elasticMqVersion = "1.3.14"
+  private val awsUtilsVersion = "0.1.55"
 
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClient3Version
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpClient3Version
@@ -12,12 +13,12 @@ object Dependencies {
   lazy val circeParser = "io.circe" %% "circe-parser" % circeVersion
   lazy val typesafe = "com.typesafe" % "config" % "1.4.2"
   lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.12.0"
-  lazy val kmsUtils =  "uk.gov.nationalarchives" %% "kms-utils" % "0.1.55"
-  lazy val s3Utils =  "uk.gov.nationalarchives" %% "s3-utils" % "0.1.55"
-  lazy val sesUtils =  "uk.gov.nationalarchives" %% "ses-utils" % "0.1.55"
-  lazy val sqsUtils =  "uk.gov.nationalarchives" %% "sqs-utils" % "0.1.55"
-  lazy val snsUtils =  "uk.gov.nationalarchives" %% "sns-utils" % "0.1.55"
-  lazy val ecrUtils =  "uk.gov.nationalarchives" %% "ecr-utils" % "0.1.55"
+  lazy val kmsUtils =  "uk.gov.nationalarchives" %% "kms-utils" % awsUtilsVersion
+  lazy val s3Utils =  "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
+  lazy val sesUtils =  "uk.gov.nationalarchives" %% "ses-utils" % awsUtilsVersion
+  lazy val sqsUtils =  "uk.gov.nationalarchives" %% "sqs-utils" % awsUtilsVersion
+  lazy val snsUtils =  "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
+  lazy val ecrUtils =  "uk.gov.nationalarchives" %% "ecr-utils" % awsUtilsVersion
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.14"
   lazy val wiremock = "com.github.tomakehurst" % "wiremock" % "2.27.2"
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
