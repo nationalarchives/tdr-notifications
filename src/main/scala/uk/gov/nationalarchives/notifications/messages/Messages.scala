@@ -9,14 +9,10 @@ import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3.{basicRequest, _}
 import sttp.model.MediaType
 import uk.gov.nationalarchives.aws.utils.kms.KMSClients.kms
-import uk.gov.nationalarchives.aws.utils.ses.SESClients.ses
-import uk.gov.nationalarchives.aws.utils.sns.SNSClients.sns
-import uk.gov.nationalarchives.aws.utils.sqs.SQSClients.sqs
-import uk.gov.nationalarchives.aws.utils.ses.SESUtils.Email
-import uk.gov.nationalarchives.aws.utils.kms.KMSUtils
-import uk.gov.nationalarchives.aws.utils.ses.SESUtils
-import uk.gov.nationalarchives.aws.utils.sns.SNSUtils
-import uk.gov.nationalarchives.aws.utils.sqs.SQSUtils
+import uk.gov.nationalarchives.aws.utils.ses._
+import uk.gov.nationalarchives.aws.utils.sns._
+import uk.gov.nationalarchives.aws.utils.sqs._
+import uk.gov.nationalarchives.aws.utils.kms._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
@@ -25,7 +21,7 @@ import uk.gov.nationalarchives.notifications.messages.EventMessages.{SlackMessag
 trait Messages[T <: IncomingEvent, TContext] {
   def context(incomingEvent: T): IO[TContext]
 
-  def email(incomingEvent: T, context: TContext): Option[Email]
+  def email(incomingEvent: T, context: TContext): Option[SESUtils.Email]
 
   def slack(incomingEvent: T, context: TContext): Option[SlackMessage]
 
@@ -61,7 +57,7 @@ object Messages {
 
   private def sendEmailMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     messages.email(incomingEvent, context).map(email => {
-      IO.fromTry(SESUtils(ses(config.getString("ses.endpoint"))).sendEmail(email).map(_.messageId()))
+      IO.fromTry(SESUtils(SESClients.ses(config.getString("ses.endpoint"))).sendEmail(email).map(_.messageId()))
     })
   }
 
@@ -69,7 +65,7 @@ object Messages {
     messages.sqs(incomingEvent, context).map(sqsMessageDetails => {
       val queueUrl = sqsMessageDetails.queueUrl
       val messageBody = sqsMessageDetails.messageBody
-      IO(SQSUtils(sqs(config.getString("sqs.endpoint"))).send(queueUrl, messageBody).toString)
+      IO(SQSUtils(SQSClients.sqs(config.getString("sqs.endpoint"))).send(queueUrl, messageBody).toString)
     })
   }
 
@@ -78,7 +74,7 @@ object Messages {
       val endpoint = config.getString("sns.endpoint")
       val messageBody = snsMessageDetails.messageBody
       val topicArn = snsMessageDetails.snsTopic
-      IO(SNSUtils(sns(endpoint)).publish(messageBody, topicArn).toString)
+      IO(SNSUtils(SNSClients.sns(endpoint)).publish(messageBody, topicArn).toString)
     })
   }
 
