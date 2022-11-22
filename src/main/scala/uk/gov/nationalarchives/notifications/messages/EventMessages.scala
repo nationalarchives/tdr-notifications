@@ -2,16 +2,19 @@ package uk.gov.nationalarchives.notifications.messages
 
 import cats.effect.IO
 import cats.syntax.all._
-import com.typesafe.config.ConfigFactory
+import com.typesafe.config.{Config, ConfigFactory}
 import com.typesafe.scalalogging.Logger
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
-import uk.gov.nationalarchives.aws.utils.Clients.s3Async
-import uk.gov.nationalarchives.aws.utils.SESUtils.Email
-import uk.gov.nationalarchives.aws.utils.{Clients, ECRUtils, S3Utils, SESUtils}
+import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3Async
+import uk.gov.nationalarchives.aws.utils.ses.SESUtils.Email
+import uk.gov.nationalarchives.aws.utils.s3.S3Utils
+import uk.gov.nationalarchives.aws.utils.ses.SESUtils
+import uk.gov.nationalarchives.aws.utils.ecr.ECRClients.ecr
+import uk.gov.nationalarchives.aws.utils.ECRUtils
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
@@ -31,9 +34,9 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 object EventMessages {
   private val tarExtension: String = ".tar.gz"
   private val sh256256Extension: String = ".tar.gz.sha256"
-
+  val configFactory: Config = ConfigFactory.load
   val logger: Logger = Logger(this.getClass)
-  val s3Utils: S3Utils = S3Utils(s3Async)
+  val s3Utils: S3Utils = S3Utils(s3Async(configFactory.getString("s3.endpoint")))
   val judgmentBucket: String = eventConfig("s3.judgment_export_bucket")
   val standardBucket: String = eventConfig("s3.standard_export_bucket")
 
@@ -133,7 +136,7 @@ object EventMessages {
 
     override def context(event: ScanEvent): IO[ImageScanReport] = {
       val repoName = event.detail.repositoryName
-      val ecrClient = Clients.ecr(URI.create(ConfigFactory.load.getString("ecr.endpoint")))
+      val ecrClient = ecr(URI.create(ConfigFactory.load.getString("ecr.endpoint")))
       val ecrUtils: ECRUtils = ECRUtils(ecrClient)
       val findingsResponse = ecrUtils.imageScanFindings(repoName, event.detail.imageDigest)
 
