@@ -14,7 +14,7 @@ import uk.gov.nationalarchives.aws.utils.ses.SESUtils.Email
 import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.aws.utils.ses.SESUtils
 import uk.gov.nationalarchives.aws.utils.ecr.ECRClients.ecr
-import uk.gov.nationalarchives.aws.utils.ECRUtils
+import uk.gov.nationalarchives.aws.utils.ecr.ECRUtils
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
