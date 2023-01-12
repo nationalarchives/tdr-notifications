@@ -21,6 +21,7 @@ import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.Gene
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
+import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder._
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
@@ -365,6 +366,29 @@ object EventMessages {
     }
 
     override def sqs(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SqsMessageDetails] = None
+  }
+
+  implicit val stepFunctionErrorMessages: Messages[StepFunctionError, Unit] = new Messages[StepFunctionError, Unit] {
+    override def context(incomingEvent: StepFunctionError): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: StepFunctionError, context: Unit): Option[Email] = None
+
+    override def slack(incomingEvent: StepFunctionError, context: Unit): Option[SlackMessage] = {
+      if(incomingEvent.environment != "intg") {
+        val messageList = List(
+          ":warning: *Backend checks failure for consignment*",
+          s"*ConsignmentId* ${incomingEvent.consignmentId}",
+          s"*Environment* ${incomingEvent.environment}",
+          s"*Cause*: ${incomingEvent.cause}",
+          s"*Error*: ${incomingEvent.error}"
+        )
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
+      } else {
+        None
+      }
+    }
+
+    override def sqs(incomingEvent: StepFunctionError, context: Unit): Option[SqsMessageDetails] = None
   }
 
   private def generateSnsExportMessageBody(bucketName: String,

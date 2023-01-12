@@ -10,6 +10,7 @@ import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.Gene
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
+import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.TransformEngineV2OutEvent
 import uk.gov.nationalarchives.notifications.decoders._
@@ -30,6 +31,7 @@ class Lambda {
       case genericMessagesEvent: GenericMessagesEvent => sendMessages(genericMessagesEvent)
       case cloudwatchAlarmEvent: CloudwatchAlarmEvent => sendMessages(cloudwatchAlarmEvent)
       case parameterStoreExpiryEvent: ParameterStoreExpiryEvent => sendMessages(parameterStoreExpiryEvent)
+      case stepFunctionError: StepFunctionError => sendMessages(stepFunctionError)
     }).flatten.unsafeRunSync()
   }
 }
