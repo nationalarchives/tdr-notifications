@@ -4,7 +4,7 @@ object Dependencies {
   private val circeVersion = "0.14.3"
   private val sttpClient3Version = "3.8.8"
   private val elasticMqVersion = "1.3.14"
-  private val awsUtilsVersion = "0.1.66"
+  private val awsUtilsVersion = "0.1.67"
 
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClient3Version
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpClient3Version
