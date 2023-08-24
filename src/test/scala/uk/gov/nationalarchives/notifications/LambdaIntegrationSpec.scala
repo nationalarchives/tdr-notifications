@@ -1,12 +1,11 @@
 package uk.gov.nationalarchives.notifications
 
-import com.github.tomakehurst.wiremock.client.WireMock.{containing, equalTo, equalToJson, matching, postRequestedFor, urlEqualTo}
+import com.github.tomakehurst.wiremock.client.WireMock._
 import io.circe.generic.auto._
 import io.circe.parser
 import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor8}
 import software.amazon.awssdk.services.sqs.model.Message
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.treVersion
 import uk.gov.nationalarchives.notifications.messages.EventMessages.SqsExportMessageBody
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
@@ -101,26 +100,19 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             new Lambda().process(stream, null)
             wiremockSnsEndpoint.verify(1,
               postRequestedFor(urlEqualTo("/"))
-                .withRequestBody(containing("UUIDs"))
-                .withRequestBody(containing("version" + fieldValueSeparator + treVersion))
+                .withRequestBody(containing("properties"))
+                .withRequestBody(containing(s"messageType${fieldValueSeparator}uk.gov.nationalarchives.da.messages.bag.available.BagAvailable"))
                 .withRequestBody(containing("timestamp"))
-                .withRequestBody(containing("producer"))
-                .withRequestBody(containing("environment" + fieldValueSeparator + expectedDetails.environment))
-                .withRequestBody(containing("name" + fieldValueSeparator + "TDR"))
-                .withRequestBody(containing("process" + fieldValueSeparator + "tdr-export-process"))
-                .withRequestBody(containing("event-name" + fieldValueSeparator + "bagit-available"))
-                .withRequestBody(containing("type" + fieldValueSeparator + expectedDetails.consignmentType))
+                .withRequestBody(containing("function" + fieldValueSeparator + "tdr-export-process"))
+                .withRequestBody(containing(s"producer${fieldValueSeparator}TDR"))
+                .withRequestBody(containing("executionId"))
+                .withRequestBody(containing("parentExecutionId"))
                 .withRequestBody(containing("parameters"))
-                .withRequestBody(containing("bagit-available"))
-                .withRequestBody(containing("resource"))
-                .withRequestBody(containing("resource-type" + fieldValueSeparator + "Object"))
-                .withRequestBody(containing("access-type" + fieldValueSeparator + "url"))
-                .withRequestBody(containing("value" +
-                  fieldValueSeparator + s"https%3A%2F%2F${expectedDetails.bucketName}.s3.eu-west-2.amazonaws.com%2F${expectedDetails.consignmentReference}.tar.gz"))
-                .withRequestBody(containing("resource-validation"))
-                .withRequestBody(containing("validation-method" + fieldValueSeparator + "SHA256"))
-                .withRequestBody(containing("value" +
-                  fieldValueSeparator + s"https%3A%2F%2F${expectedDetails.bucketName}.s3.eu-west-2.amazonaws.com%2F${expectedDetails.consignmentReference}.tar.gz.sha256"))
+                .withRequestBody(containing(s"reference${fieldValueSeparator}${expectedDetails.consignmentReference}"))
+                .withRequestBody(containing(s"originator${fieldValueSeparator}TDR"))
+                .withRequestBody(containing(s"consignmentType"))
+                .withRequestBody(containing(s"Bucket${fieldValueSeparator}${expectedDetails.bucketName}"))
+                .withRequestBody(containing(s"s3Key${fieldValueSeparator}https%3A%2F%2F${expectedDetails.bucketName}.s3.eu-west-2.amazonaws.com%2F${expectedDetails.consignmentReference}.tar.gz"))
             )
           }
         case None =>

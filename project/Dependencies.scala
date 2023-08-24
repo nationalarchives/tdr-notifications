@@ -25,4 +25,5 @@ object Dependencies {
   lazy val typeSafeLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5"
   lazy val elasticMq = "org.elasticmq" %% "elasticmq-server" % elasticMqVersion
   lazy val elasticMqSqs = "org.elasticmq" %% "elasticmq-rest-sqs" % elasticMqVersion
+  lazy val transferSchemas = "uk.gov.nationalarchives" % "da-transform-schemas" % "2.3"
 }

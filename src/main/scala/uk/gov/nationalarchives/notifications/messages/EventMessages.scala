@@ -15,6 +15,10 @@ import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.aws.utils.ses.SESUtils
 import uk.gov.nationalarchives.aws.utils.ecr.ECRClients.ecr
 import uk.gov.nationalarchives.aws.utils.ecr.ECRUtils
+import uk.gov.nationalarchives.common.messages.Producer.TDR
+import uk.gov.nationalarchives.common.messages.Properties
+import uk.gov.nationalarchives.da.messages.bag.available
+import uk.gov.nationalarchives.da.messages.bag.available.{BagAvailable, ConsignmentType}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
@@ -397,13 +401,18 @@ object EventMessages {
                                            producer: Producer): SnsMessageDetails = {
     val topicArn = eventConfig("sns.topic.transform_engine_v2_in")
     val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$tarExtension")
-    val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$sh256256Extension")
-    val resource = Resource(value = packageSignedUrl)
-    val resourceValidation = ResourceValidation(value = packageShaSignedUrl)
-    val newBagit = BagitAvailable(resource, resourceValidation, consignmentRef)
-    val parameters = BagitAvailableParameters(newBagit)
-    val messageBody = TransferEngineV2InEvent(
-      `timestamp` = Timestamp.from(now).getTime, UUIDs = uuids, producer= producer, parameters = parameters).asJson.printWith(Printer.noSpaces)
+
+    val originator = "TDR"
+    val function = "tdr-export-process"
+    val consignmentType = producer.`type` match {
+      case "judgment" => ConsignmentType.JUDGEMENT
+      case _ => ConsignmentType.STANDARD
+    }
+
+    val properties = Properties(BagAvailable.getClass.getName, Timestamp.from(now).toString, function, TDR, UUID.randomUUID().toString, None)
+    val parameter = available.Parameters(consignmentRef, consignmentType, Some(originator), bucketName, packageSignedUrl)
+
+    val messageBody = TransferEngineV2InEvent(properties, parameter).asJson.printWith(Printer.noSpaces)
 
     SnsMessageDetails(topicArn, messageBody)
   }
