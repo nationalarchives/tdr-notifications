@@ -268,9 +268,8 @@ object EventMessages {
         logger.info(s"Transform Engine v2 export event for $consignmentRef")
 
         val consignmentType = exportMessage.consignmentType
-        val uuids = List(TdrUUID(UUID.randomUUID()))
         val producer = Producer(incomingEvent.environment, `type` = consignmentType)
-        Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
+        Some(generateSnsExportMessageBody(bucketName, consignmentRef, producer))
       } else {
         None
       }
@@ -308,33 +307,6 @@ object EventMessages {
       if (incomingEvent.consignmentType == "judgment") {
         logger.info(s"Transform Engine v1 retry event for ${incomingEvent.consignmentReference}")
         Some(generateSqsExportMessageBody(judgmentBucket, incomingEvent))
-      } else None
-    }
-  }
-
-  implicit val transformEngineV2RetryMessages: Messages[TransformEngineV2OutEvent, Unit] = new Messages[TransformEngineV2OutEvent, Unit] {
-    override def context(incomingEvent: TransformEngineV2OutEvent): IO[Unit] = IO.unit
-
-    override def email(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[Email] = Option.empty
-
-    override def slack(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SlackMessage] = Option.empty
-
-    override def sqs(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
-
-    override def sns(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SnsMessageDetails] = {
-      if (incomingEvent.retryEvent) {
-        val consignmentRef: String = incomingEvent.parameters.`bagit-validation-error`.reference
-        logger.info(s"Transform Engine v2 retry event for $consignmentRef")
-
-        val incomingProducer = incomingEvent.producer
-        val bucketName = if (incomingProducer.`type` == "judgment") {
-          judgmentBucket
-        } else {
-          standardBucket
-        }
-        val uuids = incomingEvent.UUIDs :+ TdrUUID(UUID.randomUUID())
-        val producer = Producer(incomingEvent.producer.environment, `type` = incomingProducer.`type`)
-        Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
       } else None
     }
   }
@@ -397,20 +369,17 @@ object EventMessages {
 
   private def generateSnsExportMessageBody(bucketName: String,
                                            consignmentRef: String,
-                                           uuids: List[UUIDs],
                                            producer: Producer): SnsMessageDetails = {
     val topicArn = eventConfig("sns.topic.transform_engine_v2_in")
-    val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$tarExtension")
-
     val originator = "TDR"
     val function = "tdr-export-process"
     val consignmentType = producer.`type` match {
-      case "judgment" => ConsignmentType.JUDGEMENT
+      case "judgment" => ConsignmentType.JUDGMENT
       case _ => ConsignmentType.STANDARD
     }
 
     val properties = Properties(BagAvailable.getClass.getName, Timestamp.from(now).toString, function, TDR, UUID.randomUUID().toString, None)
-    val parameter = available.Parameters(consignmentRef, consignmentType, Some(originator), bucketName, packageSignedUrl)
+    val parameter = available.Parameters(consignmentRef, consignmentType, Some(originator), bucketName, s"$consignmentRef$tarExtension", s"$consignmentRef$sh256256Extension")
 
     val messageBody = TransferEngineV2InEvent(properties, parameter).asJson.printWith(Printer.noSpaces)
 

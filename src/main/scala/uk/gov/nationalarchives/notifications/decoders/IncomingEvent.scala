@@ -13,7 +13,7 @@ import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.Gene
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.decodeStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.{TdrUUID, TransformEngineV2OutEvent, TreUUID, UUIDs}
+import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.{TdrUUID, TreUUID, UUIDs}
 
 trait IncomingEvent {
 }
@@ -22,8 +22,7 @@ object IncomingEvent {
   implicit val uuidDecoder: Decoder[UUIDs] = Decoder[TdrUUID].widen or Decoder[TreUUID].widen
   implicit val allDecoders: Decoder[IncomingEvent] = decodeScanEvent or decodeSnsEvent[ExportStatusEvent] or
     decodeSnsEvent[KeycloakEvent] or decodeSqsEvent[TransformEngineRetryEvent] or decodeSnsEvent[GenericMessagesEvent] or
-    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[ParameterStoreExpiryEvent] or decodeSqsWithSnsMessageEvent[TransformEngineV2OutEvent] or
-    decodeStepFunctionError
+    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[ParameterStoreExpiryEvent] or decodeStepFunctionError
 
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
