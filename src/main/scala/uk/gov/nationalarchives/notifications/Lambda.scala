@@ -12,7 +12,6 @@ import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventD
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder.TransformEngineV2OutEvent
 import uk.gov.nationalarchives.notifications.decoders._
 import uk.gov.nationalarchives.notifications.messages.EventMessages._
 import uk.gov.nationalarchives.notifications.messages.Messages._
@@ -27,7 +26,6 @@ class Lambda {
       case exportStatus: ExportStatusEvent => sendMessages(exportStatus)
       case keycloakEvent: KeycloakEvent => sendMessages(keycloakEvent)
       case transformEngineRetryEvent: TransformEngineRetryEvent => sendMessages(transformEngineRetryEvent)
-      case transformEngineV2RetryEvent: TransformEngineV2OutEvent => sendMessages(transformEngineV2RetryEvent)
       case genericMessagesEvent: GenericMessagesEvent => sendMessages(genericMessagesEvent)
       case cloudwatchAlarmEvent: CloudwatchAlarmEvent => sendMessages(cloudwatchAlarmEvent)
       case parameterStoreExpiryEvent: ParameterStoreExpiryEvent => sendMessages(parameterStoreExpiryEvent)

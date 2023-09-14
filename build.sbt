@@ -23,6 +23,7 @@ lazy val root = (project in file("."))
       typesafe,
       scalaTags,
       typeSafeLogging,
+      transformSchemas,
       scalaTest % Test,
       wiremock % Test,
       elasticMq % Test,

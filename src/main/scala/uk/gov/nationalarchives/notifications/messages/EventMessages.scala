@@ -9,21 +9,25 @@ import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
-import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3Async
-import uk.gov.nationalarchives.aws.utils.ses.SESUtils.Email
-import uk.gov.nationalarchives.aws.utils.s3.S3Utils
-import uk.gov.nationalarchives.aws.utils.ses.SESUtils
 import uk.gov.nationalarchives.aws.utils.ecr.ECRClients.ecr
 import uk.gov.nationalarchives.aws.utils.ecr.ECRUtils
+import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3Async
+import uk.gov.nationalarchives.aws.utils.s3.S3Utils
+import uk.gov.nationalarchives.aws.utils.ses.SESUtils
+import uk.gov.nationalarchives.aws.utils.ses.SESUtils.Email
+import uk.gov.nationalarchives.common.messages.Producer.TDR
+import uk.gov.nationalarchives.common.messages.Properties
+import uk.gov.nationalarchives.da.messages.bag.available
+import uk.gov.nationalarchives.da.messages.bag.available.{BagAvailable, ConsignmentType}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
+import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
-import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
+import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder._
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import java.net.URI
@@ -264,9 +268,8 @@ object EventMessages {
         logger.info(s"Transform Engine v2 export event for $consignmentRef")
 
         val consignmentType = exportMessage.consignmentType
-        val uuids = List(TdrUUID(UUID.randomUUID()))
         val producer = Producer(incomingEvent.environment, `type` = consignmentType)
-        Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
+        Some(generateSnsExportMessageBody(bucketName, consignmentRef, producer))
       } else {
         None
       }
@@ -304,33 +307,6 @@ object EventMessages {
       if (incomingEvent.consignmentType == "judgment") {
         logger.info(s"Transform Engine v1 retry event for ${incomingEvent.consignmentReference}")
         Some(generateSqsExportMessageBody(judgmentBucket, incomingEvent))
-      } else None
-    }
-  }
-
-  implicit val transformEngineV2RetryMessages: Messages[TransformEngineV2OutEvent, Unit] = new Messages[TransformEngineV2OutEvent, Unit] {
-    override def context(incomingEvent: TransformEngineV2OutEvent): IO[Unit] = IO.unit
-
-    override def email(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[Email] = Option.empty
-
-    override def slack(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SlackMessage] = Option.empty
-
-    override def sqs(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
-
-    override def sns(incomingEvent: TransformEngineV2OutEvent, context: Unit): Option[SnsMessageDetails] = {
-      if (incomingEvent.retryEvent) {
-        val consignmentRef: String = incomingEvent.parameters.`bagit-validation-error`.reference
-        logger.info(s"Transform Engine v2 retry event for $consignmentRef")
-
-        val incomingProducer = incomingEvent.producer
-        val bucketName = if (incomingProducer.`type` == "judgment") {
-          judgmentBucket
-        } else {
-          standardBucket
-        }
-        val uuids = incomingEvent.UUIDs :+ TdrUUID(UUID.randomUUID())
-        val producer = Producer(incomingEvent.producer.environment, `type` = incomingProducer.`type`)
-        Some(generateSnsExportMessageBody(bucketName, consignmentRef, uuids, producer))
       } else None
     }
   }
@@ -393,17 +369,19 @@ object EventMessages {
 
   private def generateSnsExportMessageBody(bucketName: String,
                                            consignmentRef: String,
-                                           uuids: List[UUIDs],
                                            producer: Producer): SnsMessageDetails = {
     val topicArn = eventConfig("sns.topic.transform_engine_v2_in")
-    val packageSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$tarExtension")
-    val packageShaSignedUrl = generateS3SignedUrl(bucketName, s"$consignmentRef$sh256256Extension")
-    val resource = Resource(value = packageSignedUrl)
-    val resourceValidation = ResourceValidation(value = packageShaSignedUrl)
-    val newBagit = BagitAvailable(resource, resourceValidation, consignmentRef)
-    val parameters = BagitAvailableParameters(newBagit)
-    val messageBody = TransferEngineV2InEvent(
-      `timestamp` = Timestamp.from(now).getTime, UUIDs = uuids, producer= producer, parameters = parameters).asJson.printWith(Printer.noSpaces)
+    val originator = "TDR"
+    val function = "tdr-export-process"
+    val consignmentType = producer.`type` match {
+      case "judgment" => ConsignmentType.JUDGMENT
+      case _ => ConsignmentType.STANDARD
+    }
+
+    val properties = Properties(BagAvailable.getClass.getName, Timestamp.from(now).toString, function, TDR, UUID.randomUUID().toString, None)
+    val parameter = available.Parameters(consignmentRef, consignmentType, Some(originator), bucketName, s"$consignmentRef$tarExtension", s"$consignmentRef$sh256256Extension")
+
+    val messageBody = ExportEventNotification(properties, parameter).asJson.printWith(Printer.noSpaces)
 
     SnsMessageDetails(topicArn, messageBody)
   }
