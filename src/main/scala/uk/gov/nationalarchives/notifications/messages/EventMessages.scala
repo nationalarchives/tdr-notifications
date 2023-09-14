@@ -9,25 +9,25 @@ import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
 import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
-import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3Async
-import uk.gov.nationalarchives.aws.utils.ses.SESUtils.Email
-import uk.gov.nationalarchives.aws.utils.s3.S3Utils
-import uk.gov.nationalarchives.aws.utils.ses.SESUtils
 import uk.gov.nationalarchives.aws.utils.ecr.ECRClients.ecr
 import uk.gov.nationalarchives.aws.utils.ecr.ECRUtils
+import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3Async
+import uk.gov.nationalarchives.aws.utils.s3.S3Utils
+import uk.gov.nationalarchives.aws.utils.ses.SESUtils
+import uk.gov.nationalarchives.aws.utils.ses.SESUtils.Email
 import uk.gov.nationalarchives.common.messages.Producer.TDR
 import uk.gov.nationalarchives.common.messages.Properties
 import uk.gov.nationalarchives.da.messages.bag.available
 import uk.gov.nationalarchives.da.messages.bag.available.{BagAvailable, ConsignmentType}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
+import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
-import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
+import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineV2Decoder._
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import java.net.URI
@@ -381,7 +381,7 @@ object EventMessages {
     val properties = Properties(BagAvailable.getClass.getName, Timestamp.from(now).toString, function, TDR, UUID.randomUUID().toString, None)
     val parameter = available.Parameters(consignmentRef, consignmentType, Some(originator), bucketName, s"$consignmentRef$tarExtension", s"$consignmentRef$sh256256Extension")
 
-    val messageBody = TransferEngineV2InEvent(properties, parameter).asJson.printWith(Printer.noSpaces)
+    val messageBody = ExportEventNotification(properties, parameter).asJson.printWith(Printer.noSpaces)
 
     SnsMessageDetails(topicArn, messageBody)
   }

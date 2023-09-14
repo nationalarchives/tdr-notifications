@@ -1,17 +1,13 @@
 package uk.gov.nationalarchives.notifications.decoders
 
-import io.circe.{Encoder, Json}
+import io.circe.Encoder
 import uk.gov.nationalarchives.common.messages.Properties
 import uk.gov.nationalarchives.da.messages.bag.available
 
-import java.util.UUID
-
-object TransformEngineV2Decoder {
+object ExportNotificationDecoder {
   val treVersion = "1.0.0"
   val resourceType = "Object"
   val accessType = "url"
-
-  trait UUIDs
 
   case class Producer(environment: String,
                       name: String = "TDR",
@@ -19,16 +15,8 @@ object TransformEngineV2Decoder {
                       `event-name`: String = "bagit-available",
                       `type`: String)
 
-  case class TdrUUID(`TDR-UUID`: UUID) extends UUIDs
+  case class ExportEventNotification(properties : Properties, parameters : available.Parameters)
 
-  case class TreUUID(`TRE-UUID`: UUID) extends UUIDs
-
-  case class TransferEngineV2InEvent(properties : Properties, parameters : available.Parameters)
-
-  implicit val encodeUUIDs: Encoder[UUIDs] = {
-    case TdrUUID(uuid) => Json.obj(("TDR-UUID", Json.fromString(uuid.toString)))
-    case TreUUID(uuid) => Json.obj(("TRE-UUID", Json.fromString(uuid.toString)))
-  }
 
   implicit val encodeProperties: Encoder[Properties] =
     Encoder.forProduct6[Properties, String, String, String, String, String, Option[String]]("messageType", "timestamp", "function", "producer", "executionId", "parentExecutionId") {
