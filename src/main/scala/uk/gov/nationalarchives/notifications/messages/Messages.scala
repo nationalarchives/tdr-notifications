@@ -43,7 +43,7 @@ object Messages {
     "sqs.queue.transform_engine_output",
     "s3.judgment_export_bucket",
     "s3.standard_export_bucket",
-    "sns.topic.transform_engine_v2_in"
+    "sns.topic.da_event_bus_arn"
   ).map(configName => configName -> kmsUtils.decryptValue(config.getString(configName))).toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
