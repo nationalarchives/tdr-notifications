@@ -370,7 +370,7 @@ object EventMessages {
   private def generateSnsExportMessageBody(bucketName: String,
                                            consignmentRef: String,
                                            producer: Producer): SnsMessageDetails = {
-    val topicArn = eventConfig("sns.topic.transform_engine_v2_in")
+    val topicArn = eventConfig("sns.topic.da_event_bus_arn")
     val originator = "TDR"
     val function = "tdr-export-process"
     val consignmentType = producer.`type` match {
