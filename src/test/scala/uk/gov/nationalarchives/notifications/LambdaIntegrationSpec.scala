@@ -112,7 +112,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
                 .withRequestBody(containing(s"originator${fieldValueSeparator}TDR"))
                 .withRequestBody(containing(s"consignmentType"))
                 .withRequestBody(containing(s"Bucket${fieldValueSeparator}${expectedDetails.bucketName}"))
-                .withRequestBody(containing(s"s3Key${fieldValueSeparator}${expectedDetails.consignmentReference}.tar.gz"))
+                .withRequestBody(containing(s"s3BagKey${fieldValueSeparator}${expectedDetails.consignmentReference}.tar.gz"))
                 .withRequestBody(containing(s"s3BagSha256Key${fieldValueSeparator}${expectedDetails.consignmentReference}.tar.gz.sha256"))
             )
           }
