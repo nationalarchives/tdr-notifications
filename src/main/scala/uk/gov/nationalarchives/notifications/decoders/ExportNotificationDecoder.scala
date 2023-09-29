@@ -24,8 +24,8 @@ object ExportNotificationDecoder {
     }
 
   implicit val encodeParameters: Encoder[available.Parameters] = {
-    Encoder.forProduct6[available.Parameters, String, String, String, String, String, String]("reference", "consignmentType", "originator", "s3Bucket", "s3Key", "s3BagSha256Key") {
-      case available.Parameters(reference, consignmentType, originator, s3Bucket, s3Key, s3BagSha256Key) => (reference, consignmentType.toString, originator.getOrElse(""), s3Bucket, s3Key, s3BagSha256Key)
+    Encoder.forProduct6[available.Parameters, String, String, String, String, String, String]("reference", "consignmentType", "originator", "s3Bucket", "s3BagKey", "s3BagSha256Key") {
+      case available.Parameters(reference, consignmentType, originator, s3Bucket, s3BagKey, s3BagSha256Key) => (reference, consignmentType.toString, originator.getOrElse(""), s3Bucket, s3BagKey, s3BagSha256Key)
     }
   }
 }
