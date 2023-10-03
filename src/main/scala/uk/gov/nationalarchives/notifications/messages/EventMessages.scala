@@ -378,7 +378,7 @@ object EventMessages {
       case _ => ConsignmentType.STANDARD
     }
 
-    val properties = Properties(BagAvailable.getClass.getName, Timestamp.from(now).toString, function, TDR, UUID.randomUUID().toString, None)
+    val properties = Properties(classOf[BagAvailable].getCanonicalName, Timestamp.from(now).toString, function, TDR, UUID.randomUUID().toString, None)
     val parameter = available.Parameters(consignmentRef, consignmentType, Some(originator), bucketName, s"$consignmentRef$tarExtension", s"$consignmentRef$sh256256Extension")
 
     val messageBody = ExportEventNotification(properties, parameter).asJson.printWith(Printer.noSpaces)
