@@ -207,7 +207,7 @@ object EventMessages {
     //For now only integration should send messages to TRE v2 until its deployed to the other TRE environments
     //Exclude e2e test transfers
     private def sendToTransformEngineV2(ev: ExportStatusEvent): Boolean = {
-      ev.success && ev.environment == "intg" && !ev.mockEvent
+      ev.success && ev.environment != "prod" && !ev.mockEvent
     }
 
     override def context(event: ExportStatusEvent): IO[Unit] = IO.unit
