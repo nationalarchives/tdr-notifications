@@ -21,7 +21,7 @@ permissions:
   contents: write
 jobs:
   deploy:
-    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_deploy.yml@main
+    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_deploy.yml@TDR-3373_do_not_run_e2e_test_for_mgmt_env
     with:
       lambda-name: notifications
       deployment-package: notifications.jar
