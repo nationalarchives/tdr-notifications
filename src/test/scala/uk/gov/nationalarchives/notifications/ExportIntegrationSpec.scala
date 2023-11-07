@@ -34,13 +34,13 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     ("a failed export on staging with no error details",
       exportStatusEventInputText(exportStatus10), None, Some(expectedSlackMessage(exportStatus10)), None, None, () => (), "/webhook-export"),
     ("a successful standard export event on prod",
-      exportStatusEventInputText(exportStatus11), None, Some(expectedSlackMessage(exportStatus11)), None, None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus11), None, Some(expectedSlackMessage(exportStatus11)), None, expectedSnsMessage(exportStatus11), () => (), "/webhook-export"),
     ("a failed standard export event on prod",
       exportStatusEventInputText(exportStatus12), None, Some(expectedSlackMessage(exportStatus12)), None, None, () => (), "/webhook-export"),
     ("a successful standard export event using a mock transferring body on prod",
       exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, None, () => (), "/webhook-export"),
     ("a successful judgment export on prod",
-    exportStatusEventInputText(exportStatus13), None, Some(expectedSlackMessage(exportStatus13)), expectedSqsMessage(exportStatus13), None, () => (), "/webhook-judgment")
+    exportStatusEventInputText(exportStatus13), None, Some(expectedSlackMessage(exportStatus13)), expectedSqsMessage(exportStatus13), expectedSnsMessage(exportStatus13), () => (), "/webhook-judgment")
   )
 
   private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")
