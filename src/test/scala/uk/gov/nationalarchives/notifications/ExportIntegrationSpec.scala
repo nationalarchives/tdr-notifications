@@ -14,7 +14,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     ("a successful standard export event using a mock transferring body on intg",
       exportStatusEventInputText(exportStatus3), None, None, None, None, () => (), "/webhook-export"),
     ("a successful judgment export event on intg",
-      exportStatusEventInputText(exportStatus2), None, None, expectedSqsMessage(exportStatus2), expectedSnsMessage(exportStatus2), () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus2), None, None, None, expectedSnsMessage(exportStatus2), () => (), "/webhook-export"),
     ("a successful judgment export event using a mock transferring body on intg",
       exportStatusEventInputText(exportStatus3), None, None, None, None, () => (), "/webhook-export"),
     ("a failed export event on intg",
@@ -24,7 +24,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     ("a successful standard export event using a mock transferring body on staging",
       exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, None, () => (), "/webhook-export"),
     ("a successful judgment export event on staging",
-      exportStatusEventInputText(exportStatus6), None, Some(expectedSlackMessage(exportStatus6)), expectedSqsMessage(exportStatus6), expectedSnsMessage(exportStatus5), () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus6), None, Some(expectedSlackMessage(exportStatus6)), None, expectedSnsMessage(exportStatus5), () => (), "/webhook-export"),
     ("a successful judgment export event using a mock transferring body on staging",
       exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, None, () => (), "/webhook-export"),
     ("a failed export event on staging",
@@ -40,7 +40,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     ("a successful standard export event using a mock transferring body on prod",
       exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, None, () => (), "/webhook-export"),
     ("a successful judgment export on prod",
-    exportStatusEventInputText(exportStatus13), None, Some(expectedSlackMessage(exportStatus13)), expectedSqsMessage(exportStatus13), expectedSnsMessage(exportStatus13), () => (), "/webhook-judgment")
+    exportStatusEventInputText(exportStatus13), None, Some(expectedSlackMessage(exportStatus13)), None, expectedSnsMessage(exportStatus13), () => (), "/webhook-judgment")
   )
 
   private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")
@@ -111,12 +111,6 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
          |  } ]
          |}""".stripMargin
     }
-  }
-
-  private def expectedSqsMessage(exportStatusEvent: ExportStatusEvent): Option[SqsExpectedMessageDetails] = {
-    if (exportStatusEvent.success && exportStatusEvent.successDetails.isDefined) {
-      Some(SqsExpectedMessageDetails(exportStatusEvent.successDetails.get, 0))
-    } else None
   }
 
   private def expectedSnsMessage(exportStatusEvent: ExportStatusEvent): Option[SnsExpectedMessageDetails] = {

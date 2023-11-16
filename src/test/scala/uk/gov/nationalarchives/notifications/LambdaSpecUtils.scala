@@ -1,9 +1,5 @@
 package uk.gov.nationalarchives.notifications
 
-import java.net.URI
-import java.nio.ByteBuffer
-import java.nio.charset.Charset
-import java.util
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock.{ok, post, urlEqualTo}
@@ -19,11 +15,13 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
 import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.sns.SnsClient
-import software.amazon.awssdk.services.sns.model.{CreateTopicRequest, CreateTopicResponse, DeleteTopicRequest, DeleteTopicResponse, PublishRequest, PublishResponse}
 import software.amazon.awssdk.services.sqs.SqsClient
 import software.amazon.awssdk.services.sqs.model._
 
+import java.net.URI
+import java.nio.ByteBuffer
+import java.nio.charset.Charset
+import java.util
 import scala.jdk.CollectionConverters._
 
 class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
@@ -82,7 +80,6 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
         |""".stripMargin))
     )
     stubKmsResponse
-    transformEngineQueueHelper.createQueue
 
     super.beforeEach()
   }
@@ -92,7 +89,6 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     wiremockSesEndpoint.resetAll()
     wiremockKmsEndpoint.resetAll()
     wiremockSnsEndpoint.resetAll()
-    transformEngineQueueHelper.deleteQueue()
 
     super.afterEach()
   }
@@ -142,7 +138,4 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   val port = 8002
   val transformEngineQueueName = "transform_engine_sqs_queue"
   val sqsApi: SQSRestServer = SQSRestServerBuilder.withPort(port).withAWSRegion(Region.EU_WEST_2.toString).start()
-
-  val transformEngineQueue = s"http://localhost:$port/queue/$transformEngineQueueName"
-  val transformEngineQueueHelper: QueueHelper = QueueHelper(transformEngineQueue)
 }

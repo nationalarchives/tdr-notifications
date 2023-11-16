@@ -11,16 +11,14 @@ import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.Keycl
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.decodeScanEvent
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.decodeStepFunctionError
-import uk.gov.nationalarchives.notifications.decoders.TransformEngineRetryDecoder.TransformEngineRetryEvent
 
 trait IncomingEvent {
 }
 
 object IncomingEvent {
   implicit val allDecoders: Decoder[IncomingEvent] = decodeScanEvent or decodeSnsEvent[ExportStatusEvent] or
-    decodeSnsEvent[KeycloakEvent] or decodeSqsEvent[TransformEngineRetryEvent] or decodeSnsEvent[GenericMessagesEvent] or
+    decodeSnsEvent[KeycloakEvent] or decodeSnsEvent[GenericMessagesEvent] or
     decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[ParameterStoreExpiryEvent] or decodeStepFunctionError
-
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- c.downField("Records").as[List[SnsRecord]]
@@ -33,26 +31,6 @@ object IncomingEvent {
       .left.map(e => DecodingFailure.fromThrowable(e, List(DownField("Message"))))
   }
 
-  def decodeSqsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
-    messages <- c.downField("Records").as[List[SqsRecord]]
-    json <- parseSqsMessage(messages.head.body)
-    event <- json.as[T]
-  } yield event
-
-  def decodeSqsWithSnsMessageEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
-    messages <- c.downField("Records").as[List[SqsRecord]]
-    json <- parseSqsMessage(messages.head.body)
-    snsMessage <- json.as[SNS].map(m => m.Message)
-    snsMessageJson <- parseSNSMessage(snsMessage)
-    event <- snsMessageJson.as[T]
-  } yield event
-
-  def parseSqsMessage(sqsRecord: String): Either[DecodingFailure, Json] = {
-    parse(sqsRecord)
-      .left.map(e => DecodingFailure.fromThrowable(e, List(DownField("Body"))))
-  }
-
   case class SNS(Message: String)
   case class SnsRecord(Sns: SNS)
-  case class SqsRecord(body: String)
 }
