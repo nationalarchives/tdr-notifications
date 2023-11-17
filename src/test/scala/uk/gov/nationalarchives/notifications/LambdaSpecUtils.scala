@@ -10,19 +10,12 @@ import com.github.tomakehurst.wiremock.http.{Request, ResponseDefinition}
 import com.github.tomakehurst.wiremock.stubbing.StubMapping
 import io.circe.generic.auto._
 import io.circe.parser.decode
-import org.elasticmq.rest.sqs.{SQSRestServer, SQSRestServerBuilder}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
-import software.amazon.awssdk.regions.Region
-import software.amazon.awssdk.services.sqs.SqsClient
-import software.amazon.awssdk.services.sqs.model._
 
-import java.net.URI
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
-import java.util
-import scala.jdk.CollectionConverters._
 
 class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll with BeforeAndAfterEach {
 
@@ -110,32 +103,4 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
 
     super.afterAll()
   }
-
-  case class QueueHelper(queueUrl: String) {
-    val sqsClient: SqsClient = SqsClient.builder()
-      .region(Region.EU_WEST_2)
-      .endpointOverride(URI.create("http://localhost:8002"))
-      .build()
-
-    def send(body: String): SendMessageResponse = sqsClient.sendMessage(SendMessageRequest
-      .builder.messageBody(body).queueUrl(queueUrl).build())
-
-    def receive: List[Message] = sqsClient.receiveMessage(ReceiveMessageRequest
-      .builder
-      .maxNumberOfMessages(10)
-      .queueUrl(queueUrl)
-      .build).messages.asScala.toList
-
-    val visibilityTimeoutAttributes = new util.HashMap[QueueAttributeName, String]()
-    visibilityTimeoutAttributes.put(QueueAttributeName.VISIBILITY_TIMEOUT, (12 * 60 * 60).toString)
-
-    def createQueue: CreateQueueResponse = sqsClient.createQueue(
-      CreateQueueRequest.builder.queueName(queueUrl.split("/")(4)).attributes(visibilityTimeoutAttributes).build()
-    )
-    def deleteQueue(): DeleteQueueResponse = sqsClient.deleteQueue(DeleteQueueRequest.builder.queueUrl(queueUrl).build())
-  }
-
-  val port = 8002
-  val transformEngineQueueName = "transform_engine_sqs_queue"
-  val sqsApi: SQSRestServer = SQSRestServerBuilder.withPort(port).withAWSRegion(Region.EU_WEST_2.toString).start()
 }

@@ -15,8 +15,6 @@ lazy val root = (project in file("."))
       sttp,
       sttpCirce,
       kmsUtils,
-      sqsUtils,
-      s3Utils,
       sesUtils,
       snsUtils,
       ecrUtils,
@@ -26,8 +24,7 @@ lazy val root = (project in file("."))
       transformSchemas,
       scalaTest % Test,
       wiremock % Test,
-      elasticMq % Test,
-      elasticMqSqs % Test
+      elasticMq % Test
     )
   )
 

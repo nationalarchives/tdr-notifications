@@ -5,10 +5,6 @@ import uk.gov.nationalarchives.common.messages.Properties
 import uk.gov.nationalarchives.da.messages.bag.available
 
 object ExportNotificationDecoder {
-  val treVersion = "1.0.0"
-  val resourceType = "Object"
-  val accessType = "url"
-
   case class Producer(environment: String,
                       name: String = "TDR",
                       process: String = "tdr-export-process",

@@ -11,8 +11,6 @@ import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
 import uk.gov.nationalarchives.aws.utils.ecr.ECRClients.ecr
 import uk.gov.nationalarchives.aws.utils.ecr.ECRUtils
-import uk.gov.nationalarchives.aws.utils.s3.S3Clients.s3Async
-import uk.gov.nationalarchives.aws.utils.s3.S3Utils
 import uk.gov.nationalarchives.aws.utils.ses.SESUtils
 import uk.gov.nationalarchives.aws.utils.ses.SESUtils.Email
 import uk.gov.nationalarchives.common.messages.Producer.TDR
@@ -38,9 +36,7 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 object EventMessages {
   private val tarExtension: String = ".tar.gz"
   private val sh256256Extension: String = ".tar.gz.sha256"
-  val configFactory: Config = ConfigFactory.load
   val logger: Logger = Logger(this.getClass)
-  val s3Utils: S3Utils = S3Utils(s3Async(configFactory.getString("s3.endpoint")))
 
   trait ExportMessage {
     val consignmentReference: String
@@ -161,8 +157,6 @@ object EventMessages {
         Option.empty
       }
     }
-
-    override def sqs(incomingEvent: ScanEvent, context: ImageScanReport): Option[SqsMessageDetails] = Option.empty
   }
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
@@ -209,14 +203,12 @@ object EventMessages {
       } else ""
     }
 
-    override def sqs(incomingEvent: ExportStatusEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
-
     override def sns(incomingEvent: ExportStatusEvent, context: Unit): Option[SnsMessageDetails] = {
       if (sendToDaEventBus(incomingEvent)) {
         val exportMessage = incomingEvent.successDetails.get
         val bucketName = exportMessage.exportBucket
         val consignmentRef = exportMessage.consignmentReference
-        logger.info(s"Transform Engine v2 export event for $consignmentRef")
+        logger.info(s"Digital Archiving event bus export event for $consignmentRef")
 
         val consignmentType = exportMessage.consignmentType
         val producer = Producer(incomingEvent.environment, `type` = consignmentType)
@@ -242,8 +234,6 @@ object EventMessages {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
       }
     }
-
-    override def sqs(incomingEvent: KeycloakEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 
   implicit val genericRotationMessages: Messages[GenericMessagesEvent, Unit] = new Messages[GenericMessagesEvent, Unit] {
@@ -255,8 +245,6 @@ object EventMessages {
       val message = incomingEvent.messages.map(_.message).mkString("\n")
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).some
     }
-
-    override def sqs(incomingEvent: GenericMessagesEvent, context: Unit): Option[SqsMessageDetails] = Option.empty
   }
 
   implicit val cloudwatchAlarmMessages: Messages[CloudwatchAlarmEvent, Unit] = new Messages[CloudwatchAlarmEvent, Unit] {
@@ -275,8 +263,6 @@ object EventMessages {
       ) ++ incomingEvent.Trigger.Dimensions.map(dimension => s"${dimension.name} - ${dimension.`value`}")
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
     }
-
-    override def sqs(incomingEvent: CloudwatchAlarmEvent, context: Unit): Option[SqsMessageDetails] = None
   }
 
   implicit val stepFunctionErrorMessages: Messages[StepFunctionError, Unit] = new Messages[StepFunctionError, Unit] {
@@ -298,8 +284,6 @@ object EventMessages {
         None
       }
     }
-
-    override def sqs(incomingEvent: StepFunctionError, context: Unit): Option[SqsMessageDetails] = None
   }
 
   private def generateSnsExportMessageBody(bucketName: String,
@@ -347,8 +331,6 @@ object EventMessages {
 
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
     }
-
-    override def sqs(incomingEvent: ParameterStoreExpiryEvent, context: Unit): Option[SqsMessageDetails] = None
 
     def getMessageListForGovtUKNotifyApiKeyEvent(ssmParameter: String, reason: String): List[String] =
       List(
