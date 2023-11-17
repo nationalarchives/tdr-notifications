@@ -24,8 +24,6 @@ trait Messages[T <: IncomingEvent, TContext] {
 
   def slack(incomingEvent: T, context: TContext): Option[SlackMessage]
 
-  def sqs(incomingEvent: T, context: TContext): Option[SqsMessageDetails] = None
-
   def sns(incomingEvent: T, context: TContext): Option[SnsMessageDetails] = None
 }
 
