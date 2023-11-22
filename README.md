@@ -5,9 +5,7 @@ This project is for sending slack/email/SQS messages in response to events. It s
 * ECR scan results. Each time there is an ECR repository scan, the scan results are checked. If there are any errors, a
   Slack and email message is sent.
 * Consignment export results. When the consignment export task finishes, a Slack message is sent with details of whether
-  the export succeeded or failed. A message is also sent, if it is a `judgment` export, to a SQS queue belonging to the transformation engine.
-* Transfer Engine retry event. If the Transform Engine requires a retry for any reason, it sends a message to the TDR Transform Engine SQS queue, which triggers the lambda to send a new export message back to a SQS queue belonging to the Transformation Engine.
-  * Note: the Transfer Engine retry event does not tigger a re-export of the consignment.
+  the export succeeded or failed. A message is also sent, to a Digital Archiving SNS topic for other Digital Archiving services to pick up and act upon.
 * Generic message event. This allows a service to send message text which is sent directly to Slack with no other processing.
 
 ## Run locally
@@ -21,8 +19,7 @@ Set these environment variables, either on the command line or in IntelliJ depen
 * `SLACK_EXPORT_WEBHOOK` This webhook publishes to the #da-tdr-export-notifications channel. This is for all non-judgment export notifications for staging and production.
 * `TO_EMAIL`: the email address that alerts should be sent to. For testing purposes, this should normally be your own
   email address rather than a team one.
-* `TRANSFORM_ENGINE_OUTPUT_SQS`: set this in the SQS queue where the message should be sent. Need to ensure have permissions to send to the SQS queue
-* `TRANSFORM_ENGINE_V2_SNS_TOPIC_IN`: this is the SNS topic where successful export messages are published. Need to ensure have permissions to publish to the SNS topic
+* `DA_EVENT_BUS`: this is the SNS topic where successful export messages are published. Need to ensure have permissions to publish to the SNS topic
 
 The app uses AWS services like Simple Email Service (SES) in the management account, so you will also need to update
 your AWS credentials file with temporary mgmt credentials.

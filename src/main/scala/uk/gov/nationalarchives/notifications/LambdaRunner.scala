@@ -66,18 +66,7 @@ object LambdaRunner extends App {
        |
        |""".stripMargin
 
-  val transformEngineRetryMessage =
-    s"""
-       |{
-       |  "Records": [
-       |        {
-       |            "body": "{\\"consignment-reference\\": \\"some-consignment-reference\\",\\"consignment-type\\": \\"judgment\\",\\"number-of-retries\\": 0}"
-       |        }
-       |  ]
-       |}
-       |""".stripMargin
-
-  val notifyRotationMessage =
+    val notifyRotationMessage =
     s"""
        |{
        |    "Records": [
@@ -90,15 +79,6 @@ object LambdaRunner extends App {
        |}
        |""".stripMargin
 
-  val transformEngineV2RetryMessage =
-    s"""{
-       |  "Records" : [
-       |      {
-       |         "body": "{\\"Message\\": \\"{\\\\\\"version\\\\\\": \\\\\\"1.0.0\\\\\\", \\\\\\"timestamp\\\\\\": 1666862366766127442, \\\\\\"UUIDs\\\\\\": [{\\\\\\"TDR-UUID\\\\\\": \\\\\\"d717b01e-f094-4dea-8a94-737441be4c70\\\\\\"}, {\\\\\\"TRE-UUID\\\\\\": \\\\\\"e912e1e2-0312-43c9-a880-23aa49d66155\\\\\\"}], \\\\\\"producer\\\\\\": {\\\\\\"environment\\\\\\": \\\\\\"int\\\\\\", \\\\\\"name\\\\\\": \\\\\\"TRE\\\\\\", \\\\\\"process\\\\\\": \\\\\\"int-tre-validate-bagit\\\\\\", \\\\\\"event-name\\\\\\": \\\\\\"bagit-validation-error\\\\\\", \\\\\\"type\\\\\\": \\\\\\"standard\\\\\\"}, \\\\\\"parameters\\\\\\": {\\\\\\"bagit-validation-error\\\\\\": {\\\\\\"reference\\\\\\": \\\\\\"ABC-1234-DEF\\\\\\", \\\\\\"errors\\\\\\": [\\\\\\"some error message\\\\\\"]}}}\\"}"
-       |      }
-       |   ]
-       |}
-       |""".stripMargin
   val genericMessage =
     s"""
        |{

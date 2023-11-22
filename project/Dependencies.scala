@@ -14,9 +14,7 @@ object Dependencies {
   lazy val typesafe = "com.typesafe" % "config" % "1.4.3"
   lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.12.0"
   lazy val kmsUtils =  "uk.gov.nationalarchives" %% "kms-utils" % awsUtilsVersion
-  lazy val s3Utils =  "uk.gov.nationalarchives" %% "s3-utils" % awsUtilsVersion
   lazy val sesUtils =  "uk.gov.nationalarchives" %% "ses-utils" % awsUtilsVersion
-  lazy val sqsUtils =  "uk.gov.nationalarchives" %% "sqs-utils" % awsUtilsVersion
   lazy val snsUtils =  "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
   lazy val ecrUtils =  "uk.gov.nationalarchives" %% "ecr-utils" % awsUtilsVersion
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.17"
@@ -24,6 +22,5 @@ object Dependencies {
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
   lazy val typeSafeLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5"
   lazy val elasticMq = "org.elasticmq" %% "elasticmq-server" % elasticMqVersion
-  lazy val elasticMqSqs = "org.elasticmq" %% "elasticmq-rest-sqs" % elasticMqVersion
   lazy val transformSchemas = "uk.gov.nationalarchives" % "da-transform-schemas" % "2.5"
 }

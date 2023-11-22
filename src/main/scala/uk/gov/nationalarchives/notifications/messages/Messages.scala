@@ -9,10 +9,9 @@ import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3.{basicRequest, _}
 import sttp.model.MediaType
 import uk.gov.nationalarchives.aws.utils.kms.KMSClients.kms
+import uk.gov.nationalarchives.aws.utils.kms._
 import uk.gov.nationalarchives.aws.utils.ses._
 import uk.gov.nationalarchives.aws.utils.sns._
-import uk.gov.nationalarchives.aws.utils.sqs._
-import uk.gov.nationalarchives.aws.utils.kms._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
@@ -24,8 +23,6 @@ trait Messages[T <: IncomingEvent, TContext] {
   def email(incomingEvent: T, context: TContext): Option[SESUtils.Email]
 
   def slack(incomingEvent: T, context: TContext): Option[SlackMessage]
-
-  def sqs(incomingEvent: T, context: TContext): Option[SqsMessageDetails]
 
   def sns(incomingEvent: T, context: TContext): Option[SnsMessageDetails] = None
 }
@@ -40,16 +37,13 @@ object Messages {
     "slack.webhook.judgment_url",
     "slack.webhook.tdr_url",
     "slack.webhook.export_url",
-    "sqs.queue.transform_engine_output",
-    "s3.judgment_export_bucket",
-    "s3.standard_export_bucket",
     "sns.topic.da_event_bus_arn"
   ).map(configName => configName -> kmsUtils.decryptValue(config.getString(configName))).toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
       context <- messages.context(incomingEvent)
-      result <- (sendEmailMessage(incomingEvent, context) |+| sendSlackMessage(incomingEvent, context) |+| sendSQSMessage(incomingEvent, context)
+      result <- (sendEmailMessage(incomingEvent, context) |+| sendSlackMessage(incomingEvent, context)
         |+| sendSNSMessage(incomingEvent, context))
         .getOrElse(IO.pure("No messages have been sent"))
     } yield result
@@ -58,14 +52,6 @@ object Messages {
   private def sendEmailMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     messages.email(incomingEvent, context).map(email => {
       IO.fromTry(SESUtils(SESClients.ses(config.getString("ses.endpoint"))).sendEmail(email).map(_.messageId()))
-    })
-  }
-
-  private def sendSQSMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
-    messages.sqs(incomingEvent, context).map(sqsMessageDetails => {
-      val queueUrl = sqsMessageDetails.queueUrl
-      val messageBody = sqsMessageDetails.messageBody
-      IO(SQSUtils(SQSClients.sqs(config.getString("sqs.endpoint"))).send(queueUrl, messageBody).toString)
     })
   }
 
