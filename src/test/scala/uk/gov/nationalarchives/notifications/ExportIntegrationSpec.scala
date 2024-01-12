@@ -24,23 +24,25 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     ("a successful standard export event using a mock transferring body on staging",
       exportStatusEventInputText(exportStatus8), None, Some(expectedSlackMessage(exportStatus8)), None, None, () => (), "/webhook-export"),
     ("a successful judgment export event on staging",
-      exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, expectedSnsMessage(exportStatus6), () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus7), None, Some(expectedSlackMessage(exportStatus7)), None, expectedSnsMessage(exportStatus7), () => (), "/webhook-export"),
     ("a successful judgment export event using a mock transferring body on staging",
-      exportStatusEventInputText(exportStatus8), None, Some(expectedSlackMessage(exportStatus8)), None, None, () => (), "/webhook-export"),
-    ("a failed export event on staging",
       exportStatusEventInputText(exportStatus9), None, Some(expectedSlackMessage(exportStatus9)), None, None, () => (), "/webhook-export"),
-    ("a failed export on intg with no error details",
+    ("a failed export event on staging",
       exportStatusEventInputText(exportStatus10), None, Some(expectedSlackMessage(exportStatus10)), None, None, () => (), "/webhook-export"),
-    ("a failed export on staging with no error details",
+    ("a failed export on intg with no error details",
       exportStatusEventInputText(exportStatus11), None, Some(expectedSlackMessage(exportStatus11)), None, None, () => (), "/webhook-export"),
+    ("a failed export on staging with no error details",
+      exportStatusEventInputText(exportStatus12), None, Some(expectedSlackMessage(exportStatus12)), None, None, () => (), "/webhook-export"),
     ("a successful standard export event on prod",
-      exportStatusEventInputText(exportStatus12), None, Some(expectedSlackMessage(exportStatus12)), None, expectedSnsMessage(exportStatus12), () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus13), None, Some(expectedSlackMessage(exportStatus13)), None, expectedSnsMessage(exportStatus13), () => (), "/webhook-export"),
     ("a failed standard export event on prod",
-      exportStatusEventInputText(exportStatus13), None, Some(expectedSlackMessage(exportStatus13)), None, None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus14), None, Some(expectedSlackMessage(exportStatus14)), None, None, () => (), "/webhook-export"),
     ("a successful standard export event using a mock transferring body on prod",
-      exportStatusEventInputText(exportStatus8), None, Some(expectedSlackMessage(exportStatus8)), None, None, () => (), "/webhook-export"),
+      exportStatusEventInputText(exportStatus15), None, Some(expectedSlackMessage(exportStatus15)), None, None, () => (), "/webhook-export"),
     ("a successful judgment export on prod",
-    exportStatusEventInputText(exportStatus14), None, Some(expectedSlackMessage(exportStatus14)), None, expectedSnsMessage(exportStatus14), () => (), "/webhook-judgment")
+      exportStatusEventInputText(exportStatus16), None, Some(expectedSlackMessage(exportStatus16)), None, expectedSnsMessage(exportStatus16), () => (), "/webhook-judgment"),
+    ("a successful judgment export event using a mock transferring body on prod",
+      exportStatusEventInputText(exportStatus17), None, Some(expectedSlackMessage(exportStatus17)), None, None, () => (), "/webhook-judgment")
   )
 
   private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")
@@ -56,12 +58,15 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
   private lazy val exportStatus6 = ExportStatusEvent(UUID.randomUUID(), success = true, "staging", Some(successDetailsStandard), None)
   private lazy val exportStatus7 = ExportStatusEvent(UUID.randomUUID(), success = true, "staging", Some(successDetailsJudgment), None)
   private lazy val exportStatus8 = ExportStatusEvent(UUID.randomUUID(), success = true, "staging", Some(successDetailsStandardMockBody), None)
-  private lazy val exportStatus9 = ExportStatusEvent(UUID.randomUUID(), success = false, "staging", None, Some(causeOfFailure))
-  private lazy val exportStatus10 = ExportStatusEvent(UUID.randomUUID(), success = false, "intg", None, None)
-  private lazy val exportStatus11 = ExportStatusEvent(UUID.randomUUID(), success = false, "staging", None, None)
-  private lazy val exportStatus12 = ExportStatusEvent(UUID.randomUUID(), success = true, "prod", Some(successDetailsStandard), None)
-  private lazy val exportStatus13 = ExportStatusEvent(UUID.randomUUID(), success = false, "prod", None, Some(causeOfFailure))
-  private lazy val exportStatus14 = ExportStatusEvent(UUID.randomUUID(), success = true, "prod", Some(successDetailsJudgment), None)
+  private lazy val exportStatus9 = ExportStatusEvent(UUID.randomUUID(), success = true, "staging", Some(successDetailsJudgmentMockBody), None)
+  private lazy val exportStatus10 = ExportStatusEvent(UUID.randomUUID(), success = false, "staging", None, Some(causeOfFailure))
+  private lazy val exportStatus11 = ExportStatusEvent(UUID.randomUUID(), success = false, "intg", None, None)
+  private lazy val exportStatus12 = ExportStatusEvent(UUID.randomUUID(), success = false, "staging", None, None)
+  private lazy val exportStatus13 = ExportStatusEvent(UUID.randomUUID(), success = true, "prod", Some(successDetailsStandard), None)
+  private lazy val exportStatus14 = ExportStatusEvent(UUID.randomUUID(), success = false, "prod", None, Some(causeOfFailure))
+  private lazy val exportStatus15 = ExportStatusEvent(UUID.randomUUID(), success = true, "prod", Some(successDetailsStandardMockBody), None)
+  private lazy val exportStatus16 = ExportStatusEvent(UUID.randomUUID(), success = true, "prod", Some(successDetailsJudgment), None)
+  private lazy val exportStatus17 = ExportStatusEvent(UUID.randomUUID(), success = true, "prod", Some(successDetailsJudgmentMockBody), None)
 
   private def exportStatusEventInputText(exportStatusEvent: ExportStatusEvent): String = {
     val successDetails = exportStatusEvent.successDetails
