@@ -16,8 +16,8 @@ object ExportStatusDecoder {
                                 environment: String,
                                 successDetails: Option[ExportSuccessDetails],
                                 failureCause: Option[String]) extends IncomingEvent {
-    def mockEvent: Boolean = {
-      successDetails.exists(_.transferringBodyName.toUpperCase.contains("MOCK"))
-    }
+//    def mockEvent: Boolean = {
+//      successDetails.exists(_.transferringBodyName.toUpperCase.contains("MOCK"))
+//    }
   }
 }
