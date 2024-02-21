@@ -160,11 +160,6 @@ object EventMessages {
   }
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
-    //Exclude transfers from any 'Mock' body
-    private def sendToDaEventBus(ev: ExportStatusEvent): Boolean = {
-      ev.success
-    }
-
     override def context(event: ExportStatusEvent): IO[Unit] = IO.unit
 
     override def email(incomingEvent: ExportStatusEvent, context: Unit): Option[Email] = {
@@ -204,7 +199,7 @@ object EventMessages {
     }
 
     override def sns(incomingEvent: ExportStatusEvent, context: Unit): Option[SnsMessageDetails] = {
-      if (sendToDaEventBus(incomingEvent)) {
+      if (incomingEvent.success) {
         val exportMessage = incomingEvent.successDetails.get
         val bucketName = exportMessage.exportBucket
         val consignmentRef = exportMessage.consignmentReference
