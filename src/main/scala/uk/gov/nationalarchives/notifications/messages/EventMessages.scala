@@ -160,9 +160,13 @@ object EventMessages {
   }
 
   implicit val exportStatusEventMessages: Messages[ExportStatusEvent, Unit] = new Messages[ExportStatusEvent, Unit] {
-    //Exclude transfers from any 'Mock' body
+    //Exclude transfers from any 'Mock' body on Staging / Prod
     private def sendToDaEventBus(ev: ExportStatusEvent): Boolean = {
-      ev.success && !ev.mockEvent
+      if (ev.environment == "intg") {
+        ev.success
+      } else {
+        ev.success && !ev.mockEvent
+      }
     }
 
     override def context(event: ExportStatusEvent): IO[Unit] = IO.unit
