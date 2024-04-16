@@ -12,7 +12,7 @@ object Dependencies {
   lazy val circeGeneric = "io.circe" %% "circe-generic" % circeVersion
   lazy val circeParser = "io.circe" %% "circe-parser" % circeVersion
   lazy val typesafe = "com.typesafe" % "config" % "1.4.3"
-  lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.12.0"
+  lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.13.1"
   lazy val kmsUtils =  "uk.gov.nationalarchives" %% "kms-utils" % awsUtilsVersion
   lazy val sesUtils =  "uk.gov.nationalarchives" %% "ses-utils" % awsUtilsVersion
   lazy val snsUtils =  "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
