@@ -6,7 +6,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import sttp.client3.{basicRequest, _}
+import sttp.client3._
 import sttp.model.MediaType
 import uk.gov.nationalarchives.aws.utils.kms.KMSClients.kms
 import uk.gov.nationalarchives.aws.utils.kms._
@@ -15,7 +15,12 @@ import uk.gov.nationalarchives.aws.utils.sns._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
+import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyEmailEventDecoder.GovUkNotifyEmailEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.{SlackMessage, SnsMessageDetails, SqsMessageDetails}
+import uk.gov.service.notify.NotificationClient
+import scala.jdk.CollectionConverters._
+
+import scala.util.{Failure, Success, Try}
 
 trait Messages[T <: IncomingEvent, TContext] {
   def context(incomingEvent: T): IO[TContext]
@@ -25,6 +30,8 @@ trait Messages[T <: IncomingEvent, TContext] {
   def slack(incomingEvent: T, context: TContext): Option[SlackMessage]
 
   def sns(incomingEvent: T, context: TContext): Option[SnsMessageDetails] = None
+
+  def govUkNotifyEmail(incomingEvent: T, context: TContext): Option[GovUkNotifyEmailEvent] = None
 }
 
 object Messages {
@@ -37,14 +44,15 @@ object Messages {
     "slack.webhook.judgment_url",
     "slack.webhook.tdr_url",
     "slack.webhook.export_url",
-    "sns.topic.da_event_bus_arn"
+    "sns.topic.da_event_bus_arn",
+    "gov_uk_notify.api_key"
   ).map(configName => configName -> kmsUtils.decryptValue(config.getString(configName))).toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
       context <- messages.context(incomingEvent)
       result <- (sendEmailMessage(incomingEvent, context) |+| sendSlackMessage(incomingEvent, context)
-        |+| sendSNSMessage(incomingEvent, context))
+        |+| sendSNSMessage(incomingEvent, context) |+| sendGovUkNotifyEmailMessage(incomingEvent, context))
         .getOrElse(IO.pure("No messages have been sent"))
     } yield result
   }
@@ -52,6 +60,20 @@ object Messages {
   private def sendEmailMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     messages.email(incomingEvent, context).map(email => {
       IO.fromTry(SESUtils(SESClients.ses(config.getString("ses.endpoint"))).sendEmail(email).map(_.messageId()))
+    })
+  }
+
+  private def sendGovUkNotifyEmailMessage [T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
+    val notifyClient = new NotificationClient(config.getString("gov_uk_notify.api_key"))
+
+    messages.govUkNotifyEmail(incomingEvent, context).map(userEmail => {
+      IO.fromTry(Try {
+        notifyClient.sendEmail(
+          userEmail.templateId,
+          userEmail.userEmail,
+          userEmail.personalisation.asJava,
+          userEmail.reference)
+      }.map(_.getNotificationId.toString))
     })
   }
 

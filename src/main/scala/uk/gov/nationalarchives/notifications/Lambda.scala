@@ -11,6 +11,7 @@ import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.Keycl
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
+import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyEmailEventDecoder.GovUkNotifyEmailEvent
 import uk.gov.nationalarchives.notifications.decoders._
 import uk.gov.nationalarchives.notifications.messages.EventMessages._
 import uk.gov.nationalarchives.notifications.messages.Messages._
@@ -28,6 +29,7 @@ class Lambda {
       case cloudwatchAlarmEvent: CloudwatchAlarmEvent => sendMessages(cloudwatchAlarmEvent)
       case parameterStoreExpiryEvent: ParameterStoreExpiryEvent => sendMessages(parameterStoreExpiryEvent)
       case stepFunctionError: StepFunctionError => sendMessages(stepFunctionError)
+      case govUkNotifyEmailEvent: GovUkNotifyEmailEvent => sendMessages(govUkNotifyEmailEvent)
     }).flatten.unsafeRunSync()
   }
 }

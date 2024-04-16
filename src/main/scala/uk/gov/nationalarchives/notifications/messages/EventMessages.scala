@@ -25,6 +25,7 @@ import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.Keycl
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
+import uk.gov.nationalarchives.notifications.decoders.GovUkNotifyEmailEventDecoder.GovUkNotifyEmailEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import java.net.URI
@@ -238,6 +239,18 @@ object EventMessages {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
       }
     }
+  }
+
+  implicit val govUkNotifyEmailEventMessages: Messages[GovUkNotifyEmailEvent, Unit] = new Messages[GovUkNotifyEmailEvent, Unit] {
+
+    override def context(incomingEvent: GovUkNotifyEmailEvent): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: GovUkNotifyEmailEvent, context: Unit): Option[Email] = Option.empty
+
+    override def slack(incomingEvent: GovUkNotifyEmailEvent, context: Unit): Option[SlackMessage] = Option.empty
+
+    override def govUkNotifyEmail(incomingEvent: GovUkNotifyEmailEvent, context: Unit): Option[GovUkNotifyEmailEvent] =
+      super.govUkNotifyEmail(incomingEvent, context)
   }
 
   implicit val genericRotationMessages: Messages[GenericMessagesEvent, Unit] = new Messages[GenericMessagesEvent, Unit] {
