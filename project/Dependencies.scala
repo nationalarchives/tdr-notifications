@@ -3,8 +3,8 @@ import sbt._
 object Dependencies {
   private val circeVersion = "0.14.6"
   private val sttpClient3Version = "3.9.5"
-  private val elasticMqVersion = "1.5.8"
-  private val awsUtilsVersion = "0.1.159"
+  private val elasticMqVersion = "1.6.0"
+  private val awsUtilsVersion = "0.1.160"
 
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClient3Version
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpClient3Version
@@ -12,7 +12,7 @@ object Dependencies {
   lazy val circeGeneric = "io.circe" %% "circe-generic" % circeVersion
   lazy val circeParser = "io.circe" %% "circe-parser" % circeVersion
   lazy val typesafe = "com.typesafe" % "config" % "1.4.3"
-  lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.12.0"
+  lazy val scalaTags = "com.lihaoyi" %% "scalatags" % "0.13.1"
   lazy val kmsUtils =  "uk.gov.nationalarchives" %% "kms-utils" % awsUtilsVersion
   lazy val sesUtils =  "uk.gov.nationalarchives" %% "ses-utils" % awsUtilsVersion
   lazy val snsUtils =  "uk.gov.nationalarchives" %% "sns-utils" % awsUtilsVersion
