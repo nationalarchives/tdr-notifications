@@ -35,6 +35,7 @@ object Messages {
     "ses.email.to",
     "slack.webhook.url",
     "slack.webhook.judgment_url",
+    "slack.webhook.standard_url",
     "slack.webhook.tdr_url",
     "slack.webhook.export_url",
     "sns.topic.da_event_bus_arn"
@@ -69,6 +70,8 @@ object Messages {
       val url = incomingEvent match {
         case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "judgment") =>
           eventConfig("slack.webhook.judgment_url")
+        case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "standard") =>
+          eventConfig("slack.webhook.standard_url")
         case _: ExportStatusEvent => eventConfig("slack.webhook.export_url")
         case _: KeycloakEvent => eventConfig("slack.webhook.tdr_url")
         case _ => eventConfig("slack.webhook.url")
