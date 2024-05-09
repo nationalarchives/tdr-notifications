@@ -39,6 +39,8 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
       exportStatusEventInputText(prodStandardSuccessMock), None, Some(expectedSlackMessage(prodStandardSuccessMock)), None, None, () => (), "/webhook-standard"),
     ("a failed standard export event on prod",
       exportStatusEventInputText(prodFailure), None, Some(expectedSlackMessage(prodFailure)), None, None, () => (), "/webhook-export"),
+    ("a failed export event on prod",
+      exportStatusEventInputText(prodFailure), None, Some(expectedSlackMessage(prodFailure)), None, None, () => (), "/webhook-tdr"),
     ("a successful judgment export on prod",
       exportStatusEventInputText(prodJudgmentSuccess), None, Some(expectedSlackMessage(prodJudgmentSuccess)), None, expectedSnsMessage(prodJudgmentSuccess), () => (), "/webhook-judgment"),
     ("a successful mock judgment export on prod",
