@@ -66,27 +66,32 @@ object Messages {
   }
 
   private def sendSlackMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
-    messages.slack(incomingEvent, context).map(slackMessage => {
-      val url = incomingEvent match {
-        case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "judgment") =>
-          eventConfig("slack.webhook.judgment_url")
-        case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "standard") =>
-          eventConfig("slack.webhook.standard_url")
-        case _: ExportStatusEvent => eventConfig("slack.webhook.export_url")
-        case _: KeycloakEvent => eventConfig("slack.webhook.tdr_url")
-        case _ => eventConfig("slack.webhook.url")
-      }
-      val requestBody = slackMessage.asJson.noSpaces
+    val urls = webhookUrlsForEvent(incomingEvent)
+    messages.slack(incomingEvent, context).map { message =>
       AsyncHttpClientCatsBackend.resource[IO]().use { backend =>
-        val request = basicRequest
-          .post(uri"$url")
-          .body(requestBody)
-          .contentType(MediaType.ApplicationJson)
-        for {
-          response <- backend.send(request)
-          body <- IO.fromEither(response.body.left.map(e => new RuntimeException(e)))
-        } yield body
+        urls.traverse { url =>
+          backend.send(buildRequest(message, url)).flatMap { response =>
+            IO.fromEither(response.body.left.map(e => new RuntimeException(e)))
+          }
+        }.map(_.mkString("\n"))
       }
-    })
+    }
+  }
+  
+  private def buildRequest(message: SlackMessage, webhookUrl: String) =
+    basicRequest.post(uri"$webhookUrl").body(message.asJson.noSpaces).contentType(MediaType.ApplicationJson)
+      
+  private def webhookUrlsForEvent[TContext, T <: IncomingEvent](incomingEvent: T): Seq[String] = {
+    incomingEvent match {
+      case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "judgment") =>
+        Seq(eventConfig("slack.webhook.judgment_url"))
+      case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "standard") =>
+        Seq(eventConfig("slack.webhook.standard_url"))
+      case ev: ExportStatusEvent =>
+        val failureEscalationUrl = Option.when(ev.environment == "prod" && !ev.success)(eventConfig("slack.webhook.tdr_url"))
+        Seq(Some(eventConfig("slack.webhook.export_url")), failureEscalationUrl).flatten
+      case _: KeycloakEvent => Seq(eventConfig("slack.webhook.tdr_url"))
+      case _ => Seq(eventConfig("slack.webhook.url"))
+    }
   }
 }
