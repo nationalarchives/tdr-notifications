@@ -6,7 +6,7 @@ import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.generic.auto._
 import io.circe.syntax._
 import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
-import sttp.client3.{basicRequest, _}
+import sttp.client3._
 import sttp.model.MediaType
 import uk.gov.nationalarchives.aws.utils.kms.KMSClients.kms
 import uk.gov.nationalarchives.aws.utils.kms._
@@ -15,16 +15,22 @@ import uk.gov.nationalarchives.aws.utils.sns._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
-import uk.gov.nationalarchives.notifications.messages.EventMessages.{SlackMessage, SnsMessageDetails, SqsMessageDetails}
+import uk.gov.nationalarchives.notifications.messages.EventMessages.{GovUKEmailDetails, SlackMessage, SnsMessageDetails}
+import uk.gov.service.notify.NotificationClient
+
+import scala.jdk.CollectionConverters._
+import scala.util.{Failure, Success, Try}
 
 trait Messages[T <: IncomingEvent, TContext] {
   def context(incomingEvent: T): IO[TContext]
 
-  def email(incomingEvent: T, context: TContext): Option[SESUtils.Email]
+  def email(incomingEvent: T, context: TContext): Option[SESUtils.Email] = None
 
-  def slack(incomingEvent: T, context: TContext): Option[SlackMessage]
+  def slack(incomingEvent: T, context: TContext): Option[SlackMessage] = None
 
   def sns(incomingEvent: T, context: TContext): Option[SnsMessageDetails] = None
+
+  def govUkNotifyEmail(incomingEvent: T, context: TContext): Option[GovUKEmailDetails] = None
 }
 
 object Messages {
@@ -38,49 +44,73 @@ object Messages {
     "slack.webhook.standard_url",
     "slack.webhook.tdr_url",
     "slack.webhook.export_url",
-    "sns.topic.da_event_bus_arn"
+    "sns.topic.da_event_bus_arn",
+    "gov_uk_notify.api_key"
   ).map(configName => configName -> kmsUtils.decryptValue(config.getString(configName))).toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
       context <- messages.context(incomingEvent)
       result <- (sendEmailMessage(incomingEvent, context) |+| sendSlackMessage(incomingEvent, context)
-        |+| sendSNSMessage(incomingEvent, context))
+        |+| sendSNSMessage(incomingEvent, context) |+| sendGovUkNotifyEmailMessage(incomingEvent, context))
         .getOrElse(IO.pure("No messages have been sent"))
     } yield result
   }
 
   private def sendEmailMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
-    messages.email(incomingEvent, context).map(email => {
-      IO.fromTry(SESUtils(SESClients.ses(config.getString("ses.endpoint"))).sendEmail(email).map(_.messageId()))
-    })
+    messages
+      .email(incomingEvent, context)
+      .map(email => {
+        IO.fromTry(SESUtils(SESClients.ses(config.getString("ses.endpoint"))).sendEmail(email).map(_.messageId()))
+      })
+  }
+
+  private def sendGovUkNotifyEmailMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
+    val notifyClient = new NotificationClient(config.getString("gov_uk_notify.api_key"))
+
+    messages
+      .govUkNotifyEmail(incomingEvent, context)
+      .map(emailDetails => {
+        IO.fromTry(Try {
+          notifyClient.sendEmail(
+            emailDetails.templateId,
+            emailDetails.userEmail,
+            emailDetails.personalisation.asJava,
+            emailDetails.reference
+          )
+        }.map(_.getNotificationId.toString))
+      })
   }
 
   private def sendSNSMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
-    messages.sns(incomingEvent, context).map(snsMessageDetails => {
-      val endpoint = config.getString("sns.endpoint")
-      val messageBody = snsMessageDetails.messageBody
-      val topicArn = snsMessageDetails.snsTopic
-      IO(SNSUtils(SNSClients.sns(endpoint)).publish(messageBody, topicArn).toString)
-    })
+    messages
+      .sns(incomingEvent, context)
+      .map(snsMessageDetails => {
+        val endpoint = config.getString("sns.endpoint")
+        val messageBody = snsMessageDetails.messageBody
+        val topicArn = snsMessageDetails.snsTopic
+        IO(SNSUtils(SNSClients.sns(endpoint)).publish(messageBody, topicArn).toString)
+      })
   }
 
   private def sendSlackMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     val urls = webhookUrlsForEvent(incomingEvent)
     messages.slack(incomingEvent, context).map { message =>
       AsyncHttpClientCatsBackend.resource[IO]().use { backend =>
-        urls.traverse { url =>
-          backend.send(buildRequest(message, url)).flatMap { response =>
-            IO.fromEither(response.body.left.map(e => new RuntimeException(e)))
+        urls
+          .traverse { url =>
+            backend.send(buildRequest(message, url)).flatMap { response =>
+              IO.fromEither(response.body.left.map(e => new RuntimeException(e)))
+            }
           }
-        }.map(_.mkString("\n"))
+          .map(_.mkString("\n"))
       }
     }
   }
-  
+
   private def buildRequest(message: SlackMessage, webhookUrl: String) =
     basicRequest.post(uri"$webhookUrl").body(message.asJson.noSpaces).contentType(MediaType.ApplicationJson)
-      
+
   private def webhookUrlsForEvent[TContext, T <: IncomingEvent](incomingEvent: T): Seq[String] = {
     incomingEvent match {
       case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "judgment") =>
@@ -91,7 +121,7 @@ object Messages {
         val failureEscalationUrl = Option.when(ev.environment == "prod" && !ev.success)(eventConfig("slack.webhook.tdr_url"))
         Seq(Some(eventConfig("slack.webhook.export_url")), failureEscalationUrl).flatten
       case _: KeycloakEvent => Seq(eventConfig("slack.webhook.tdr_url"))
-      case _ => Seq(eventConfig("slack.webhook.url"))
+      case _                => Seq(eventConfig("slack.webhook.url"))
     }
   }
 }

@@ -25,6 +25,7 @@ import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.Keycl
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
+import uk.gov.nationalarchives.notifications.decoders.TransferCompleteEventDecoder.TransferCompleteEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import java.net.URI
@@ -52,6 +53,8 @@ object EventMessages {
   case class SqsMessageDetails(queueUrl: String, messageBody: String)
 
   case class SnsMessageDetails(snsTopic: String, messageBody: String)
+  
+  case class GovUKEmailDetails(templateId: String, userEmail: String, personalisation: Map[String, String], reference: String)
 
   implicit val scanEventMessages: Messages[ScanEvent, ImageScanReport] = new Messages[ScanEvent, ImageScanReport] {
 
@@ -238,6 +241,19 @@ object EventMessages {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
       }
     }
+  }
+
+  implicit val transferCompleteEventMessages: Messages[TransferCompleteEvent, Unit] = new Messages[TransferCompleteEvent, Unit] {
+    override def context(event: TransferCompleteEvent): IO[Unit] = IO.unit
+    override def govUkNotifyEmail(incomingEvent: TransferCompleteEvent, context: Unit): Option[GovUKEmailDetails] =
+      Some(
+        GovUKEmailDetails(
+          templateId = "placeholder",
+          userEmail = incomingEvent.userEmail,
+          personalisation = Map.empty[String, String], 
+          reference = s"${incomingEvent.reference}-${incomingEvent.}"
+        )
+      )
   }
 
   implicit val genericRotationMessages: Messages[GenericMessagesEvent, Unit] = new Messages[GenericMessagesEvent, Unit] {
