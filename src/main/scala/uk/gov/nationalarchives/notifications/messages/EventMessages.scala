@@ -257,6 +257,7 @@ object EventMessages {
             "userId" -> transferCompleteEvent.userId,
             "transferringBodyName" -> transferCompleteEvent.transferringBodyName,
             "consignmentId" -> transferCompleteEvent.consignmentId,
+            "consignmentReference" -> transferCompleteEvent.consignmentReference,
             "seriesName" -> transferCompleteEvent.seriesName
           ), 
           reference = s"${transferCompleteEvent.consignmentReference}-${transferCompleteEvent.userId}"
