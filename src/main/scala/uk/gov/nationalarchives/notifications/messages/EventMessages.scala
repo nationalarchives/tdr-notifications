@@ -247,22 +247,23 @@ object EventMessages {
   implicit val transferCompleteEventMessages: Messages[TransferCompleteEvent, Unit] = new Messages[TransferCompleteEvent, Unit] {
     override def context(event: TransferCompleteEvent): IO[Unit] = IO.unit
     override def govUkNotifyEmail(transferCompleteEvent: TransferCompleteEvent, context: Unit): Option[GovUKEmailDetails] = {
-      val templateId = config.getString("gov_uk_notify.transfer_complete_template_id")
-      Some(
-        GovUKEmailDetails(
-          templateId = templateId,
-          userEmail = "annie.hawes@nationalarchives.gov.uk",
-          personalisation = Map(
-            "userEmail" -> transferCompleteEvent.userEmail,
-            "userId" -> transferCompleteEvent.userId,
-            "transferringBodyName" -> transferCompleteEvent.transferringBodyName,
-            "consignmentId" -> transferCompleteEvent.consignmentId,
-            "consignmentReference" -> transferCompleteEvent.consignmentReference,
-            "seriesName" -> transferCompleteEvent.seriesName
-          ), 
-          reference = s"${transferCompleteEvent.consignmentReference}-${transferCompleteEvent.userId}"
+      if (config.getBoolean("gov_uk_notify.on")) {
+        Some(
+          GovUKEmailDetails(
+            templateId = config.getString("gov_uk_notify.transfer_complete_template_id"),
+            userEmail = config.getString("tdr_inbox_email_address"),
+            personalisation = Map(
+              "userEmail" -> transferCompleteEvent.userEmail,
+              "userId" -> transferCompleteEvent.userId,
+              "transferringBodyName" -> transferCompleteEvent.transferringBodyName,
+              "consignmentId" -> transferCompleteEvent.consignmentId,
+              "consignmentReference" -> transferCompleteEvent.consignmentReference,
+              "seriesName" -> transferCompleteEvent.seriesName
+            ),
+            reference = s"${transferCompleteEvent.consignmentReference}-${transferCompleteEvent.userId}"
+          )
         )
-      )
+      } else None
     }
   }
 
