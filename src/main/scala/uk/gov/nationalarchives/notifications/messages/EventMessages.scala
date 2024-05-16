@@ -38,6 +38,7 @@ object EventMessages {
   private val tarExtension: String = ".tar.gz"
   private val sh256256Extension: String = ".tar.gz.sha256"
   val logger: Logger = Logger(this.getClass)
+  val config: Config = ConfigFactory.load
 
   trait ExportMessage {
     val consignmentReference: String
@@ -245,15 +246,23 @@ object EventMessages {
 
   implicit val transferCompleteEventMessages: Messages[TransferCompleteEvent, Unit] = new Messages[TransferCompleteEvent, Unit] {
     override def context(event: TransferCompleteEvent): IO[Unit] = IO.unit
-    override def govUkNotifyEmail(incomingEvent: TransferCompleteEvent, context: Unit): Option[GovUKEmailDetails] =
+    override def govUkNotifyEmail(transferCompleteEvent: TransferCompleteEvent, context: Unit): Option[GovUKEmailDetails] = {
+      val templateId = config.getString("gov_uk_notify.transfer_complete_template_id")
       Some(
         GovUKEmailDetails(
-          templateId = "placeholder",
-          userEmail = incomingEvent.userEmail,
-          personalisation = Map.empty[String, String], 
-          reference = s"${incomingEvent.reference}-${incomingEvent.}"
+          templateId = templateId,
+          userEmail = "annie.hawes@nationalarchives.gov.uk",
+          personalisation = Map(
+            "userEmail" -> transferCompleteEvent.userEmail,
+            "userId" -> transferCompleteEvent.userId,
+            "transferringBodyName" -> transferCompleteEvent.transferringBodyName,
+            "consignmentId" -> transferCompleteEvent.consignmentId,
+            "seriesName" -> transferCompleteEvent.seriesName
+          ), 
+          reference = s"${transferCompleteEvent.consignmentReference}-${transferCompleteEvent.userId}"
         )
       )
+    }
   }
 
   implicit val genericRotationMessages: Messages[GenericMessagesEvent, Unit] = new Messages[GenericMessagesEvent, Unit] {
