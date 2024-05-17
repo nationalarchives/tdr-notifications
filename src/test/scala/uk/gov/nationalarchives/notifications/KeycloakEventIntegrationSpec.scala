@@ -5,9 +5,19 @@ import org.scalatest.prop.TableFor8
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 
 class KeycloakEventIntegrationSpec extends LambdaIntegrationSpec {
-  override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
-    ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
-    ("a keycloak event message", scanEventInputText(keycloakEvent), None, Some(expectedKeycloakEventSlackMessage), None, None, () => (), "/webhook-tdr")
+  override lazy val events: Seq[Event] = Seq(
+    Event(
+      description = "a keycloak event message",
+      input = scanEventInputText(keycloakEvent),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedKeycloakEventSlackMessage, webhookUrl = "/webhook-tdr"))
+      )
+    ),
+    Event(
+      description = "a keycloak event message on integration",
+      input = scanEventInputText(keycloakEvent.copy(tdrEnv = "intg")),
+      expectedOutput = ExpectedOutput()
+    )
   )
   private lazy val keycloakEvent = KeycloakEvent("tdrEnv", "Some keycloak event message")
 
@@ -32,15 +42,5 @@ class KeycloakEventIntegrationSpec extends LambdaIntegrationSpec {
        |    }
        |  } ]
        |}""".stripMargin
-  }
-
-  "the process method" should "not send a slack message if the environment is intg" in {
-    val keycloakEvent = KeycloakEvent("intg", "Some keycloak event message")
-    val input = scanEventInputText(keycloakEvent)
-    val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
-    new Lambda().process(stream, null)
-    wiremockSlackServer.verify(0,
-      postRequestedFor(urlEqualTo("/webhook-tdr"))
-    )
   }
 }

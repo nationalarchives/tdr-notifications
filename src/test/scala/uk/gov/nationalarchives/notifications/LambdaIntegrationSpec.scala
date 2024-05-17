@@ -1,15 +1,14 @@
 package uk.gov.nationalarchives.notifications
 
 import com.github.tomakehurst.wiremock.client.WireMock._
-import org.scalatest.prop.{TableDrivenPropertyChecks, TableFor8}
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 
-trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChecks {
-  def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String]
-
-  forAll(events) {
-    (description, input, emailBody, slackBody, sqsMessage, snsMessage, stubContext, slackUrl) => {
-      emailBody match {
+trait LambdaIntegrationSpec extends LambdaSpecUtils {
+  def events: Seq[Event]
+  
+  events.foreach { event => {
+    import event._
+    expectedOutput.emailBody match {
         case Some(body) =>
           "the process method" should s"send an email message for $description" in {
             stubContext()
@@ -28,16 +27,16 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             wiremockSesEndpoint.verify(0, postRequestedFor(urlEqualTo("/")))
           }
       }
-
-      slackBody match {
-        case Some(body) =>
+      
+      expectedOutput.slackMessage match {
+        case Some(message) =>
           "the process method" should s"send a slack message for $description" in {
             stubContext()
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
-            wiremockSlackServer.verify(slackBody.size,
-              postRequestedFor(urlEqualTo(slackUrl))
-                .withRequestBody(equalToJson(body))
+            wiremockSlackServer.verify(message.body.size,
+              postRequestedFor(urlEqualTo(message.webhookUrl))
+                .withRequestBody(equalToJson(message.body))
             )
           }
         case None =>
@@ -46,12 +45,12 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSlackServer.verify(0,
-              postRequestedFor(urlEqualTo(slackUrl))
+              postRequestedFor(anyUrl())
             )
           }
       }
 
-      snsMessage match {
+      expectedOutput.snsMessage match {
         case Some(expectedDetails) =>
           "the process method" should s"send an sns message for $description" in {
             stubContext()
@@ -88,6 +87,21 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils with TableDrivenPropertyChec
   }
 }
 
+case class Event(
+  description: String,
+  input: String,
+  stubContext: () => Unit = () => (),
+  expectedOutput: ExpectedOutput,
+)
+
+case class ExpectedOutput(
+  emailBody: Option[String] = None,
+  slackMessage: Option[SlackMessage] = None,
+  sqsMessage: Option[SqsExpectedMessageDetails] = None,
+  snsMessage: Option[SnsExpectedMessageDetails] = None
+)
+
+case class SlackMessage(body: String, webhookUrl: String)
 case class SqsExpectedMessageDetails(successDetails: ExportSuccessDetails, retryCount: Int)
 
 case class SnsExpectedMessageDetails(consignmentReference: String,
