@@ -34,7 +34,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils {
             stubContext()
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
-            wiremockSlackServer.verify(message.body.size,
+            wiremockSlackServer.verify(1,
               postRequestedFor(urlEqualTo(message.webhookUrl))
                 .withRequestBody(equalToJson(message.body))
             )
