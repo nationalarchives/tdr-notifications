@@ -10,15 +10,28 @@ import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.S
 import java.util.UUID
 
 class StepFunctionErrorIntegrationSpec extends LambdaIntegrationSpec {
-  override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
-    ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
-    ("a step function error on intg",
-      stepFunctionErrorInput(stepFunctionError("intg")), None, None, None, None, () => (), "/webhook"),
-    ("a step function error on staging",
-      stepFunctionErrorInput(stepFunctionError("staging")), None, slackMessage(stepFunctionError("staging")), None, None, () => (), "/webhook"),
-    ("a step function error on prod",
-      stepFunctionErrorInput(stepFunctionError("prod")), None, slackMessage(stepFunctionError("prod")), None, None, () => (), "/webhook"),
+  override lazy val events: Seq[Event] = Seq(
+    Event(
+      description = "a step function error on intg",
+      input = stepFunctionErrorInput(stepFunctionError("intg")),
+      expectedOutput = ExpectedOutput()
+    ),
+    Event(
+      description = "a step function error on staging",
+      input = stepFunctionErrorInput(stepFunctionError("staging")),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(slackMessage(stepFunctionError("staging")).get, "/webhook"))
+      )
+    ),
+    Event(
+      description = "a step function error on prod",
+      input = stepFunctionErrorInput(stepFunctionError("prod")),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(slackMessage(stepFunctionError("prod")).get, "/webhook"))
+      )
+    )
   )
+
 
   def stepFunctionError(environment: String): StepFunctionError = {
     val id = UUID.fromString("49d364ab-8bc3-4c53-90ca-d3f003179cb9")
