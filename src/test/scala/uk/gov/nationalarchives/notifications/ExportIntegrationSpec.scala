@@ -7,44 +7,137 @@ import java.util.UUID
 
 class ExportIntegrationSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
-    ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
-    ("a successful standard export event on intg",
-      exportStatusEventInputText(intgStandardSuccess), None, None, None, expectedSnsMessage(intgStandardSuccess), () => (), "/webhook-export"),
-    ("a successful mock standard export event on intg",
-      exportStatusEventInputText(intgStandardSuccessMock), None, None, None, expectedSnsMessage(intgStandardSuccessMock), () => (), "/webhook-export"),
-    ("a successful judgment export event on intg",
-      exportStatusEventInputText(intgJudgmentSuccess), None, None, None, expectedSnsMessage(intgJudgmentSuccess), () => (), "/webhook-export"),
-    ("a successful mock judgment export event on intg",
-      exportStatusEventInputText(intgJudgmentSuccessMock), None, None, None, expectedSnsMessage(intgJudgmentSuccessMock), () => (), "/webhook-export"),
-    ("a failed export event on intg",
-      exportStatusEventInputText(intgFailure), None, Some(expectedSlackMessage(intgFailure)), None, None, () => (), "/webhook-export"),
-    ("a successful standard export event on staging",
-      exportStatusEventInputText(stagingStandardSuccess), None, Some(expectedSlackMessage(stagingStandardSuccess)), None, expectedSnsMessage(stagingStandardSuccess), () => (), "/webhook-export"),
-    ("a successful mock standard export event on staging",
-      exportStatusEventInputText(stagingStandardSuccessMock), None, Some(expectedSlackMessage(stagingStandardSuccessMock)), None, None, () => (), "/webhook-export"),
-    ("a successful judgment export event on staging",
-      exportStatusEventInputText(stagingJudgmentSuccess), None, Some(expectedSlackMessage(stagingJudgmentSuccess)), None, expectedSnsMessage(stagingJudgmentSuccess), () => (), "/webhook-export"),
-    ("a successful mock judgment export event on staging",
-      exportStatusEventInputText(stagingJudgmentSuccessMock), None, Some(expectedSlackMessage(stagingJudgmentSuccessMock)), None, None, () => (), "/webhook-export"),
-    ("a failed export event on staging",
-      exportStatusEventInputText(stagingFailure), None, Some(expectedSlackMessage(stagingFailure)), None, None, () => (), "/webhook-export"),
-    ("a failed export on intg with no error details",
-      exportStatusEventInputText(intgFailureNoError), None, Some(expectedSlackMessage(intgFailureNoError)), None, None, () => (), "/webhook-export"),
-    ("a failed export on staging with no error details",
-      exportStatusEventInputText(stagingFailureNoError), None, Some(expectedSlackMessage(stagingFailureNoError)), None, None, () => (), "/webhook-export"),
-    ("a successful standard export event on prod",
-      exportStatusEventInputText(prodStandardSuccess), None, Some(expectedSlackMessage(prodStandardSuccess)), None, expectedSnsMessage(prodStandardSuccess), () => (), "/webhook-standard"),
-    ("a successful mock standard export event on prod",
-      exportStatusEventInputText(prodStandardSuccessMock), None, Some(expectedSlackMessage(prodStandardSuccessMock)), None, None, () => (), "/webhook-standard"),
-    ("a failed standard export event on prod",
-      exportStatusEventInputText(prodFailure), None, Some(expectedSlackMessage(prodFailure)), None, None, () => (), "/webhook-export"),
-    ("a failed export event on prod",
-      exportStatusEventInputText(prodFailure), None, Some(expectedSlackMessage(prodFailure)), None, None, () => (), "/webhook-tdr"),
-    ("a successful judgment export on prod",
-      exportStatusEventInputText(prodJudgmentSuccess), None, Some(expectedSlackMessage(prodJudgmentSuccess)), None, expectedSnsMessage(prodJudgmentSuccess), () => (), "/webhook-judgment"),
-    ("a successful mock judgment export on prod",
-      exportStatusEventInputText(prodJudgmentSuccessMock), None, Some(expectedSlackMessage(prodJudgmentSuccessMock)), None, None, () => (), "/webhook-judgment"),
+  override lazy val events: Seq[Event] = Seq(
+    Event(
+      description = "a successful standard export event on intg",
+      input = exportStatusEventInputText(intgStandardSuccess),
+      expectedOutput = ExpectedOutput(
+        snsMessage = expectedSnsMessage(intgStandardSuccess)
+      )
+    ),
+    Event(
+      description = "a successful mock standard export event on intg",
+      input = exportStatusEventInputText(intgStandardSuccessMock),
+      expectedOutput = ExpectedOutput(
+        snsMessage = expectedSnsMessage(intgStandardSuccessMock)
+      )
+    ),
+    Event(
+      description = "a successful judgment export event on intg",
+      input = exportStatusEventInputText(intgJudgmentSuccess),
+      expectedOutput = ExpectedOutput(
+        snsMessage = expectedSnsMessage(intgJudgmentSuccess)
+      )
+    ),
+    Event(
+      description = "a successful mock judgment export event on intg",
+      input = exportStatusEventInputText(intgJudgmentSuccessMock),
+      expectedOutput = ExpectedOutput(
+        snsMessage = expectedSnsMessage(intgJudgmentSuccessMock)
+      )
+    ),
+    Event(
+      description = "a failed export event on intg",
+      input = exportStatusEventInputText(intgFailure),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(intgFailure), webhookUrl = "/webhook-export"))
+      )
+    ),
+    Event(
+      description = "a successful standard export event on staging",
+      input = exportStatusEventInputText(stagingStandardSuccess),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(stagingStandardSuccess), webhookUrl = "/webhook-export")),
+        snsMessage = expectedSnsMessage(stagingStandardSuccess)
+      )
+    ),
+    Event(
+      description = "a successful mock standard export event on staging",
+      input = exportStatusEventInputText(stagingStandardSuccessMock),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(stagingStandardSuccessMock), webhookUrl = "/webhook-export"))
+      )
+    ),
+    Event(
+      description = "a successful judgment export event on staging",
+      input = exportStatusEventInputText(stagingJudgmentSuccess),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(stagingJudgmentSuccess), webhookUrl = "/webhook-export")),
+        snsMessage = expectedSnsMessage(stagingJudgmentSuccess)
+      )
+    ),
+    Event(
+      description = "a successful mock judgment export event on staging",
+      input = exportStatusEventInputText(stagingJudgmentSuccessMock),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(stagingJudgmentSuccessMock), webhookUrl = "/webhook-export"))
+      )
+    ),
+    Event(
+      description = "a failed export event on staging",
+      input = exportStatusEventInputText(stagingFailure),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(stagingFailure), webhookUrl = "/webhook-export"))
+      )
+    ),
+    Event(
+      description = "a failed export on intg with no error details",
+      input = exportStatusEventInputText(intgFailureNoError),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(intgFailureNoError), webhookUrl = "/webhook-export"))
+      )
+    ),
+    Event(
+      description = "a failed export on staging with no error details",
+      input = exportStatusEventInputText(stagingFailureNoError),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(stagingFailureNoError), webhookUrl = "/webhook-export"))
+      )
+    ),
+    Event(
+      description = "a successful standard export event on prod",
+      input = exportStatusEventInputText(prodStandardSuccess),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodStandardSuccess), webhookUrl = "/webhook-standard")),
+        snsMessage = expectedSnsMessage(prodStandardSuccess)
+      )
+    ),
+    Event(
+      description = "a successful mock standard export event on prod",
+      input = exportStatusEventInputText(prodStandardSuccessMock),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodStandardSuccessMock), webhookUrl = "/webhook-standard"))
+      )
+    ),
+    Event(
+      description = "a failed standard export event on prod",
+      input = exportStatusEventInputText(prodFailure),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodFailure), webhookUrl = "/webhook-export"))
+      )
+    ),
+    Event(
+      description = "a failed export event on prod",
+      input = exportStatusEventInputText(prodFailure),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodFailure), webhookUrl = "/webhook-tdr"))
+      )
+    ),
+    Event(
+      description = "a successful judgment export on prod",
+      input = exportStatusEventInputText(prodJudgmentSuccess),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodJudgmentSuccess), webhookUrl = "/webhook-judgment")),
+        snsMessage = expectedSnsMessage(prodJudgmentSuccess)
+      )
+    ),
+    Event(
+      description = "a successful mock judgment export on prod",
+      input = exportStatusEventInputText(prodJudgmentSuccessMock),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodJudgmentSuccessMock), webhookUrl = "/webhook-judgment"))
+      )
+    )
   )
 
   private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")

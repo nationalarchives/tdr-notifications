@@ -9,110 +9,81 @@ import scala.io.Source
 
 class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
 
-  override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
-    ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
-    (
-      "an ECR scan of 'latest' with a mix of severities",
-      scanEventInputText(mixedSeverityEvent),
-      Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1))),
-      Some(expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1))),
-      None,
-      None,
-      stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, mixedSeverityFindings),
-      "/webhook"
-    ),
-    (
-      "an ECR scan of 'latest' with only medium severity vulnerabilities",
-      scanEventInputText(mediumSeverityEvent),
-      None,
-      Some(expectedSlackBody(mediumSeverityEvent, ExpectedFindings(0, 0, 1, 0, 0))),
-      None,
-      None,
-      stubEcrApiResponse(mediumSeverityEvent.detail.imageDigest, mediumSeverityFindings),
-      "/webhook"
+  override lazy val events: Seq[Event] = Seq(
+    Event(
+      description = "an ECR scan of 'latest' with a mix of severities",
+      input = scanEventInputText(mixedSeverityEvent),
+      expectedOutput = ExpectedOutput(
+        emailBody = Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1))),
+        slackMessage = Some(SlackMessage(body = expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1)), webhookUrl = "/webhook"))
       ),
-    (
-      "an ECR scan of 'latest' with only low severity vulnerabilities",
-      scanEventInputText(lowSeverityEvent),
-      None,
-      Some(expectedSlackBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1, 0))),
-      None,
-      None,
-      stubEcrApiResponse(lowSeverityEvent.detail.imageDigest, lowSeverityFindings),
-      "/webhook"
+      stubContext = stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, mixedSeverityFindings)
     ),
-    (
-      "an ECR scan of 'latest' with only undefined severity vulnerabilities",
-      scanEventInputText(undefinedSeverityEvent),
-      None,
-      Some(expectedSlackBody(undefinedSeverityEvent, ExpectedFindings(0, 0, 0, 0, 1))),
-      None,
-      None,
-      stubEcrApiResponse(undefinedSeverityEvent.detail.imageDigest, undefinedFindings),
-      "/webhook"
+    Event(
+      description = "an ECR scan of 'latest' with only medium severity vulnerabilities",
+      input = scanEventInputText(mediumSeverityEvent),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackBody(mediumSeverityEvent, ExpectedFindings(0, 0, 1, 0, 0)), webhookUrl = "/webhook"))
+      ),
+      stubContext = stubEcrApiResponse(mediumSeverityEvent.detail.imageDigest, mediumSeverityFindings)
     ),
-    (
-      "an ECR scan of 'latest' with only informational vulnerabilities",
-      scanEventInputText(informationalEvent),
-      None,
-      None,
-      None,
-      None,
-      stubEcrApiResponse(informationalEvent.detail.imageDigest, informationalFindings),
-      "/webhook"
+    Event(
+      description = "an ECR scan of 'latest' with only low severity vulnerabilities",
+      input = scanEventInputText(lowSeverityEvent),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1, 0)), webhookUrl = "/webhook"))
+      ),
+      stubContext = stubEcrApiResponse(lowSeverityEvent.detail.imageDigest, lowSeverityFindings)
     ),
-    (
-      "an ECR scan of 'latest' with no results",
-      scanEventInputText(noVulnerabilitiesEvent),
-      None,
-      None,
-      None,
-      None,
-      stubEcrApiResponse(noVulnerabilitiesEvent.detail.imageDigest, noFindings),
-      "/webhook"
+    Event(
+      description = "an ECR scan of 'latest' with only undefined severity vulnerabilities",
+      input = scanEventInputText(undefinedSeverityEvent),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackBody(undefinedSeverityEvent, ExpectedFindings(0, 0, 0, 0, 1)), webhookUrl = "/webhook"))
+      ),
+      stubContext = stubEcrApiResponse(undefinedSeverityEvent.detail.imageDigest, undefinedFindings)
     ),
-    (
-      "an ECR scan of an image with a non-deployment tag",
-      scanEventInputText(otherTagEvent),
-      None,
-      None,
-      None,
-      None,
-      stubEcrApiResponse(otherTagEvent.detail.imageDigest, lowSeverityFindings),
-      "/webhook"
+    Event(
+      description = "an ECR scan of 'latest' with only informational vulnerabilities",
+      input = scanEventInputText(informationalEvent),
+      expectedOutput = ExpectedOutput(),
+      stubContext = stubEcrApiResponse(informationalEvent.detail.imageDigest, informationalFindings)
     ),
-    (
-      "an ECR scan of 'intg' with no results",
-      scanEventInputText(intgTagEmptyEvent),
-      None,
-      None,
-      None,
-      None,
-      stubEcrApiResponse(intgTagEmptyEvent.detail.imageDigest, noFindings),
-      "/webhook"
+    Event(
+      description = "an ECR scan of 'latest' with no results",
+      input = scanEventInputText(noVulnerabilitiesEvent),
+      expectedOutput = ExpectedOutput(),
+      stubContext = stubEcrApiResponse(noVulnerabilitiesEvent.detail.imageDigest, noFindings)
     ),
-    (
-      "an ECR scan which only contains a muted vulnerability",
-      scanEventInputText(lowSeverityEvent),
-      None,
-      None,
-      None,
-      None,
-      stubEcrApiResponse(lowSeverityEvent.detail.imageDigest, findingsWithOnlyMutedVulnerability),
-      "/webhook"
+    Event(
+      description = "an ECR scan of an image with a non-deployment tag",
+      input = scanEventInputText(otherTagEvent),
+      expectedOutput = ExpectedOutput(),
+      stubContext = stubEcrApiResponse(otherTagEvent.detail.imageDigest, lowSeverityFindings)
     ),
-    (
-      "an ECR scan with a mix of muted and non-muted vulnerabilities",
-      scanEventInputText(mixedSeverityEvent),
-      Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0))),
-      Some(expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0))),
-      None,
-      None,
-      stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, findingsIncludingMutedVulnerability),
-      "/webhook"
+    Event(
+      description = "an ECR scan of 'intg' with no results",
+      input = scanEventInputText(intgTagEmptyEvent),
+      expectedOutput = ExpectedOutput(),
+      stubContext = stubEcrApiResponse(intgTagEmptyEvent.detail.imageDigest, noFindings)
     ),
+    Event(
+      description = "an ECR scan which only contains a muted vulnerability",
+      input = scanEventInputText(lowSeverityEvent),
+      expectedOutput = ExpectedOutput(),
+      stubContext = stubEcrApiResponse(lowSeverityEvent.detail.imageDigest, findingsWithOnlyMutedVulnerability)
+    ),
+    Event(
+      description = "an ECR scan with a mix of muted and non-muted vulnerabilities",
+      input = scanEventInputText(mixedSeverityEvent),
+      expectedOutput = ExpectedOutput(
+        emailBody = Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0))),
+        slackMessage = Some(SlackMessage(body = expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0)), webhookUrl = "/webhook"))
+      ),
+      stubContext = stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, findingsIncludingMutedVulnerability)
+    )
   )
-
+  
   private lazy val mixedSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd1", mixedCounts))
   private lazy val lowSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd2", lowSeverityCounts))
   private lazy val mediumSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd2", mediumSeverityCounts))

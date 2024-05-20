@@ -5,7 +5,7 @@ import org.scalatest.prop.TableFor8
 
 class GenericMessageIntegrationSpec extends LambdaIntegrationSpec {
 
-  override def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = {
+  override def events: Seq[Event] = {
     val oneMessage: String =
       """ "{\"messages\":[{\"message\":\"A test message\"}]}" """
     val oneMessageText = "A test message"
@@ -13,12 +13,21 @@ class GenericMessageIntegrationSpec extends LambdaIntegrationSpec {
       """ "{\"messages\":[{\"message\":\"A test message\"}, {\"message\":\"A second test message\"}]}" """
     val twoMessagesText = "A test message\\nA second test message"
 
-    Table(
-      ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
-      ("one message",
-        genericEventInput(oneMessage), None, slackMsg(oneMessageText).some, None, None, () => (), "/webhook"),
-      ("two messages",
-        genericEventInput(twoMessages), None, slackMsg(twoMessagesText).some, None, None, () => (), "/webhook")
+    Seq(
+      Event(
+        description = "one message",
+        input = genericEventInput(oneMessage),
+        expectedOutput = ExpectedOutput(
+          slackMessage = Some(SlackMessage(slackMsg(oneMessageText), "/webhook"))
+        )
+      ),
+      Event(
+        description = "two messages",
+        input = genericEventInput(twoMessages),
+        expectedOutput = ExpectedOutput(
+          slackMessage = Some(SlackMessage(slackMsg(twoMessagesText), "/webhook"))
+        )
+      )
     )
   }
 

@@ -6,20 +6,44 @@ import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventD
 
 class ParameterStoreExpiryEventSpec extends LambdaIntegrationSpec {
 
-  override lazy val events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
-    ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
-    ("a GovUk key rotation event on intg",
-      rotationEventInputText(intgApiKeyRotationEvent), None, expectedSlackMessageForApiKey(intgApiKeyRotationEvent), None, None, () => (), "/webhook"),
-    ("a GovUk key rotation event on staging",
-      rotationEventInputText(stagingApiKeyRotationEvent), None, expectedSlackMessageForApiKey(stagingApiKeyRotationEvent), None, None, () => (), "/webhook"),
-    ("a GovUk key rotation event on prod",
-      rotationEventInputText(prodApiKeyRotationEvent), None, expectedSlackMessageForApiKey(prodApiKeyRotationEvent), None, None, () => (), "/webhook"),
-    ("a GitHub access token rotation event",
-      rotationEventInputText(mgmtApiKeyRotationEvent), None, expectedSlackMessageForGitHubAccessToken(mgmtApiKeyRotationEvent), None, None, () => (), "/webhook"),
-    ("Unknown event",
-      rotationEventInputText(unknownEvent), None, expectedSlackMessageForUnknownEven, None, None, () => (), "/webhook")
+  override lazy val events: Seq[Event] = Seq(
+    Event(
+      description = "a GovUk key rotation event on intg",
+      input = rotationEventInputText(intgApiKeyRotationEvent),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(expectedSlackMessageForApiKey(intgApiKeyRotationEvent), "/webhook"))
+      )
+    ),
+    Event(
+      description = "a GovUk key rotation event on staging",
+      input = rotationEventInputText(stagingApiKeyRotationEvent),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(expectedSlackMessageForApiKey(stagingApiKeyRotationEvent), "/webhook"))
+      )
+    ),
+    Event(
+      description = "a GovUk key rotation event on prod",
+      input = rotationEventInputText(prodApiKeyRotationEvent),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(expectedSlackMessageForApiKey(prodApiKeyRotationEvent), "/webhook"))
+      )
+    ),
+    Event(
+      description = "a GitHub access token rotation event",
+      input = rotationEventInputText(mgmtApiKeyRotationEvent),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(expectedSlackMessageForGitHubAccessToken(mgmtApiKeyRotationEvent), "/webhook"))
+      )
+    ),
+    Event(
+      description = "Unknown event",
+      input = rotationEventInputText(unknownEvent),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(expectedSlackMessageForUnknownEvent, "/webhook"))
+      )
+    )
   )
-
+  
   private lazy val intgApiKeyRotationEvent = ParameterStoreExpiryEvent(Detail("/intg/keycloak/govuk_notify/api_key", "No change notification message"))
   private lazy val stagingApiKeyRotationEvent = ParameterStoreExpiryEvent(Detail("/staging/keycloak/govuk_notify/api_key", "No change notification message"))
   private lazy val prodApiKeyRotationEvent = ParameterStoreExpiryEvent(Detail("/prod/keycloak/govuk_notify/api_key", "No change notification message"))
@@ -44,7 +68,7 @@ class ParameterStoreExpiryEventSpec extends LambdaIntegrationSpec {
        |""".stripMargin
   }
 
-  private def expectedSlackMessageForApiKey(rotationEvent: ParameterStoreExpiryEvent): Option[String] = {
+  private def expectedSlackMessageForApiKey(rotationEvent: ParameterStoreExpiryEvent): String = {
     val ssmParameter: String = rotationEvent.detail.`parameter-name`
     val reason: String = rotationEvent.detail.`action-reason`
 
@@ -59,10 +83,10 @@ class ParameterStoreExpiryEventSpec extends LambdaIntegrationSpec {
        |    }
        |  ]
        |}
-       |""".stripMargin.some
+       |""".stripMargin
   }
 
-  private def expectedSlackMessageForGitHubAccessToken(rotationEvent: ParameterStoreExpiryEvent): Option[String] = {
+  private def expectedSlackMessageForGitHubAccessToken(rotationEvent: ParameterStoreExpiryEvent): String = {
     val ssmParameter: String = rotationEvent.detail.`parameter-name`
     val reason: String = rotationEvent.detail.`action-reason`
 
@@ -75,10 +99,10 @@ class ParameterStoreExpiryEventSpec extends LambdaIntegrationSpec {
        |    }
        |  } ]
        |}
-       |""".stripMargin.some
+       |""".stripMargin
   }
 
-  private def expectedSlackMessageForUnknownEven: Option[String] = {
+  private def expectedSlackMessageForUnknownEvent: String = {
     s"""{
        |  "blocks" : [ {
        |    "type" : "section",
@@ -87,6 +111,6 @@ class ParameterStoreExpiryEventSpec extends LambdaIntegrationSpec {
        |      "text" : ":error: *Unknown notify event*\\n*/intg/parameter/unknown*: No change notification message"
        |    }
        |  } ]
-       |}""".stripMargin.some
+       |}""".stripMargin
   }
 }
