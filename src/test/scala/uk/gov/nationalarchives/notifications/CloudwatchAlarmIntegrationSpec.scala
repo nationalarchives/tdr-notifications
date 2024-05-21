@@ -19,7 +19,7 @@ class CloudwatchAlarmIntegrationSpec extends LambdaIntegrationSpec {
        |""".stripMargin
   }
 
-  private def slackMessage(status: String, metricName: String, newStateReason: String, dimensions: String): Option[String] = {
+  private def slackMessage(status: String, metricName: String, newStateReason: String, dimensions: String): String = {
     s"""{
        |  "blocks": [
        |    {
@@ -31,30 +31,23 @@ class CloudwatchAlarmIntegrationSpec extends LambdaIntegrationSpec {
        |    }
        |  ]
        |}
-       |""".stripMargin.some
+       |""".stripMargin
   }
 
-  override def events: TableFor8[String, String, Option[String], Option[String], Option[SqsExpectedMessageDetails], Option[SnsExpectedMessageDetails], () => Unit, String] = Table(
-    ("description", "input", "emailBody", "slackBody", "sqsMessage", "snsMessage", "stubContext", "slackUrl"),
-    (
-      "Alarm Test1 with state OK, reason TestReason1, dimensions test1Name - test1Value",
-      event("OK", "Test1", "TestReason1", "test1Name", "test1Value"),
-      None,
-      slackMessage("OK", "Test1", "TestReason1", "test1Name - test1Value"),
-      None,
-      None,
-      () => (),
-      "/webhook"
+  override def events: Seq[Event] = Seq(
+    Event(
+      description = "Alarm Test1 with state OK, reason TestReason1, dimensions test1Name - test1Value",
+      input = event("OK", "Test1", "TestReason1", "test1Name", "test1Value"),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = slackMessage("OK", "Test1", "TestReason1", "test1Name - test1Value"), webhookUrl = "/webhook"))
+      )
     ),
-    (
-      "Alarm Test2 with state ALARM, reason TestReason2, dimensions test2Name - test2Value",
-      event("ALARM", "Test2", "TestReason2", "test2Name", "test2Value"),
-      None,
-      slackMessage("ALARM", "Test2", "TestReason2", "test2Name - test2Value"),
-      None,
-      None,
-      () => (),
-      "/webhook"
+    Event(
+      description = "Alarm Test2 with state ALARM, reason TestReason2, dimensions test2Name - test2Value",
+      input = event("ALARM", "Test2", "TestReason2", "test2Name", "test2Value"),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(slackMessage("ALARM", "Test2", "TestReason2", "test2Name - test2Value"), webhookUrl = "/webhook"))
+      )
     )
   )
 }
