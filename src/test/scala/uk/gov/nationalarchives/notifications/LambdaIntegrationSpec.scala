@@ -1,7 +1,9 @@
 package uk.gov.nationalarchives.notifications
 
 import com.github.tomakehurst.wiremock.client.WireMock._
+import io.circe.syntax.EncoderOps
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
+import uk.gov.nationalarchives.notifications.messages.EventMessages.GovUKEmailDetails
 
 trait LambdaIntegrationSpec extends LambdaSpecUtils {
   def events: Seq[Event]
@@ -83,6 +85,41 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils {
             wiremockSnsEndpoint.verify(0, postRequestedFor(urlEqualTo("/")))
           }
       }
+      
+    expectedOutput.govUKEmail match {
+      case Some(email) =>
+        "the process method" should s"send a gov uk notify email request for $description" in {
+          stubContext()
+          val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
+          new Lambda().process(stream, null)
+          wiremockGovUkNotifyEndpoint.verify(1,
+            postRequestedFor(urlEqualTo("/v2/notifications/email"))
+              .withRequestBody(
+                equalToJson(
+                  s"""
+                    |{
+                    |  "reference": "${email.reference}",
+                    |  "email_address": "${email.userEmail}",
+                    |  "personalisation": ${email.personalisation.asJson},
+                    |  "template_id": "${email.templateId}"
+                    |}
+                    |""".stripMargin
+                )
+              )
+            
+          )
+        }
+      case None =>
+        "the process method" should s"not send a gov uk notify email for $description" in {
+          stubContext()
+          val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
+          new Lambda().process(stream, null)
+          wiremockGovUkNotifyEndpoint.verify(0,
+            postRequestedFor(anyUrl())
+          )
+        }
+    }
+    
     }
   }
 }
@@ -98,7 +135,8 @@ case class ExpectedOutput(
   emailBody: Option[String] = None,
   slackMessage: Option[SlackMessage] = None,
   sqsMessage: Option[SqsExpectedMessageDetails] = None,
-  snsMessage: Option[SnsExpectedMessageDetails] = None
+  snsMessage: Option[SnsExpectedMessageDetails] = None,
+  govUKEmail: Option[GovUKEmailDetails] = None
 )
 
 case class SlackMessage(body: String, webhookUrl: String)
