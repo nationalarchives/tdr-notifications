@@ -66,7 +66,7 @@ object Messages {
 
   private def sendGovUkNotifyEmailMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     val notifyClient = new NotificationClient(
-      "test_api_key",
+      config.getString("gov_uk_notify.api_key"),
       config.getString("gov_uk_notify.endpoint")
     )
 
