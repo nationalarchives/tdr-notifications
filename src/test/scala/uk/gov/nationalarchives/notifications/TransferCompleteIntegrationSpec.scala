@@ -1,5 +1,6 @@
 package uk.gov.nationalarchives.notifications
 
+import com.typesafe.config.ConfigFactory
 import uk.gov.nationalarchives.notifications.decoders.TransferCompleteEventDecoder.TransferCompleteEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.{GovUKEmailDetails, config}
 
@@ -22,7 +23,7 @@ class TransferCompleteIntegrationSpec extends LambdaIntegrationSpec {
         govUKEmail = Some(
           GovUKEmailDetails(
             reference = "SomeConsignmentReference-SomeUserId",
-            templateId = config.getString("gov_uk_notify.transfer_complete_template_id"),
+            templateId = "TestTemplateId",
             userEmail = "tdr@nationalarchives.gov.uk",
             personalisation = Map(
               "userEmail" -> "test@test.test",

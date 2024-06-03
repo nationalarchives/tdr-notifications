@@ -247,10 +247,10 @@ object EventMessages {
   implicit val transferCompleteEventMessages: Messages[TransferCompleteEvent, Unit] = new Messages[TransferCompleteEvent, Unit] {
     override def context(event: TransferCompleteEvent): IO[Unit] = IO.unit
     override def govUkNotifyEmail(transferCompleteEvent: TransferCompleteEvent, context: Unit): Option[GovUKEmailDetails] = {
-      if (config.getBoolean("gov_uk_notify.on")) {
+      if (eventConfig("gov_uk_notify.on").toBoolean) {
         Some(
           GovUKEmailDetails(
-            templateId = config.getString("gov_uk_notify.transfer_complete_template_id"),
+            templateId = eventConfig("gov_uk_notify.transfer_complete_template_id"),
             userEmail = config.getString("tdr_inbox_email_address"),
             personalisation = Map(
               "userEmail" -> transferCompleteEvent.userEmail,

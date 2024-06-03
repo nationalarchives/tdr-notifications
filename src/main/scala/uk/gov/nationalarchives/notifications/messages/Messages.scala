@@ -44,7 +44,10 @@ object Messages {
     "slack.webhook.standard_url",
     "slack.webhook.tdr_url",
     "slack.webhook.export_url",
-    "sns.topic.da_event_bus_arn"
+    "sns.topic.da_event_bus_arn",
+    "gov_uk_notify.on",
+    "gov_uk_notify.api_key",
+    "gov_uk_notify.transfer_complete_template_id"
   ).map(configName => configName -> kmsUtils.decryptValue(config.getString(configName))).toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
@@ -66,7 +69,7 @@ object Messages {
 
   private def sendGovUkNotifyEmailMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
     val notifyClient = new NotificationClient(
-      config.getString("gov_uk_notify.api_key"),
+      eventConfig("gov_uk_notify.api_key"),
       config.getString("gov_uk_notify.endpoint")
     )
 
