@@ -5,14 +5,15 @@ import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock.{ok, okJson, post, urlEqualTo}
 import com.github.tomakehurst.wiremock.common.FileSource
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import com.github.tomakehurst.wiremock.extension.{Parameters, ResponseDefinitionTransformer}
+import com.github.tomakehurst.wiremock.extension.{Parameters, ResponseDefinitionTransformerV2}
 import com.github.tomakehurst.wiremock.http.{Request, ResponseDefinition}
-import com.github.tomakehurst.wiremock.stubbing.StubMapping
+import com.github.tomakehurst.wiremock.stubbing.{ServeEvent, StubMapping}
 import io.circe.generic.auto._
 import io.circe.parser.decode
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach}
+
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.util.UUID
@@ -21,16 +22,16 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
 
   val wiremockSesEndpoint = new WireMockServer(9001)
   val wiremockSlackServer = new WireMockServer(9002)
-  val wiremockKmsEndpoint = new WireMockServer(new WireMockConfiguration().port(9004).extensions(new ResponseDefinitionTransformer {
-    override def transform(request: Request, responseDefinition: ResponseDefinition, files: FileSource, parameters: Parameters): ResponseDefinition = {
+  val wiremockKmsEndpoint = new WireMockServer(new WireMockConfiguration().port(9004).extensions(new ResponseDefinitionTransformerV2 {
+    override def transform(serveEvent: ServeEvent): ResponseDefinition = {
       case class KMSRequest(CiphertextBlob: String)
-      decode[KMSRequest](request.getBodyAsString) match {
+      decode[KMSRequest](serveEvent.getRequest.getBodyAsString) match {
         case Left(err) => throw err
         case Right(req) =>
           val charset = Charset.defaultCharset()
           val plainText = charset.newDecoder.decode(ByteBuffer.wrap(req.CiphertextBlob.getBytes(charset))).toString
           ResponseDefinitionBuilder
-            .like(responseDefinition)
+            .like(serveEvent.getResponseDefinition)
             .withBody(s"""{"Plaintext": "$plainText"}""")
             .build()
       }

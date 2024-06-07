@@ -1,8 +1,7 @@
 package uk.gov.nationalarchives.notifications
 
-import com.typesafe.config.ConfigFactory
 import uk.gov.nationalarchives.notifications.decoders.TransferCompleteEventDecoder.TransferCompleteEvent
-import uk.gov.nationalarchives.notifications.messages.EventMessages.{GovUKEmailDetails, config}
+import uk.gov.nationalarchives.notifications.messages.EventMessages.GovUKEmailDetails
 
 class TransferCompleteIntegrationSpec extends LambdaIntegrationSpec {
   override lazy val events: Seq[Event] = Seq(
@@ -38,7 +37,6 @@ class TransferCompleteIntegrationSpec extends LambdaIntegrationSpec {
       )
     )
   )
-  
   
   def transferCompleteNotificationInputString(transferCompleteEvent: TransferCompleteEvent): String = {
     import transferCompleteEvent._

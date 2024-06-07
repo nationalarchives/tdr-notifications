@@ -106,7 +106,6 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils {
                     |""".stripMargin
                 )
               )
-            
           )
         }
       case None =>
@@ -118,8 +117,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils {
             postRequestedFor(anyUrl())
           )
         }
-    }
-    
+      }
     }
   }
 }
