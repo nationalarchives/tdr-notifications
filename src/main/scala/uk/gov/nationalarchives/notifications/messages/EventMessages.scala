@@ -25,6 +25,7 @@ import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.Keycl
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
+import uk.gov.nationalarchives.notifications.decoders.TransferCompleteEventDecoder.TransferCompleteEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import java.net.URI
@@ -37,6 +38,7 @@ object EventMessages {
   private val tarExtension: String = ".tar.gz"
   private val sh256256Extension: String = ".tar.gz.sha256"
   val logger: Logger = Logger(this.getClass)
+  val config: Config = ConfigFactory.load
 
   trait ExportMessage {
     val consignmentReference: String
@@ -52,6 +54,8 @@ object EventMessages {
   case class SqsMessageDetails(queueUrl: String, messageBody: String)
 
   case class SnsMessageDetails(snsTopic: String, messageBody: String)
+  
+  case class GovUKEmailDetails(templateId: String, userEmail: String, personalisation: Map[String, String], reference: String)
 
   implicit val scanEventMessages: Messages[ScanEvent, ImageScanReport] = new Messages[ScanEvent, ImageScanReport] {
 
@@ -237,6 +241,29 @@ object EventMessages {
       } else {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
       }
+    }
+  }
+
+  implicit val transferCompleteEventMessages: Messages[TransferCompleteEvent, Unit] = new Messages[TransferCompleteEvent, Unit] {
+    override def context(event: TransferCompleteEvent): IO[Unit] = IO.unit
+    override def govUkNotifyEmail(transferCompleteEvent: TransferCompleteEvent, context: Unit): Option[GovUKEmailDetails] = {
+      if (eventConfig("gov_uk_notify.on").toBoolean) {
+        Some(
+          GovUKEmailDetails(
+            templateId = eventConfig("gov_uk_notify.transfer_complete_template_id"),
+            userEmail = config.getString("tdr_inbox_email_address"),
+            personalisation = Map(
+              "userEmail" -> transferCompleteEvent.userEmail,
+              "userId" -> transferCompleteEvent.userId,
+              "transferringBodyName" -> transferCompleteEvent.transferringBodyName,
+              "consignmentId" -> transferCompleteEvent.consignmentId,
+              "consignmentReference" -> transferCompleteEvent.consignmentReference,
+              "seriesName" -> transferCompleteEvent.seriesName
+            ),
+            reference = s"${transferCompleteEvent.consignmentReference}-${transferCompleteEvent.userId}"
+          )
+        )
+      } else None
     }
   }
 
