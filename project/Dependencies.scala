@@ -3,9 +3,8 @@ import sbt._
 object Dependencies {
   private val circeVersion = "0.14.8"
   private val sttpClient3Version = "3.9.7"
-  private val awsUtilsVersion = "0.1.187"
+  private val awsUtilsVersion = "0.1.191"
   private val elasticMqVersion = "1.6.5"
-
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClient3Version
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpClient3Version
   lazy val circeCore = "io.circe" %% "circe-core" % circeVersion
