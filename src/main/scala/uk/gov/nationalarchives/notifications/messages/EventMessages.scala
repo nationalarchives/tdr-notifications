@@ -22,6 +22,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder.
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
+import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
@@ -261,6 +262,28 @@ object EventMessages {
               "seriesName" -> transferCompleteEvent.seriesName
             ),
             reference = s"${transferCompleteEvent.consignmentReference}-${transferCompleteEvent.userId}"
+          )
+        )
+      } else None
+    }
+  }
+
+  implicit val metadataReviewRequestEventMessages: Messages[MetadataReviewRequestEvent, Unit] = new Messages[MetadataReviewRequestEvent, Unit] {
+    override def context(event: MetadataReviewRequestEvent): IO[Unit] = IO.unit
+    override def govUkNotifyEmail(metadataReviewRequestEvent: MetadataReviewRequestEvent, context: Unit): Option[GovUKEmailDetails] = {
+      if (eventConfig("gov_uk_notify.on").toBoolean) {
+        Some(
+          GovUKEmailDetails(
+            templateId = eventConfig("gov_uk_notify.metadata_review_template_id"),
+            userEmail = config.getString("tdr_inbox_email_address"),
+            personalisation = Map(
+              "userEmail" -> metadataReviewRequestEvent.userEmail,
+              "userId" -> metadataReviewRequestEvent.userId,
+              "consignmentId" -> metadataReviewRequestEvent.consignmentId,
+              "transferringBodyName" -> metadataReviewRequestEvent.transferringBodyName,
+              "consignmentReference" -> metadataReviewRequestEvent.consignmentReference,
+            ),
+            reference = s"${metadataReviewRequestEvent.consignmentReference}"
           )
         )
       } else None
