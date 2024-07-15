@@ -300,10 +300,6 @@ object EventMessages {
             templateId = eventConfig("gov_uk_notify.metadata_review_submitted_template_id"),
             userEmail = config.getString("tdr_inbox_email_address"),
             personalisation = Map(
-              "userEmail" -> metadataReviewSubmittedEvent.userEmail,
-              "userId" -> metadataReviewSubmittedEvent.userId,
-              "consignmentId" -> metadataReviewSubmittedEvent.consignmentId,
-              "transferringBodyName" -> metadataReviewSubmittedEvent.transferringBodyName,
               "consignmentReference" -> metadataReviewSubmittedEvent.consignmentReference,
               "urlLink" -> metadataReviewSubmittedEvent.urlLink,
             ),

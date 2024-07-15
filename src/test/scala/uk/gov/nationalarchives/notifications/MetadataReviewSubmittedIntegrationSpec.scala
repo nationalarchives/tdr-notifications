@@ -9,11 +9,7 @@ class MetadataReviewSubmittedIntegrationSpec extends LambdaIntegrationSpec {
       description = "A metadata review submitted event",
       input = metadataReviewSubmittedNotificationInputString(
         MetadataReviewSubmittedEvent(
-          transferringBodyName = "SomeTransferringBody",
           consignmentReference = "SomeConsignmentReference",
-          consignmentId = "SomeConsignmentId",
-          userId = "SomeUserId",
-          userEmail = "test@test.test",
           urlLink = "example.com",
         )
       ),
@@ -26,11 +22,7 @@ class MetadataReviewSubmittedIntegrationSpec extends LambdaIntegrationSpec {
             userEmail = "tdr@nationalarchives.gov.uk",
             personalisation = Map(
               "urlLink" -> "example.com",
-              "userEmail" -> "test@test.test",
               "consignmentReference" -> "SomeConsignmentReference",
-              "userId" -> "SomeUserId",
-              "consignmentId" -> "SomeConsignmentId",
-              "transferringBodyName" -> "SomeTransferringBody",
             )
           )
         )
@@ -44,7 +36,7 @@ class MetadataReviewSubmittedIntegrationSpec extends LambdaIntegrationSpec {
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"urlLink\\" : \\"$urlLink\\",\\"transferringBodyName\\":\\"$transferringBodyName\\",\\"consignmentReference\\":\\"$consignmentReference\\",\\"consignmentId\\" : \\"$consignmentId\\",\\"userId\\" : \\"$userId\\",\\"userEmail\\" : \\"$userEmail\\"}"
+       |       "Message": "{\\"consignmentReference\\":\\"$consignmentReference\\",\\"urlLink\\" : \\"$urlLink\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
