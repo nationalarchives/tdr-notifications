@@ -23,6 +23,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.Export
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
+import uk.gov.nationalarchives.notifications.decoders.MetadataReviewSubmittedDecoder.MetadataReviewSubmittedEvent
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
@@ -284,6 +285,29 @@ object EventMessages {
               "consignmentReference" -> metadataReviewRequestEvent.consignmentReference,
             ),
             reference = s"${metadataReviewRequestEvent.consignmentReference}"
+          )
+        )
+      } else None
+    }
+  }
+
+  implicit val metadataReviewSubmittedEventMessages: Messages[MetadataReviewSubmittedEvent, Unit] = new Messages[MetadataReviewSubmittedEvent, Unit] {
+    override def context(event: MetadataReviewSubmittedEvent): IO[Unit] = IO.unit
+    override def govUkNotifyEmail(metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent, context: Unit): Option[GovUKEmailDetails] = {
+      if (eventConfig("gov_uk_notify.on").toBoolean) {
+        Some(
+          GovUKEmailDetails(
+            templateId = eventConfig("gov_uk_notify.metadata_review_submitted_template_id"),
+            userEmail = config.getString("tdr_inbox_email_address"),
+            personalisation = Map(
+              "userEmail" -> metadataReviewSubmittedEvent.userEmail,
+              "userId" -> metadataReviewSubmittedEvent.userId,
+              "consignmentId" -> metadataReviewSubmittedEvent.consignmentId,
+              "transferringBodyName" -> metadataReviewSubmittedEvent.transferringBodyName,
+              "consignmentReference" -> metadataReviewSubmittedEvent.consignmentReference,
+              "urlLink" -> metadataReviewSubmittedEvent.urlLink,
+            ),
+            reference = s"${metadataReviewSubmittedEvent.consignmentReference}"
           )
         )
       } else None
