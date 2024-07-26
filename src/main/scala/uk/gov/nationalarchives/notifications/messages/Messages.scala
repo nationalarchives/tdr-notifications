@@ -49,7 +49,8 @@ object Messages {
     "gov_uk_notify.api_key",
     "gov_uk_notify.transfer_complete_template_id",
     "gov_uk_notify.metadata_review_template_id",
-    "gov_uk_notify.metadata_review_submitted_template_id"
+    "gov_uk_notify.metadata_review_submitted_template_id",
+    "tdr_inbox_email_address"
   ).map(configName => configName -> kmsUtils.decryptValue(config.getString(configName))).toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
