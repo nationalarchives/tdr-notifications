@@ -56,7 +56,7 @@ object EventMessages {
   case class SqsMessageDetails(queueUrl: String, messageBody: String)
 
   case class SnsMessageDetails(snsTopic: String, messageBody: String)
-  
+
   case class GovUKEmailDetails(templateId: String, userEmail: String, personalisation: Map[String, String], reference: String)
 
   implicit val scanEventMessages: Messages[ScanEvent, ImageScanReport] = new Messages[ScanEvent, ImageScanReport] {
@@ -275,7 +275,7 @@ object EventMessages {
       if (eventConfig("gov_uk_notify.on").toBoolean) {
         Some(
           GovUKEmailDetails(
-            templateId = eventConfig("gov_uk_notify.metadata_review_template_id"),
+            templateId = eventConfig("gov_uk_notify.metadata_review_requested_dta_template_id"),
             userEmail = config.getString("tdr_inbox_email_address"),
             personalisation = Map(
               "userEmail" -> metadataReviewRequestEvent.userEmail,
@@ -294,11 +294,12 @@ object EventMessages {
   implicit val metadataReviewSubmittedEventMessages: Messages[MetadataReviewSubmittedEvent, Unit] = new Messages[MetadataReviewSubmittedEvent, Unit] {
     override def context(event: MetadataReviewSubmittedEvent): IO[Unit] = IO.unit
     override def govUkNotifyEmail(metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent, context: Unit): Option[GovUKEmailDetails] = {
+      val templateId = if (metadataReviewSubmittedEvent.status == "Completed") eventConfig("gov_uk_notify.metadata_review_approved_template_id") else eventConfig("gov_uk_notify.metadata_review_rejected_template_id")
       if (eventConfig("gov_uk_notify.on").toBoolean) {
         Some(
           GovUKEmailDetails(
-            templateId = eventConfig("gov_uk_notify.metadata_review_submitted_template_id"),
-            userEmail = config.getString("tdr_inbox_email_address"),
+            templateId = templateId,
+            userEmail = metadataReviewSubmittedEvent.userEmail,
             personalisation = Map(
               "consignmentReference" -> metadataReviewSubmittedEvent.consignmentReference,
               "urlLink" -> metadataReviewSubmittedEvent.urlLink,

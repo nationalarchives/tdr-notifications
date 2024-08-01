@@ -11,6 +11,8 @@ class MetadataReviewSubmittedIntegrationSpec extends LambdaIntegrationSpec {
         MetadataReviewSubmittedEvent(
           consignmentReference = "SomeConsignmentReference",
           urlLink = "example.com",
+          userEmail = "email@mail.com",
+          status = "Completed"
         )
       ),
       stubContext = stubDummyGovUkNotifyEmailResponse,
@@ -19,7 +21,7 @@ class MetadataReviewSubmittedIntegrationSpec extends LambdaIntegrationSpec {
           GovUKEmailDetails(
             reference = "SomeConsignmentReference",
             templateId = "TestTemplateId",
-            userEmail = "tdr@nationalarchives.gov.uk",
+            userEmail = "email@mail.com",
             personalisation = Map(
               "urlLink" -> "example.com",
               "consignmentReference" -> "SomeConsignmentReference",
@@ -36,7 +38,7 @@ class MetadataReviewSubmittedIntegrationSpec extends LambdaIntegrationSpec {
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"consignmentReference\\":\\"$consignmentReference\\",\\"urlLink\\" : \\"$urlLink\\"}"
+       |       "Message": "{\\"consignmentReference\\":\\"$consignmentReference\\",\\"urlLink\\" : \\"$urlLink\\",\\"userEmail\\" : \\"$userEmail\\",\\"status\\" : \\"$status\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
