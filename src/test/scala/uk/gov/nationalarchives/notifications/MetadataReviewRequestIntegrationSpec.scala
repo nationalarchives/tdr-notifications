@@ -6,7 +6,7 @@ import uk.gov.nationalarchives.notifications.messages.EventMessages.GovUKEmailDe
 class MetadataReviewRequestIntegrationSpec extends LambdaIntegrationSpec {
   override lazy val events: Seq[Event] = Seq(
     Event(
-      description = "A transfer complete event",
+      description = "A metadata review DTA request event",
       input = metadataReviewRequestNotificationInputString(
         MetadataReviewRequestEvent(
           transferringBodyName = "SomeTransferringBody",
@@ -28,6 +28,31 @@ class MetadataReviewRequestIntegrationSpec extends LambdaIntegrationSpec {
               "userId" -> "SomeUserId",
               "transferringBodyName" -> "SomeTransferringBody",
               "consignmentId" -> "SomeConsignmentId",
+              "consignmentReference" -> "SomeConsignmentReference",
+            )
+          )
+        )
+      )
+    ),
+    Event(
+      description = "A metadata review TB request event",
+      input = metadataReviewRequestNotificationInputString(
+        MetadataReviewRequestEvent(
+          transferringBodyName = "SomeTransferringBody",
+          consignmentReference = "SomeConsignmentReference",
+          consignmentId = "SomeConsignmentId",
+          userId = "SomeUserId",
+          userEmail = "test@test.test"
+        )
+      ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
+      expectedOutput = ExpectedOutput(
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            reference = "SomeConsignmentReference",
+            templateId = "TestTemplateId",
+            userEmail = "test@test.test",
+            personalisation = Map(
               "consignmentReference" -> "SomeConsignmentReference",
             )
           )

@@ -30,7 +30,7 @@ trait Messages[T <: IncomingEvent, TContext] {
 
   def sns(incomingEvent: T, context: TContext): Option[SnsMessageDetails] = None
 
-  def govUkNotifyEmail(incomingEvent: T, context: TContext): Option[GovUKEmailDetails] = None
+  def govUkNotifyEmail(incomingEvent: T, context: TContext): List[Option[GovUKEmailDetails]] = Nil
 }
 
 object Messages {
@@ -77,8 +77,8 @@ object Messages {
       config.getString("gov_uk_notify.endpoint")
     )
 
-    messages
-      .govUkNotifyEmail(incomingEvent, context)
+    val temp = messages
+      .govUkNotifyEmail(incomingEvent, context).flatMap(_
       .map(emailDetails => {
         IO.fromTry(Try {
           notifyClient.sendEmail(
@@ -88,7 +88,10 @@ object Messages {
             emailDetails.reference
           )
         }.map(_.getNotificationId.toString))
-      })
+      }))
+
+    val s = 1
+    temp.headOption
   }
 
   private def sendSNSMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
