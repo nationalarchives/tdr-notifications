@@ -34,7 +34,7 @@ trait Messages[T <: IncomingEvent, TContext] {
 }
 
 object Messages {
-  private val env = sys.env.getOrElse("ENVIRONMENT", "TEST")
+  private val env = sys.env.getOrElse("ENVIRONMENT", "test")
   val config: Config = ConfigFactory.load(s"application.$env.conf").withFallback(ConfigFactory.load())
   val kmsUtils: KMSUtils = KMSUtils(kms(config.getString("kms.endpoint")), Map("LambdaFunctionName" -> config.getString("function.name")))
   val eventConfig: Map[String, String] = List(
