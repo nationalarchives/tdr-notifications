@@ -80,8 +80,8 @@ object Messages {
     )
 
     messages
-      .govUkNotifyEmail(incomingEvent, context).flatMap(_
-        .map(emailDetails => {
+      .govUkNotifyEmail(incomingEvent, context).flatMap {
+        _.map(emailDetails =>
           IO.fromTry(Try {
             notifyClient.sendEmail(
               emailDetails.templateId,
@@ -90,7 +90,8 @@ object Messages {
               emailDetails.reference
             )
           }.map(_.getNotificationId.toString))
-        })).headOption
+        )
+      }.headOption
   }
 
   private def sendSNSMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
@@ -132,7 +133,7 @@ object Messages {
         val failureEscalationUrl = Option.when(ev.environment == "prod" && !ev.success)(eventConfig("slack.webhook.tdr_url"))
         Seq(Some(eventConfig("slack.webhook.export_url")), failureEscalationUrl).flatten
       case _: KeycloakEvent => Seq(eventConfig("slack.webhook.tdr_url"))
-      case _ => Seq(eventConfig("slack.webhook.url"))
+      case _                => Seq(eventConfig("slack.webhook.url"))
     }
   }
 }
