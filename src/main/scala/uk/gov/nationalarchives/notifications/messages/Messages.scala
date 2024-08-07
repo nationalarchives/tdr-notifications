@@ -30,7 +30,7 @@ trait Messages[T <: IncomingEvent, TContext] {
 
   def sns(incomingEvent: T, context: TContext): Option[SnsMessageDetails] = None
 
-  def govUkNotifyEmail(incomingEvent: T, context: TContext): Option[GovUKEmailDetails] = None
+  def govUkNotifyEmail(incomingEvent: T, context: TContext): List[GovUKEmailDetails] = Nil
 }
 
 object Messages {
@@ -46,11 +46,13 @@ object Messages {
     "slack.webhook.tdr_url",
     "slack.webhook.export_url",
     "sns.topic.da_event_bus_arn",
-    "gov_uk_notify.on",
+    "gov_uk_notify.external_emails_on",
     "gov_uk_notify.api_key",
     "gov_uk_notify.transfer_complete_template_id",
-    "gov_uk_notify.metadata_review_template_id",
-    "gov_uk_notify.metadata_review_submitted_template_id",
+    "gov_uk_notify.metadata_review_requested_dta_template_id",
+    "gov_uk_notify.metadata_review_requested_tb_template_id",
+    "gov_uk_notify.metadata_review_rejected_template_id",
+    "gov_uk_notify.metadata_review_approved_template_id",
     "tdr_inbox_email_address"
   ).map(configName => configName -> kmsUtils.decryptValue(config.getString(configName))).toMap
 
@@ -79,7 +81,7 @@ object Messages {
 
     messages
       .govUkNotifyEmail(incomingEvent, context)
-      .map(emailDetails => {
+      .map(emailDetails =>
         IO.fromTry(Try {
           notifyClient.sendEmail(
             emailDetails.templateId,
@@ -88,7 +90,7 @@ object Messages {
             emailDetails.reference
           )
         }.map(_.getNotificationId.toString))
-      })
+      ).headOption
   }
 
   private def sendSNSMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {

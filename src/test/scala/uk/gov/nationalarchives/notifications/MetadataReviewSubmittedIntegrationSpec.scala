@@ -6,11 +6,13 @@ import uk.gov.nationalarchives.notifications.messages.EventMessages.GovUKEmailDe
 class MetadataReviewSubmittedIntegrationSpec extends LambdaIntegrationSpec {
   override lazy val events: Seq[Event] = Seq(
     Event(
-      description = "A metadata review submitted event",
+      description = "An approved metadata review submitted event",
       input = metadataReviewSubmittedNotificationInputString(
         MetadataReviewSubmittedEvent(
           consignmentReference = "SomeConsignmentReference",
           urlLink = "example.com",
+          userEmail = "email@mail.com",
+          status = "Completed"
         )
       ),
       stubContext = stubDummyGovUkNotifyEmailResponse,
@@ -18,8 +20,33 @@ class MetadataReviewSubmittedIntegrationSpec extends LambdaIntegrationSpec {
         govUKEmail = Some(
           GovUKEmailDetails(
             reference = "SomeConsignmentReference",
-            templateId = "TestTemplateId",
-            userEmail = "tdr@nationalarchives.gov.uk",
+            templateId = "TestApprovedTemplateId",
+            userEmail = "email@mail.com",
+            personalisation = Map(
+              "urlLink" -> "example.com",
+              "consignmentReference" -> "SomeConsignmentReference",
+            )
+          )
+        )
+      )
+    ),
+    Event(
+      description = "A rejected metadata review submitted event",
+      input = metadataReviewSubmittedNotificationInputString(
+        MetadataReviewSubmittedEvent(
+          consignmentReference = "SomeConsignmentReference",
+          urlLink = "example.com",
+          userEmail = "email@mail.com",
+          status = "CompletedWithIssues"
+        )
+      ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
+      expectedOutput = ExpectedOutput(
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            reference = "SomeConsignmentReference",
+            templateId = "TestRejectedTemplateId",
+            userEmail = "email@mail.com",
             personalisation = Map(
               "urlLink" -> "example.com",
               "consignmentReference" -> "SomeConsignmentReference",
@@ -36,7 +63,7 @@ class MetadataReviewSubmittedIntegrationSpec extends LambdaIntegrationSpec {
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"consignmentReference\\":\\"$consignmentReference\\",\\"urlLink\\" : \\"$urlLink\\"}"
+       |       "Message": "{\\"consignmentReference\\":\\"$consignmentReference\\",\\"urlLink\\" : \\"$urlLink\\",\\"userEmail\\" : \\"$userEmail\\",\\"status\\" : \\"$status\\"}"
        |      }
        |    }
        |  ]}""".stripMargin

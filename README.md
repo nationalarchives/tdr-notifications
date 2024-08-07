@@ -20,6 +20,7 @@ Set these environment variables, either on the command line or in IntelliJ depen
 * `TO_EMAIL`: the email address that alerts should be sent to. For testing purposes, this should normally be your own
   email address rather than a team one.
 * `DA_EVENT_BUS`: this is the SNS topic where successful export messages are published. Need to ensure have permissions to publish to the SNS topic
+* `ENVIRONMENT`: the environment to which to send GOVUK emails
 
 The app uses AWS services like Simple Email Service (SES) in the management account, so you will also need to update
 your AWS credentials file with temporary mgmt credentials.

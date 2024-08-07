@@ -91,6 +91,26 @@ object LambdaRunner extends App {
        |  ]}
        |""".stripMargin
 
+  val metadataRequest =
+    s"""{
+       | "Records": [
+       |   {
+       |     "Sns": {
+       |       "Message": "{\\"transferringBodyName\\":\\"transferringBodyTest\\",\\"consignmentReference\\":\\"consignmentReferenceTest\\",\\"consignmentId\\" : \\"consignmentIdTest\\",\\"userId\\" : \\"userIdTest\\",\\"userEmail\\" : \\"user@email.com\\"}"
+       |      }
+       |    }
+       |  ]}""".stripMargin
+
+  val metadataSubmitted =
+    s"""{
+       | "Records": [
+       |   {
+       |     "Sns": {
+       |       "Message": "{\\"consignmentReference\\":\\"consignmentReferenceTest\\",\\"urlLink\\" : \\"https://www.nationalarchives.gov.uk/\\",\\"userEmail\\" : \\"user@email.com\\",\\"status\\" : \\"Completed\\"}"
+       |      }
+       |    }
+       |  ]}""".stripMargin
+
   val inputStream = new ByteArrayInputStream(cloudwatchAlarmMessage.getBytes)
 
   // The Lambda does not use the output stream, so it's safe to set it to null
