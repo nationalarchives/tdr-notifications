@@ -183,7 +183,7 @@ object EventMessages {
     }
 
     override def slack(incomingEvent: ExportStatusEvent, context: Unit): Option[SlackMessage] = {
-      if(incomingEvent.environment != "intg" || !incomingEvent.success) {
+      if (incomingEvent.environment != "intg" || !incomingEvent.success) {
 
         val exportInfoMessage = constructExportInfoMessage(incomingEvent)
 
@@ -280,40 +280,43 @@ object EventMessages {
               "userId" -> metadataReviewRequestEvent.userId,
               "consignmentId" -> metadataReviewRequestEvent.consignmentId,
               "transferringBodyName" -> metadataReviewRequestEvent.transferringBodyName,
-              "consignmentReference" -> metadataReviewRequestEvent.consignmentReference,
+              "consignmentReference" -> metadataReviewRequestEvent.consignmentReference
             ),
             reference = s"${metadataReviewRequestEvent.consignmentReference}"
           )
-        ),
+        )
+      ) ++ (if (eventConfig("gov_uk_notify.external_emails_on").toBoolean) List(
         Some(
           GovUKEmailDetails(
             templateId = eventConfig("gov_uk_notify.metadata_review_requested_tb_template_id"),
             userEmail = metadataReviewRequestEvent.userEmail,
             personalisation = Map(
-              "consignmentReference" -> metadataReviewRequestEvent.consignmentReference,
+              "consignmentReference" -> metadataReviewRequestEvent.consignmentReference
             ),
             reference = s"${metadataReviewRequestEvent.consignmentReference}"
           )
         )
-      )
+      ) else List.empty)
     }
   }
 
   implicit val metadataReviewSubmittedEventMessages: Messages[MetadataReviewSubmittedEvent, Unit] = new Messages[MetadataReviewSubmittedEvent, Unit] {
     override def context(event: MetadataReviewSubmittedEvent): IO[Unit] = IO.unit
     override def govUkNotifyEmail(metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent, context: Unit): List[Option[GovUKEmailDetails]] = {
-      val templateId = if (metadataReviewSubmittedEvent.status == "Completed") eventConfig("gov_uk_notify.metadata_review_approved_template_id") else eventConfig("gov_uk_notify.metadata_review_rejected_template_id")
-      List(Some(
-        GovUKEmailDetails(
-          templateId = templateId,
-          userEmail = metadataReviewSubmittedEvent.userEmail,
-          personalisation = Map(
-            "consignmentReference" -> metadataReviewSubmittedEvent.consignmentReference,
-            "urlLink" -> metadataReviewSubmittedEvent.urlLink,
-          ),
-          reference = s"${metadataReviewSubmittedEvent.consignmentReference}"
-        )
-      ))
+      if (eventConfig("gov_uk_notify.external_emails_on").toBoolean) {
+        val templateId = if (metadataReviewSubmittedEvent.status == "Completed") eventConfig("gov_uk_notify.metadata_review_approved_template_id") else eventConfig("gov_uk_notify.metadata_review_rejected_template_id")
+        List(Some(
+          GovUKEmailDetails(
+            templateId = templateId,
+            userEmail = metadataReviewSubmittedEvent.userEmail,
+            personalisation = Map(
+              "consignmentReference" -> metadataReviewSubmittedEvent.consignmentReference,
+              "urlLink" -> metadataReviewSubmittedEvent.urlLink,
+            ),
+            reference = s"${metadataReviewSubmittedEvent.consignmentReference}"
+          )
+        ))
+      } else Nil
     }
   }
 
