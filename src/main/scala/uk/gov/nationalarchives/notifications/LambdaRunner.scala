@@ -96,7 +96,7 @@ object LambdaRunner extends App {
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"transferringBodyName\\":\\"transferringBodyTest\\",\\"consignmentReference\\":\\"consignmentReferenceTest\\",\\"consignmentId\\" : \\"consignmentIdTest\\",\\"userId\\" : \\"userIdTest\\",\\"userEmail\\" : \\"thanh.lam@nationalarchives.gov.uk\\"}"
+       |       "Message": "{\\"transferringBodyName\\":\\"transferringBodyTest\\",\\"consignmentReference\\":\\"consignmentReferenceTest\\",\\"consignmentId\\" : \\"consignmentIdTest\\",\\"userId\\" : \\"userIdTest\\",\\"userEmail\\" : \\"user@email.com\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
@@ -106,7 +106,7 @@ object LambdaRunner extends App {
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"consignmentReference\\":\\"consignmentReferenceTest\\",\\"urlLink\\" : \\"https://www.nationalarchives.gov.uk/\\",\\"userEmail\\" : \\"thanh.lam@nationalarchives.gov.uk\\",\\"status\\" : \\"Completed\\"}"
+       |       "Message": "{\\"consignmentReference\\":\\"consignmentReferenceTest\\",\\"urlLink\\" : \\"https://www.nationalarchives.gov.uk/\\",\\"userEmail\\" : \\"user@email.com\\",\\"status\\" : \\"Completed\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
