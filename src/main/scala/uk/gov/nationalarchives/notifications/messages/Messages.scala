@@ -30,7 +30,7 @@ trait Messages[T <: IncomingEvent, TContext] {
 
   def sns(incomingEvent: T, context: TContext): Option[SnsMessageDetails] = None
 
-  def govUkNotifyEmail(incomingEvent: T, context: TContext): List[Option[GovUKEmailDetails]] = Nil
+  def govUkNotifyEmail(incomingEvent: T, context: TContext): List[GovUKEmailDetails] = Nil
 }
 
 object Messages {
@@ -80,18 +80,17 @@ object Messages {
     )
 
     messages
-      .govUkNotifyEmail(incomingEvent, context).flatMap {
-        _.map(emailDetails =>
-          IO.fromTry(Try {
-            notifyClient.sendEmail(
-              emailDetails.templateId,
-              emailDetails.userEmail,
-              emailDetails.personalisation.asJava,
-              emailDetails.reference
-            )
-          }.map(_.getNotificationId.toString))
-        )
-      }.headOption
+      .govUkNotifyEmail(incomingEvent, context)
+      .map(emailDetails =>
+        IO.fromTry(Try {
+          notifyClient.sendEmail(
+            emailDetails.templateId,
+            emailDetails.userEmail,
+            emailDetails.personalisation.asJava,
+            emailDetails.reference
+          )
+        }.map(_.getNotificationId.toString))
+      ).headOption
   }
 
   private def sendSNSMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
