@@ -253,7 +253,7 @@ object EventMessages {
         List(Some(
           GovUKEmailDetails(
             templateId = eventConfig("gov_uk_notify.transfer_complete_template_id"),
-            userEmail = config.getString("tdr_inbox_email_address"),
+            userEmail = eventConfig("tdr_inbox_email_address"),
             personalisation = Map(
               "userEmail" -> transferCompleteEvent.userEmail,
               "userId" -> transferCompleteEvent.userId,
@@ -277,7 +277,7 @@ object EventMessages {
           Some(
           GovUKEmailDetails(
             templateId = eventConfig("gov_uk_notify.metadata_review_requested_dta_template_id"),
-            userEmail = config.getString("tdr_inbox_email_address"),
+            userEmail = eventConfig("tdr_inbox_email_address"),
             personalisation = Map(
               "userEmail" -> metadataReviewRequestEvent.userEmail,
               "userId" -> metadataReviewRequestEvent.userId,

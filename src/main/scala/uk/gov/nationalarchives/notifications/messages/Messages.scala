@@ -5,8 +5,8 @@ import cats.implicits._
 import com.typesafe.config.{Config, ConfigFactory}
 import io.circe.generic.auto._
 import io.circe.syntax._
-import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.client3._
+import sttp.client3.asynchttpclient.cats.AsyncHttpClientCatsBackend
 import sttp.model.MediaType
 import uk.gov.nationalarchives.aws.utils.kms.KMSClients.kms
 import uk.gov.nationalarchives.aws.utils.kms._
@@ -19,7 +19,7 @@ import uk.gov.nationalarchives.notifications.messages.EventMessages.{GovUKEmailD
 import uk.gov.service.notify.NotificationClient
 
 import scala.jdk.CollectionConverters._
-import scala.util.{Failure, Success, Try}
+import scala.util.Try
 
 trait Messages[T <: IncomingEvent, TContext] {
   def context(incomingEvent: T): IO[TContext]
@@ -34,7 +34,8 @@ trait Messages[T <: IncomingEvent, TContext] {
 }
 
 object Messages {
-  val config: Config = ConfigFactory.load
+  private val env = sys.env.getOrElse("ENVIRONMENT", "test")
+  val config: Config = ConfigFactory.load(s"application.$env.conf").withFallback(ConfigFactory.load())
   val kmsUtils: KMSUtils = KMSUtils(kms(config.getString("kms.endpoint")), Map("LambdaFunctionName" -> config.getString("function.name")))
   val eventConfig: Map[String, String] = List(
     "alerts.ecr-scan.mute",
@@ -51,7 +52,8 @@ object Messages {
     "gov_uk_notify.metadata_review_requested_dta_template_id",
     "gov_uk_notify.metadata_review_requested_tb_template_id",
     "gov_uk_notify.metadata_review_rejected_template_id",
-    "gov_uk_notify.metadata_review_approved_template_id"
+    "gov_uk_notify.metadata_review_approved_template_id",
+    "tdr_inbox_email_address"
   ).map(configName => configName -> kmsUtils.decryptValue(config.getString(configName))).toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
