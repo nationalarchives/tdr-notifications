@@ -96,7 +96,7 @@ object LambdaRunner extends App {
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"transferringBodyName\\":\\"transferringBodyTest\\",\\"consignmentReference\\":\\"consignmentReferenceTest\\",\\"consignmentId\\" : \\"consignmentIdTest\\",\\"userId\\" : \\"userIdTest\\",\\"userEmail\\" : \\"user@email.com\\"}"
+       |       "Message": "{\\"transferringBodyName\\":\\"transferringBodyTest\\",\\"consignmentReference\\":\\"consignmentReferenceTest\\",\\"consignmentId\\" : \\"consignmentIdTest\\",\\"seriesCode\\" : \\"seriesCode\\",\\"userId\\" : \\"userIdTest\\",\\"userEmail\\" : \\"user@email.com\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
@@ -107,6 +107,16 @@ object LambdaRunner extends App {
        |   {
        |     "Sns": {
        |       "Message": "{\\"consignmentReference\\":\\"consignmentReferenceTest\\",\\"urlLink\\" : \\"https://www.nationalarchives.gov.uk/\\",\\"userEmail\\" : \\"user@email.com\\",\\"status\\" : \\"Completed\\"}"
+       |      }
+       |    }
+       |  ]}""".stripMargin
+
+  val transferComplete =
+    s"""{
+       | "Records": [
+       |   {
+       |     "Sns": {
+       |       "Message": "{\\"transferringBodyName\\":\\"transferringBodyName\\",\\"consignmentReference\\":\\"consignmentReference\\",\\"consignmentId\\" : \\"consignmentId\\",\\"seriesName\\" : \\"seriesName\\",\\"userId\\" : \\"userId\\",\\"userEmail\\" : \\"user@email.com\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
