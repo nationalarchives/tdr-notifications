@@ -251,7 +251,7 @@ object EventMessages {
     override def govUkNotifyEmail(transferCompleteEvent: TransferCompleteEvent, context: Unit): List[GovUKEmailDetails] = {
       List(
         GovUKEmailDetails(
-          templateId = eventConfig("gov_uk_notify.transfer_complete_template_id"),
+          templateId = eventConfig("gov_uk_notify.transfer_complete_dta_template_id"),
           userEmail = eventConfig("tdr_inbox_email_address"),
           personalisation = Map(
             "userEmail" -> transferCompleteEvent.userEmail,
@@ -263,7 +263,16 @@ object EventMessages {
           ),
           reference = s"${transferCompleteEvent.consignmentReference}-${transferCompleteEvent.userId}"
         )
-      )
+      ) ++ (if (eventConfig("gov_uk_notify.external_emails_on").toBoolean) List(
+        GovUKEmailDetails(
+          templateId = eventConfig("gov_uk_notify.transfer_complete_tb_template_id"),
+          userEmail = transferCompleteEvent.userEmail,
+          personalisation = Map(
+            "consignmentReference" -> transferCompleteEvent.consignmentReference
+          ),
+          reference = s"${transferCompleteEvent.consignmentReference}"
+        )
+      ) else List.empty)
     }
   }
 
@@ -279,7 +288,8 @@ object EventMessages {
               "userId" -> metadataReviewRequestEvent.userId,
               "consignmentId" -> metadataReviewRequestEvent.consignmentId,
               "transferringBodyName" -> metadataReviewRequestEvent.transferringBodyName,
-              "consignmentReference" -> metadataReviewRequestEvent.consignmentReference
+              "consignmentReference" -> metadataReviewRequestEvent.consignmentReference,
+              "seriesCode" -> metadataReviewRequestEvent.seriesCode
             ),
             reference = s"${metadataReviewRequestEvent.consignmentReference}"
           )
