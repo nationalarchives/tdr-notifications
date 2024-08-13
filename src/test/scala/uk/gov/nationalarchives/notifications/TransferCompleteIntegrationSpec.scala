@@ -6,7 +6,7 @@ import uk.gov.nationalarchives.notifications.messages.EventMessages.GovUKEmailDe
 class TransferCompleteIntegrationSpec extends LambdaIntegrationSpec {
   override lazy val events: Seq[Event] = Seq(
     Event(
-      description = "A transfer complete event",
+      description = "A transfer complete DTA event",
       input = transferCompleteNotificationInputString(
         TransferCompleteEvent(
           transferringBodyName = "SomeTransferringBody",
@@ -22,7 +22,7 @@ class TransferCompleteIntegrationSpec extends LambdaIntegrationSpec {
         govUKEmail = Some(
           GovUKEmailDetails(
             reference = "SomeConsignmentReference-SomeUserId",
-            templateId = "TestTemplateId",
+            templateId = "TestTransferDTATemplateId",
             userEmail = "tdr@nationalarchives.gov.uk",
             personalisation = Map(
               "userEmail" -> "test@test.test",
@@ -31,6 +31,32 @@ class TransferCompleteIntegrationSpec extends LambdaIntegrationSpec {
               "consignmentId" -> "SomeConsignmentId",
               "consignmentReference" -> "SomeConsignmentReference",
               "seriesName" -> "SomeSeriesName"
+            )
+          )
+        )
+      )
+    ),
+    Event(
+      description = "A transfer complete TB event",
+      input = transferCompleteNotificationInputString(
+        TransferCompleteEvent(
+          transferringBodyName = "SomeTransferringBody",
+          consignmentReference = "SomeConsignmentReference",
+          consignmentId = "SomeConsignmentId",
+          seriesName = "SomeSeriesName",
+          userId = "SomeUserId",
+          userEmail = "test@test.test"
+        )
+      ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
+      expectedOutput = ExpectedOutput(
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            reference = "SomeConsignmentReference",
+            templateId = "TestTransferTBTemplateId",
+            userEmail = "test@test.test",
+            personalisation = Map(
+              "consignmentReference" -> "SomeConsignmentReference",
             )
           )
         )
