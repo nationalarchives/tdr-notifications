@@ -1,6 +1,5 @@
 package uk.gov.nationalarchives.notifications
 
-import org.scalatest.prop.TableFor8
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportStatusEvent, ExportSuccessDetails}
 
 import java.util.UUID

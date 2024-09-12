@@ -72,7 +72,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils {
                 .withRequestBody(containing(s"reference$fieldValueSeparator${expectedDetails.consignmentReference}"))
                 .withRequestBody(containing(s"originator${fieldValueSeparator}TDR"))
                 .withRequestBody(containing(s"consignmentType"))
-//               .withRequestBody(containing(s"transferringBody$fieldValueSeparator${expectedDetails.transferringBodyName}"))
+                .withRequestBody(containing(s"transferringBody$fieldValueSeparator"))
                 .withRequestBody(containing(s"series$fieldValueSeparator${expectedDetails.series}"))
                 .withRequestBody(containing(s"Bucket$fieldValueSeparator${expectedDetails.bucketName}"))
                 .withRequestBody(containing(s"s3BagKey$fieldValueSeparator${expectedDetails.consignmentReference}.tar.gz"))
