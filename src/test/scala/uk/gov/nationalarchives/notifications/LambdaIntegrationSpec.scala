@@ -69,12 +69,14 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils {
                 .withRequestBody(containing("executionId"))
                 .withRequestBody(containing("parentExecutionId"))
                 .withRequestBody(containing("parameters"))
-                .withRequestBody(containing(s"reference${fieldValueSeparator}${expectedDetails.consignmentReference}"))
+                .withRequestBody(containing(s"reference$fieldValueSeparator${expectedDetails.consignmentReference}"))
                 .withRequestBody(containing(s"originator${fieldValueSeparator}TDR"))
                 .withRequestBody(containing(s"consignmentType"))
-                .withRequestBody(containing(s"Bucket${fieldValueSeparator}${expectedDetails.bucketName}"))
-                .withRequestBody(containing(s"s3BagKey${fieldValueSeparator}${expectedDetails.consignmentReference}.tar.gz"))
-                .withRequestBody(containing(s"s3BagSha256Key${fieldValueSeparator}${expectedDetails.consignmentReference}.tar.gz.sha256"))
+//               .withRequestBody(containing(s"transferringBody$fieldValueSeparator${expectedDetails.transferringBodyName}"))
+                .withRequestBody(containing(s"series$fieldValueSeparator${expectedDetails.series}"))
+                .withRequestBody(containing(s"Bucket$fieldValueSeparator${expectedDetails.bucketName}"))
+                .withRequestBody(containing(s"s3BagKey$fieldValueSeparator${expectedDetails.consignmentReference}.tar.gz"))
+                .withRequestBody(containing(s"s3BagSha256Key$fieldValueSeparator${expectedDetails.consignmentReference}.tar.gz.sha256"))
             )
           }
         case None =>
@@ -142,5 +144,7 @@ case class SqsExpectedMessageDetails(successDetails: ExportSuccessDetails, retry
 
 case class SnsExpectedMessageDetails(consignmentReference: String,
                                      consignmentType: String,
+                                     transferringBodyName: String,
+                                     series: String,
                                      bucketName: String,
                                      environment: String)

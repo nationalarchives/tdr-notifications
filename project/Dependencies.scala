@@ -1,9 +1,9 @@
 import sbt._
 
 object Dependencies {
-  private val circeVersion = "0.14.9"
+  private val circeVersion = "0.14.10"
   private val sttpClient3Version = "3.9.7"
-  private val awsUtilsVersion = "0.1.203"
+  private val awsUtilsVersion = "0.1.205"
   private val elasticMqVersion = "1.6.6"
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClient3Version
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpClient3Version
@@ -18,9 +18,9 @@ object Dependencies {
   lazy val ecrUtils =  "uk.gov.nationalarchives" %% "ecr-utils" % awsUtilsVersion
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.19"
   lazy val wiremock = "com.github.tomakehurst" % "wiremock" % "3.0.1"
-  lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
+  lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.3"
   lazy val typeSafeLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5"
   lazy val elasticMq = "org.elasticmq" %% "elasticmq-server" % elasticMqVersion
-  lazy val transformSchemas = "uk.gov.nationalarchives" % "da-transform-schemas" % "2.8"
+  lazy val transformSchemas = "uk.gov.nationalarchives" % "da-transform-schemas" % "2.9-SNAPSHOT"
   lazy val notifyJavaClient = "uk.gov.service.notify" % "notifications-java-client" % "5.2.0-RELEASE"
 }

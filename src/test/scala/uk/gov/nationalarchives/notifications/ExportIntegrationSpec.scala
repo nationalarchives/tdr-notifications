@@ -140,10 +140,10 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     )
   )
 
-  private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")
-  private lazy val successDetailsJudgment = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "judgment", "export-bucket")
-  private lazy val successDetailsStandardMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "standard", "export-bucket")
-  private lazy val successDetailsJudgmentMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "judgment", "export-bucket")
+  private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "series-id", "standard", "export-bucket")
+  private lazy val successDetailsJudgment = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "", "judgment", "export-bucket")
+  private lazy val successDetailsStandardMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "series-id", "standard", "export-bucket")
+  private lazy val successDetailsJudgmentMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "", "judgment", "export-bucket")
   private lazy val causeOfFailure = "Cause of failure"
 
   private lazy val intgStandardSuccess = ExportStatusEvent(UUID.randomUUID(), success = true, environment = "intg", successDetails = Some(successDetailsStandard), failureCause = None)
@@ -171,7 +171,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     val failureCause = exportStatusEvent.failureCause
     val exportOutputJson = if(successDetails.isDefined) {
       val sd = successDetails.get
-      s""", \\"successDetails\\":{\\"userId\\": \\"${sd.userId}\\",\\"consignmentReference\\": \\"${sd.consignmentReference}\\",\\"transferringBodyName\\": \\"${sd.transferringBodyName}\\", \\"consignmentType\\": \\"${sd.consignmentType}\\", \\"exportBucket\\": \\"${sd.exportBucket}\\"}"""
+      s""", \\"successDetails\\":{\\"userId\\": \\"${sd.userId}\\",\\"consignmentReference\\": \\"${sd.consignmentReference}\\",\\"transferringBodyName\\": \\"${sd.transferringBodyName}\\", \\"series\\": \\"${sd.series}\\", \\"consignmentType\\": \\"${sd.consignmentType}\\", \\"exportBucket\\": \\"${sd.exportBucket}\\"}"""
     } else if(failureCause.isDefined) s""", \\"failureCause\\":\\"${failureCause.get}\\" """ else """"""
 
     s"""
@@ -223,10 +223,12 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
       val successDetails = exportStatusEvent.successDetails.get
       val consignmentRef: String = successDetails.consignmentReference
       val consignmentType: String = successDetails.consignmentType
+      val transferringBody: String = successDetails.transferringBodyName
+      val series: String = successDetails.series
       val bucket: String = successDetails.exportBucket
       val environment: String = exportStatusEvent.environment
 
-      Some(SnsExpectedMessageDetails(consignmentRef, consignmentType, bucket, environment))
+      Some(SnsExpectedMessageDetails(consignmentRef, consignmentType, transferringBody, series, bucket, environment))
 
     } else None
   }

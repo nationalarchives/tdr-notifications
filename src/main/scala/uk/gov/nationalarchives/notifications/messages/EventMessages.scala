@@ -39,7 +39,7 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 object EventMessages {
   private val tarExtension: String = ".tar.gz"
   private val sh256256Extension: String = ".tar.gz.sha256"
-  val logger: Logger = Logger(this.getClass)
+  private val logger: Logger = Logger(this.getClass)
   val config: Config = ConfigFactory.load
 
   trait ExportMessage {
@@ -52,8 +52,6 @@ object EventMessages {
   case class SlackBlock(`type`: String, text: SlackText)
 
   case class SlackMessage(blocks: List[SlackBlock])
-
-  case class SqsMessageDetails(queueUrl: String, messageBody: String)
 
   case class SnsMessageDetails(snsTopic: String, messageBody: String)
 
@@ -218,11 +216,13 @@ object EventMessages {
         val exportMessage = incomingEvent.successDetails.get
         val bucketName = exportMessage.exportBucket
         val consignmentRef = exportMessage.consignmentReference
+        val series = exportMessage.series
+        val transferringBodyName = exportMessage.transferringBodyName
         logger.info(s"Digital Archiving event bus export event for $consignmentRef")
 
         val consignmentType = exportMessage.consignmentType
         val producer = Producer(incomingEvent.environment, `type` = consignmentType)
-        Some(generateSnsExportMessageBody(bucketName, consignmentRef, producer))
+        Some(generateSnsExportMessageBody(bucketName, consignmentRef, producer, series, transferringBodyName))
       } else {
         None
       }
@@ -378,7 +378,9 @@ object EventMessages {
 
   private def generateSnsExportMessageBody(bucketName: String,
                                            consignmentRef: String,
-                                           producer: Producer): SnsMessageDetails = {
+                                           producer: Producer,
+                                           series: String,
+                                           transferringBodyName: String): SnsMessageDetails = {
     val topicArn = eventConfig("sns.topic.da_event_bus_arn")
     val originator = "TDR"
     val function = "tdr-export-process"
@@ -388,7 +390,15 @@ object EventMessages {
     }
 
     val properties = Properties(classOf[BagAvailable].getCanonicalName, Timestamp.from(now).toString, function, TDR, UUID.randomUUID().toString, None)
-    val parameter = available.Parameters(consignmentRef, consignmentType, Some(originator), bucketName, s"$consignmentRef$tarExtension", s"$consignmentRef$sh256256Extension")
+    val parameter = available.Parameters(
+      consignmentRef,
+      consignmentType,
+      Some(transferringBodyName),
+      Some(series),
+      Some(originator),
+      bucketName,
+      s"$consignmentRef$tarExtension",
+      s"$consignmentRef$sh256256Extension")
 
     val messageBody = ExportEventNotification(properties, parameter).asJson.printWith(Printer.noSpaces)
 

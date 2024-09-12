@@ -8,6 +8,7 @@ object ExportStatusDecoder {
   case class ExportSuccessDetails(userId: UUID,
                                   consignmentReference: String,
                                   transferringBodyName: String,
+                                  series: String,
                                   consignmentType: String,
                                   exportBucket: String) extends ExportMessage
   case class ExportStatusEvent(
