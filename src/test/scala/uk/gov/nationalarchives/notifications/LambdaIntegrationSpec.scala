@@ -5,6 +5,8 @@ import io.circe.syntax.EncoderOps
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportSuccessDetails
 import uk.gov.nationalarchives.notifications.messages.EventMessages.GovUKEmailDetails
 
+import java.net.URLEncoder
+
 trait LambdaIntegrationSpec extends LambdaSpecUtils {
   def events: Seq[Event]
   
@@ -57,6 +59,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils {
           "the process method" should s"send an sns message for $description" in {
             stubContext()
             val fieldValueSeparator: String = "%22%3A%22"
+            val transferringBody = URLEncoder.encode(expectedDetails.transferringBodyName, "UTF-8")
             val stream = new java.io.ByteArrayInputStream(input.getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
             new Lambda().process(stream, null)
             wiremockSnsEndpoint.verify(1,
@@ -72,7 +75,7 @@ trait LambdaIntegrationSpec extends LambdaSpecUtils {
                 .withRequestBody(containing(s"reference$fieldValueSeparator${expectedDetails.consignmentReference}"))
                 .withRequestBody(containing(s"originator${fieldValueSeparator}TDR"))
                 .withRequestBody(containing(s"consignmentType"))
-                .withRequestBody(containing(s"transferringBody$fieldValueSeparator"))
+                .withRequestBody(containing(s"transferringBody$fieldValueSeparator$transferringBody"))
                 .withRequestBody(containing(s"series$fieldValueSeparator${expectedDetails.series}"))
                 .withRequestBody(containing(s"Bucket$fieldValueSeparator${expectedDetails.bucketName}"))
                 .withRequestBody(containing(s"s3BagKey$fieldValueSeparator${expectedDetails.consignmentReference}.tar.gz"))
