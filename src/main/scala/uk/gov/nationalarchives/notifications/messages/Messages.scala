@@ -127,8 +127,9 @@ object Messages {
     incomingEvent match {
       case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "judgment") =>
         Seq(eventConfig("slack.webhook.judgment_url"))
-      case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "standard") =>
-        Seq(eventConfig("slack.webhook.standard_url"))
+      case ev: ExportStatusEvent if ev.environment == "prod" &&
+        (ev.successDetails.exists(_.consignmentType == "standard") || ev.successDetails.exists(_.consignmentType == "historicalTribunal")) =>
+          Seq(eventConfig("slack.webhook.standard_url"))
       case ev: ExportStatusEvent =>
         val failureEscalationUrl = Option.when(ev.environment == "prod" && !ev.success)(eventConfig("slack.webhook.tdr_url"))
         Seq(Some(eventConfig("slack.webhook.export_url")), failureEscalationUrl).flatten

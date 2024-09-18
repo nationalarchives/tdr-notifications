@@ -39,7 +39,7 @@ import scala.jdk.CollectionConverters.CollectionHasAsScala
 object EventMessages {
   private val tarExtension: String = ".tar.gz"
   private val sh256256Extension: String = ".tar.gz.sha256"
-  val logger: Logger = Logger(this.getClass)
+  private val logger: Logger = Logger(this.getClass)
   val config: Config = ConfigFactory.load
 
   trait ExportMessage {
@@ -52,8 +52,6 @@ object EventMessages {
   case class SlackBlock(`type`: String, text: SlackText)
 
   case class SlackMessage(blocks: List[SlackBlock])
-
-  case class SqsMessageDetails(queueUrl: String, messageBody: String)
 
   case class SnsMessageDetails(snsTopic: String, messageBody: String)
 
@@ -384,6 +382,7 @@ object EventMessages {
     val function = "tdr-export-process"
     val consignmentType = producer.`type` match {
       case "judgment" => ConsignmentType.JUDGMENT
+      case "historicalTribunal" => ConsignmentType.HISTORICAL_TRIBUNAL
       case _ => ConsignmentType.STANDARD
     }
 
