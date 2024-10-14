@@ -19,7 +19,7 @@ object Dependencies {
   lazy val ecrUtils =  "uk.gov.nationalarchives" %% "ecr-utils" % awsUtilsVersion
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.19"
   lazy val wiremock = "com.github.tomakehurst" % "wiremock" % "3.0.1"
-  lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.1"
+  lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.3"
   lazy val typeSafeLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.5"
   lazy val elasticMq = "org.elasticmq" %% "elasticmq-server" % elasticMqVersion
   lazy val transformSchemas = "uk.gov.nationalarchives" % "da-transform-schemas" % "2.14"

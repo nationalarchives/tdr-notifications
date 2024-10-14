@@ -1,6 +1,5 @@
 package uk.gov.nationalarchives.notifications
 
-import org.scalatest.prop.TableFor8
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportStatusEvent, ExportSuccessDetails}
 
 import java.util.UUID
@@ -34,6 +33,20 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
       input = exportStatusEventInputText(intgJudgmentSuccessMock),
       expectedOutput = ExpectedOutput(
         snsMessage = expectedSnsMessage(intgJudgmentSuccessMock)
+      )
+    ),
+    Event(
+      description = "a successful historical tribunal export event on intg",
+      input = exportStatusEventInputText(intgHistoricalTribunalSuccess),
+      expectedOutput = ExpectedOutput(
+        snsMessage = expectedSnsMessage(intgHistoricalTribunalSuccess)
+      )
+    ),
+    Event(
+      description = "a successful mock historical tribunal export event on intg",
+      input = exportStatusEventInputText(intgHistoricalTribunalSuccessMock),
+      expectedOutput = ExpectedOutput(
+        snsMessage = expectedSnsMessage(intgHistoricalTribunalSuccessMock)
       )
     ),
     Event(
@@ -71,6 +84,21 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
       input = exportStatusEventInputText(stagingJudgmentSuccessMock),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(SlackMessage(body = expectedSlackMessage(stagingJudgmentSuccessMock), webhookUrl = "/webhook-export"))
+      )
+    ),
+    Event(
+      description = "a successful historical tribunal export event on staging",
+      input = exportStatusEventInputText(stagingHistoricalTribunalSuccess),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(stagingHistoricalTribunalSuccess), webhookUrl = "/webhook-export")),
+        snsMessage = expectedSnsMessage(stagingHistoricalTribunalSuccess)
+      )
+    ),
+    Event(
+      description = "a successful mock historical tribunal export event on staging",
+      input = exportStatusEventInputText(stagingHistoricalTribunalSuccessMock),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(stagingHistoricalTribunalSuccessMock), webhookUrl = "/webhook-export"))
       )
     ),
     Event(
@@ -137,19 +165,38 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodJudgmentSuccessMock), webhookUrl = "/webhook-judgment"))
       )
+    ),
+    Event(
+      description = "a successful historical tribunal export on prod",
+      input = exportStatusEventInputText(prodHistoricalTribunalSuccess),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodHistoricalTribunalSuccess), webhookUrl = "/webhook-standard")),
+        snsMessage = expectedSnsMessage(prodHistoricalTribunalSuccess)
+      )
+    ),
+    Event(
+      description = "a successful mock historical tribunal export on prod",
+      input = exportStatusEventInputText(prodHistoricalTribunalSuccessMock),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodHistoricalTribunalSuccessMock), webhookUrl = "/webhook-standard"))
+      )
     )
   )
 
   private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")
   private lazy val successDetailsJudgment = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "judgment", "export-bucket")
+  private lazy val successDetailsHistoricalTribunal = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "historicalTribunal", "export-bucket")
   private lazy val successDetailsStandardMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "standard", "export-bucket")
   private lazy val successDetailsJudgmentMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "judgment", "export-bucket")
+  private lazy val successDetailsHistoricalTribunalMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "historicalTribunal", "export-bucket")
   private lazy val causeOfFailure = "Cause of failure"
 
   private lazy val intgStandardSuccess = ExportStatusEvent(UUID.randomUUID(), success = true, environment = "intg", successDetails = Some(successDetailsStandard), failureCause = None)
   private lazy val intgStandardSuccessMock = ExportStatusEvent(UUID.randomUUID(), success = true, environment = "intg", successDetails = Some(successDetailsStandardMockBody), failureCause = None)
   private lazy val intgJudgmentSuccess = ExportStatusEvent(UUID.randomUUID(), success = true, "intg", Some(successDetailsJudgment), None)
   private lazy val intgJudgmentSuccessMock = ExportStatusEvent(UUID.randomUUID(), success = true, "intg", Some(successDetailsJudgmentMockBody), None)
+  private lazy val intgHistoricalTribunalSuccess = ExportStatusEvent(UUID.randomUUID(), success = true, environment = "intg", successDetails = Some(successDetailsHistoricalTribunal), failureCause = None)
+  private lazy val intgHistoricalTribunalSuccessMock = ExportStatusEvent(UUID.randomUUID(), success = true, environment = "intg", successDetails = Some(successDetailsHistoricalTribunalMockBody), failureCause = None)
   private lazy val intgFailure = ExportStatusEvent(UUID.randomUUID(), success = false, "intg", None, Some(causeOfFailure))
   private lazy val intgFailureNoError = ExportStatusEvent(UUID.randomUUID(), success = false, "intg", None, None)
 
@@ -157,6 +204,8 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
   private lazy val stagingStandardSuccessMock = ExportStatusEvent(UUID.randomUUID(), success = true, "staging", Some(successDetailsStandardMockBody), None)
   private lazy val stagingJudgmentSuccess = ExportStatusEvent(UUID.randomUUID(), success = true, "staging", Some(successDetailsJudgment), None)
   private lazy val stagingJudgmentSuccessMock = ExportStatusEvent(UUID.randomUUID(), success = true, "staging", Some(successDetailsJudgmentMockBody), None)
+  private lazy val stagingHistoricalTribunalSuccess = ExportStatusEvent(UUID.randomUUID(), success = true, "staging", Some(successDetailsHistoricalTribunal), None)
+  private lazy val stagingHistoricalTribunalSuccessMock = ExportStatusEvent(UUID.randomUUID(), success = true, "staging", Some(successDetailsHistoricalTribunalMockBody), None)
   private lazy val stagingFailure = ExportStatusEvent(UUID.randomUUID(), success = false, "staging", None, Some(causeOfFailure))
   private lazy val stagingFailureNoError = ExportStatusEvent(UUID.randomUUID(), success = false, "staging", None, None)
 
@@ -164,6 +213,8 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
   private lazy val prodStandardSuccessMock = ExportStatusEvent(UUID.randomUUID(), success = true, "prod", Some(successDetailsStandardMockBody), None)
   private lazy val prodJudgmentSuccess = ExportStatusEvent(UUID.randomUUID(), success = true, "prod", Some(successDetailsJudgment), None)
   private lazy val prodJudgmentSuccessMock = ExportStatusEvent(UUID.randomUUID(), success = true, "prod", Some(successDetailsJudgmentMockBody), None)
+  private lazy val prodHistoricalTribunalSuccess = ExportStatusEvent(UUID.randomUUID(), success = true, "prod", Some(successDetailsHistoricalTribunal), None)
+  private lazy val prodHistoricalTribunalSuccessMock = ExportStatusEvent(UUID.randomUUID(), success = true, "prod", Some(successDetailsHistoricalTribunalMockBody), None)
   private lazy val prodFailure = ExportStatusEvent(UUID.randomUUID(), success = false, "prod", None, Some(causeOfFailure))
 
   private def exportStatusEventInputText(exportStatusEvent: ExportStatusEvent): String = {
