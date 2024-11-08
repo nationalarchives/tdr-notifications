@@ -8,6 +8,7 @@ import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.Clo
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
+import uk.gov.nationalarchives.notifications.decoders.MalwareScanThreatFoundEventDecoder.MalwareScanThreatFoundEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewSubmittedDecoder.MetadataReviewSubmittedEvent
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
@@ -30,6 +31,7 @@ class Lambda {
       case genericMessagesEvent: GenericMessagesEvent                 => sendMessages(genericMessagesEvent)
       case cloudwatchAlarmEvent: CloudwatchAlarmEvent                 => sendMessages(cloudwatchAlarmEvent)
       case parameterStoreExpiryEvent: ParameterStoreExpiryEvent       => sendMessages(parameterStoreExpiryEvent)
+      case malwareScanNotificationEvent: MalwareScanThreatFoundEvent  => sendMessages(malwareScanNotificationEvent)
       case stepFunctionError: StepFunctionError                       => sendMessages(stepFunctionError)
       case transferCompleteEvent: TransferCompleteEvent               => sendMessages(transferCompleteEvent)
       case metadataReviewRequestEvent: MetadataReviewRequestEvent     => sendMessages(metadataReviewRequestEvent)
