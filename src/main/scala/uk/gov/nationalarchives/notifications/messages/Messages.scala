@@ -12,6 +12,7 @@ import uk.gov.nationalarchives.aws.utils.kms.KMSClients.kms
 import uk.gov.nationalarchives.aws.utils.kms._
 import uk.gov.nationalarchives.aws.utils.ses._
 import uk.gov.nationalarchives.aws.utils.sns._
+import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
@@ -134,6 +135,7 @@ object Messages {
         val failureEscalationUrl = Option.when(ev.environment == "prod" && !ev.success)(eventConfig("slack.webhook.tdr_url"))
         Seq(Some(eventConfig("slack.webhook.export_url")), failureEscalationUrl).flatten
       case _: KeycloakEvent => Seq(eventConfig("slack.webhook.tdr_url"))
+      case _: DraftMetadataStepFunctionError => Seq(eventConfig("slack.webhook.tdr_url"))
       case _                => Seq(eventConfig("slack.webhook.url"))
     }
   }
