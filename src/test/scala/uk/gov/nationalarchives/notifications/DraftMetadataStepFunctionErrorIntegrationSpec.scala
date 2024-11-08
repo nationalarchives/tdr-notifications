@@ -23,7 +23,7 @@ class DraftMetadataStepFunctionErrorIntegrationSpec extends LambdaIntegrationSpe
       description = "a draft metadata step function error on prod",
       input = draftMetaDataStepFunctionErrorInput(draftMetadataStepFunctionError("prod")),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(slackMessage(draftMetadataStepFunctionError("prod")).get, "/webhook"))
+        slackMessage = Some(SlackMessage(slackMessage(draftMetadataStepFunctionError("prod")).get, "/webhook-tdr"))
       )
     )
   )
