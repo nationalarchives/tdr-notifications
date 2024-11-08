@@ -5,6 +5,7 @@ import io.circe.generic.auto._
 import io.circe.parser.parse
 import io.circe.{Decoder, DecodingFailure, HCursor, Json}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
+import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.decodeMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
@@ -20,7 +21,8 @@ trait IncomingEvent {}
 object IncomingEvent {
   implicit val allDecoders: Decoder[IncomingEvent] = decodeScanEvent or decodeSnsEvent[ExportStatusEvent] or
     decodeSnsEvent[KeycloakEvent] or decodeSnsEvent[GenericMessagesEvent] or
-    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[ParameterStoreExpiryEvent] or decodeStepFunctionError or decodeSnsEvent[TransferCompleteEvent] or decodeSnsEvent[MetadataReviewRequestEvent] or decodeSnsEvent[MetadataReviewSubmittedEvent]
+    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[ParameterStoreExpiryEvent] or decodeStepFunctionError or decodeSnsEvent[TransferCompleteEvent] or
+    decodeSnsEvent[MetadataReviewRequestEvent] or decodeSnsEvent[MetadataReviewSubmittedEvent] or decodeMetadataStepFunctionError
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- c.downField("Records").as[List[SnsRecord]]

@@ -18,6 +18,7 @@ import uk.gov.nationalarchives.common.messages.Properties
 import uk.gov.nationalarchives.da.messages.bag.available
 import uk.gov.nationalarchives.da.messages.bag.available.{BagAvailable, ConsignmentType}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
+import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
@@ -366,6 +367,27 @@ object EventMessages {
           s"*Environment* ${incomingEvent.environment}",
           s"*Cause*: ${incomingEvent.cause}",
           s"*Error*: ${incomingEvent.error}"
+        )
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
+      } else {
+        None
+      }
+    }
+  }
+
+  implicit val draftMetadataStepFunctionErrorMessages: Messages[DraftMetadataStepFunctionError, Unit] = new Messages[DraftMetadataStepFunctionError, Unit] {
+    override def context(incomingEvent: DraftMetadataStepFunctionError): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: DraftMetadataStepFunctionError, context: Unit): Option[Email] = None
+
+    override def slack(incomingEvent: DraftMetadataStepFunctionError, context: Unit): Option[SlackMessage] = {
+      if(incomingEvent.environment == "prod") {
+         val messageList = List(
+          ":warning: *DraftMetadata upload has failed for consignment*",
+          s"*ConsignmentId* ${incomingEvent.consignmentId}",
+          s"*Environment* ${incomingEvent.environment}",
+          s"*Cause*: ${incomingEvent.cause}",
+          s"*Error*: ${incomingEvent.metaDataError}"
         )
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
       } else {
