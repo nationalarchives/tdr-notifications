@@ -23,6 +23,7 @@ import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder.
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
+import uk.gov.nationalarchives.notifications.decoders.MalwareScanThreatFoundEventDecoder.MalwareScanThreatFoundEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewSubmittedDecoder.MetadataReviewSubmittedEvent
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
@@ -393,6 +394,25 @@ object EventMessages {
       } else {
         None
       }
+    }
+  }
+
+  implicit val malwareScanNotificationMessages: Messages[MalwareScanThreatFoundEvent, Unit] = new Messages[MalwareScanThreatFoundEvent, Unit] {
+    override def context(incomingEvent: MalwareScanThreatFoundEvent): IO[Unit] = IO.unit
+
+    override def email(incomingEvent: MalwareScanThreatFoundEvent, context: Unit): Option[Email] = Option.empty
+
+    override def slack(incomingEvent: MalwareScanThreatFoundEvent, context: Unit): Option[SlackMessage] = {
+      val s3Details = incomingEvent.detail.s3ObjectDetails
+      val bucketName = s3Details.bucketName
+      val bucketKey = s3Details.objectKey
+
+      val messageList = List(
+        ":warning: *Malware Threat Found*",
+        s"*Bucket Name*: $bucketName",
+        s"*Object Key*: $bucketKey"
+      )
+      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
     }
   }
 
