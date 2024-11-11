@@ -37,7 +37,7 @@ class Lambda {
       case transferCompleteEvent: TransferCompleteEvent               => sendMessages(transferCompleteEvent)
       case metadataReviewRequestEvent: MetadataReviewRequestEvent     => sendMessages(metadataReviewRequestEvent)
       case metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent => sendMessages(metadataReviewSubmittedEvent)
-      case draftMetadataStepFunctionEvent:DraftMetadataStepFunctionError => sendMessages(draftMetadataStepFunctionEvent)
+      case draftMetadataStepFunctionError:DraftMetadataStepFunctionError => sendMessages(draftMetadataStepFunctionError)
     }).flatten
       .unsafeRunSync()
   }
