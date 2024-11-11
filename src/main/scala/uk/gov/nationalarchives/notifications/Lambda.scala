@@ -5,6 +5,7 @@ import cats.effect._
 import cats.effect.unsafe.implicits.global
 import io.circe.parser.decode
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
+import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
@@ -36,6 +37,7 @@ class Lambda {
       case transferCompleteEvent: TransferCompleteEvent               => sendMessages(transferCompleteEvent)
       case metadataReviewRequestEvent: MetadataReviewRequestEvent     => sendMessages(metadataReviewRequestEvent)
       case metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent => sendMessages(metadataReviewSubmittedEvent)
+      case draftMetadataStepFunctionError:DraftMetadataStepFunctionError => sendMessages(draftMetadataStepFunctionError)
     }).flatten
       .unsafeRunSync()
   }
