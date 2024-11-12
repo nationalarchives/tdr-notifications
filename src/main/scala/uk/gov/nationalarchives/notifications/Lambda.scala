@@ -5,9 +5,11 @@ import cats.effect._
 import cats.effect.unsafe.implicits.global
 import io.circe.parser.decode
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
+import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
+import uk.gov.nationalarchives.notifications.decoders.MalwareScanThreatFoundEventDecoder.MalwareScanThreatFoundEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewSubmittedDecoder.MetadataReviewSubmittedEvent
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
@@ -30,10 +32,12 @@ class Lambda {
       case genericMessagesEvent: GenericMessagesEvent                 => sendMessages(genericMessagesEvent)
       case cloudwatchAlarmEvent: CloudwatchAlarmEvent                 => sendMessages(cloudwatchAlarmEvent)
       case parameterStoreExpiryEvent: ParameterStoreExpiryEvent       => sendMessages(parameterStoreExpiryEvent)
+      case malwareScanNotificationEvent: MalwareScanThreatFoundEvent  => sendMessages(malwareScanNotificationEvent)
       case stepFunctionError: StepFunctionError                       => sendMessages(stepFunctionError)
       case transferCompleteEvent: TransferCompleteEvent               => sendMessages(transferCompleteEvent)
       case metadataReviewRequestEvent: MetadataReviewRequestEvent     => sendMessages(metadataReviewRequestEvent)
       case metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent => sendMessages(metadataReviewSubmittedEvent)
+      case draftMetadataStepFunctionError:DraftMetadataStepFunctionError => sendMessages(draftMetadataStepFunctionError)
     }).flatten
       .unsafeRunSync()
   }
