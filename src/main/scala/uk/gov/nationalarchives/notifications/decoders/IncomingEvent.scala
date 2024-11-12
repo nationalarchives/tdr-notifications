@@ -5,7 +5,7 @@ import io.circe.generic.auto._
 import io.circe.parser.parse
 import io.circe.{Decoder, DecodingFailure, HCursor, Json}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
-import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.{DraftMetadataStepFunctionError, decodeMetadataStepFunctionError}
+import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
