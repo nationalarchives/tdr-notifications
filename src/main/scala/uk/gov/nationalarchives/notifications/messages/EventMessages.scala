@@ -233,23 +233,12 @@ object EventMessages {
     override def context(event: KeycloakEvent): IO[Unit] = IO.unit
 
     override def email(keycloakEvent: KeycloakEvent, context: Unit): Option[Email] = {
-      if (keycloakEvent.tdrEnv == "prod") {
-        val message = html(
-          body(
-            h1(s"Keycloak Event ${keycloakEvent.tdrEnv}"),
-            div(
-              keycloakEvent.message
-            )
-          )
-        ).toString()
-        Email("scanresults@tdr-management.nationalarchives.gov.uk", eventConfig("tdr_inbox_email_address"), s"Warning: Keycloak users without MFA in TDR", message).some
-      } else {
-        Option.empty
-      }
+      logger.info(s"Skipping email for Keycloak event $keycloakEvent")
+      Option.empty
     }
 
     override def slack(keycloakEvent: KeycloakEvent, context: Unit): Option[SlackMessage] = {
-      if (keycloakEvent.tdrEnv == "staging") {
+      if (keycloakEvent.tdrEnv != "intg") {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
       } else {
         None

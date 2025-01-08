@@ -135,7 +135,8 @@ object Messages {
       case ev: ExportStatusEvent =>
         val failureEscalationUrl = Option.when(ev.environment == "prod" && !ev.success)(eventConfig("slack.webhook.tdr_url"))
         Seq(Some(eventConfig("slack.webhook.export_url")), failureEscalationUrl).flatten
-      case _: KeycloakEvent => Seq(eventConfig("slack.webhook.bau_url"))
+      case ev: KeycloakEvent if ev.tdrEnv == "prod" => Seq(eventConfig("slack.webhook.tdr_url"))
+      case ev: KeycloakEvent if ev.tdrEnv != "prod" => Seq(eventConfig("slack.webhook.bau_url"))
       case _: DraftMetadataStepFunctionError => Seq(eventConfig("slack.webhook.tdr_url"))
       case _                => Seq(eventConfig("slack.webhook.url"))
     }
