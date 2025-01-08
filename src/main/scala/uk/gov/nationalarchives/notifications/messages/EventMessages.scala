@@ -232,16 +232,19 @@ object EventMessages {
   implicit val keycloakEventMessages: Messages[KeycloakEvent, Unit] = new Messages[KeycloakEvent, Unit] {
     override def context(event: KeycloakEvent): IO[Unit] = IO.unit
 
-    override def email(incomingEvent: KeycloakEvent, context: Unit): Option[Email] = {
-      logger.info(s"Skipping email for Keycloak event $incomingEvent")
-      Option.empty
+    override def email(keycloakEvent: KeycloakEvent, context: Unit): Option[Email] = {
+      if(keycloakEvent.tdrEnv == "prod") {
+        Email("scanresults@tdr-management.nationalarchives.gov.uk", eventConfig("tdr_inbox_email_address"), s"Warning: Keycloak Event for ${keycloakEvent.tdrEnv}", ${keycloakEvent.message}).some
+      } else {
+        Option.empty
+      }
     }
 
     override def slack(keycloakEvent: KeycloakEvent, context: Unit): Option[SlackMessage] = {
-      if(keycloakEvent.tdrEnv == "intg") {
-        Option.empty
-      } else {
+      if(keycloakEvent.tdrEnv == "staging") {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
+      } else {
+        None
       }
     }
   }
