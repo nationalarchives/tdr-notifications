@@ -10,6 +10,13 @@ class KeycloakEventIntegrationSpec extends LambdaIntegrationSpec {
       description = "a keycloak event message",
       input = scanEventInputText(keycloakEvent),
       expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedKeycloakEventSlackMessage, webhookUrl = "/webhook-bau"))
+      )
+    ),
+    Event(
+      description = "a keycloak event message on prod",
+      input = scanEventInputText(keycloakEvent.copy(tdrEnv = "prod")),
+      expectedOutput = ExpectedOutput(
         slackMessage = Some(SlackMessage(body = expectedKeycloakEventSlackMessage, webhookUrl = "/webhook-tdr"))
       )
     ),
