@@ -57,7 +57,10 @@ object Messages {
     "gov_uk_notify.metadata_review_rejected_template_id",
     "gov_uk_notify.metadata_review_approved_template_id",
     "tdr_inbox_email_address"
-  ).map(configName => configName -> kmsUtils.decryptValue(config.getString(configName))).toMap
+  ).flatMap { configName => 
+    Try(config.getString(configName)).toOption
+      .map(configValue => configValue -> kmsUtils.decryptValue(config.getString(configName))) 
+  }.toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
