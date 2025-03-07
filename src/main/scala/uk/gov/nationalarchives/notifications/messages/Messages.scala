@@ -59,7 +59,7 @@ object Messages {
     "tdr_inbox_email_address"
   ).flatMap { configName => 
     Try(config.getString(configName)).toOption
-      .map(configValue => configValue -> kmsUtils.decryptValue(config.getString(configName))) 
+      .map(configValue => configName -> kmsUtils.decryptValue(configValue)) 
   }.toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
