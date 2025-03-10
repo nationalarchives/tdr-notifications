@@ -57,7 +57,10 @@ object Messages {
     "gov_uk_notify.metadata_review_rejected_template_id",
     "gov_uk_notify.metadata_review_approved_template_id",
     "tdr_inbox_email_address"
-  ).map(configName => configName -> kmsUtils.decryptValue(config.getString(configName))).toMap
+  ).flatMap { configName => 
+    Try(config.getString(configName)).toOption
+      .map(configValue => configName -> kmsUtils.decryptValue(configValue)) 
+  }.toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
@@ -77,7 +80,7 @@ object Messages {
   }
 
   private def sendGovUkNotifyEmailMessage[T <: IncomingEvent, TContext](incomingEvent: T, context: TContext)(implicit messages: Messages[T, TContext]): Option[IO[String]] = {
-    val notifyClient = new NotificationClient(
+    lazy val notifyClient = new NotificationClient(
       eventConfig("gov_uk_notify.api_key"),
       config.getString("gov_uk_notify.endpoint")
     )
