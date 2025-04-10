@@ -11,7 +11,8 @@ on:
           - staging
           - prod
           - mgmt
-        default: 'intg'
+          - test
+        default: 'test'
       to-deploy:
         description: 'Version to deploy'
         required: true
