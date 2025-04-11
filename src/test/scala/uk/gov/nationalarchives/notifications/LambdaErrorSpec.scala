@@ -21,7 +21,7 @@ class LambdaErrorSpec extends LambdaSpecUtils with MockEcrApi {
     val exception = intercept[Exception] {
       new Lambda().process(stream, null)
     }
-    exception.getMessage should be("null (Service: Ses, Status Code: 404, Request ID: null)")
+    exception.getMessage should be("(Service: Ses, Status Code: 404, Request ID: null) (SDK Attempt Count: 1)")
   }
 
   "the process method" should "not error if the ses service is unavailable for a medium severity event" in {
