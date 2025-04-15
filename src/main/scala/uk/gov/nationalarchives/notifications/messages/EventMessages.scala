@@ -7,7 +7,6 @@ import com.typesafe.scalalogging.Logger
 import io.circe.Printer
 import io.circe.generic.auto._
 import io.circe.syntax.EncoderOps
-import scalatags.Text.all._
 import software.amazon.awssdk.services.ecr.model.FindingSeverity
 import uk.gov.nationalarchives.aws.utils.ecr.ECRClients.ecr
 import uk.gov.nationalarchives.aws.utils.ecr.ECRUtils
@@ -140,28 +139,8 @@ object EventMessages {
     }
 
     override def email(event: ScanEvent, report: ImageScanReport): Option[SESUtils.Email] = {
-      val detail = event.detail
-      val filteredReport = filterReport(report)
-      if (shouldSendEmailNotification(detail, filteredReport.findings)) {
-        val message = html(
-          body(
-            h1(s"Image scan results for ${detail.repositoryName}"),
-            div(
-              p(s"${filteredReport.criticalCount} critical vulnerabilities"),
-              p(s"${filteredReport.highCount} high vulnerabilities"),
-              p(s"${filteredReport.mediumCount} medium vulnerabilities"),
-              p(s"${filteredReport.lowCount} low vulnerabilities"),
-              p(s"${filteredReport.undefinedCount} undefined vulnerabilities")
-            ),
-            div(
-              p(ecrScanDocumentationMessage)
-            )
-          )
-        ).toString()
-        Email("scanresults@tdr-management.nationalarchives.gov.uk", eventConfig("ses.email.to"), s"ECR scan results for ${detail.repositoryName}", message).some
-      } else {
-        Option.empty
-      }
+      logger.info(s"Skipping email for ECR scan vulnerabilities: ${event.detail.repositoryName}")
+      Option.empty
     }
   }
 
