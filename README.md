@@ -3,7 +3,7 @@
 This project is for sending slack/email/SQS messages in response to events. It supports several types of event:
 
 * ECR scan results. Each time there is an ECR repository scan, the scan results are checked. If there are any errors, a
-  Slack.
+  Slack message is sent.
 * Consignment export results. When the consignment export task finishes, a Slack message is sent with details of whether
   the export succeeded or failed. A message is also sent, to a Digital Archiving SNS topic for other Digital Archiving services to pick up and act upon.
 * Generic message event. This allows a service to send message text which is sent directly to Slack with no other processing.
