@@ -14,7 +14,6 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       description = "an ECR scan of 'latest' with a mix of severities",
       input = scanEventInputText(mixedSeverityEvent),
       expectedOutput = ExpectedOutput(
-        emailBody = Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1))),
         slackMessage = Some(SlackMessage(body = expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1)), webhookUrl = "/webhook"))
       ),
       stubContext = stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, mixedSeverityFindings)
@@ -77,7 +76,6 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       description = "an ECR scan with a mix of muted and non-muted vulnerabilities",
       input = scanEventInputText(mixedSeverityEvent),
       expectedOutput = ExpectedOutput(
-        emailBody = Some(expectedEmailBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0))),
         slackMessage = Some(SlackMessage(body = expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0)), webhookUrl = "/webhook"))
       ),
       stubContext = stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, findingsIncludingMutedVulnerability)
@@ -118,24 +116,6 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       .withRequestBody(matchingJsonPath("$.imageId.imageDigest", equalTo(sha256Digest)))
       .willReturn(ok(response))
     )
-  }
-
-  private def expectedEmailBody(scanEvent: ScanEvent, expectedFindings: ExpectedFindings): String = {
-    "Action=SendEmail&Version=2010-12-01&Source=scanresults%40tdr-management.nationalarchives.gov.uk" +
-      "&Destination.ToAddresses.member.1=aws_tdr_management%40nationalarchives.gov.uk" +
-      s"&Message.Subject.Data=ECR+scan+results+for+${scanEvent.detail.repositoryName}&Message.Subject.Charset=UTF-8" +
-      s"&Message.Body.Html.Data=%3Chtml%3E%3Cbody%3E%3Ch1%3EImage+scan+results+for+${scanEvent.detail.repositoryName}%3C%2Fh1%3E%3Cdiv%3E%3Cp%3E" +
-      s"${expectedFindings.critical}+critical+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
-      s"${expectedFindings.high}+high+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
-      s"${expectedFindings.medium}+medium+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
-      s"${expectedFindings.low}+low+vulnerabilities%3C%2Fp%3E%3Cp%3E" +
-      s"${expectedFindings.undefined}+undefined+vulnerabilities%3C%2Fp%3E%3C%2Fdiv%3E" +
-      "%3Cdiv%3E%3Cp%3E" +
-      "See+the+TDR+developer+manual+for+guidance+on+fixing+these+vulnerabilities%3A+" +
-      "https%3A%2F%2Fgithub.com%2Fnationalarchives%2Ftdr-dev-documentation%2Fblob%2Fmaster%2Fmanual%2Falerts%2Fecr-scans.md" +
-      "%3C%2Fp%3E%3C%2Fdiv%3E" +
-      "%3C%2Fbody%3E%3C%2Fhtml%3E" +
-      "&Message.Body.Html.Charset=UTF-8"
   }
 
   private def expectedSlackBody(scanEvent: ScanEvent, expectedFindings: ExpectedFindings): String = {
