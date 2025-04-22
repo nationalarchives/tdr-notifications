@@ -1,7 +1,7 @@
 import sbt._
 
 object Dependencies {
-  private val circeVersion = "0.14.12"
+  private val circeVersion = "0.14.13"
   private val sttpClient3Version = "3.9.7"
   private val awsUtilsVersion = "0.1.252"
   private val elasticMqVersion = "1.6.12"
