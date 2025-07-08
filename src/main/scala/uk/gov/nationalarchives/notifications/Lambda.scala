@@ -16,6 +16,7 @@ import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventD
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransferCompleteEventDecoder.TransferCompleteEvent
+import uk.gov.nationalarchives.notifications.decoders.UploadEventDecoder.UploadEvent
 import uk.gov.nationalarchives.notifications.decoders._
 import uk.gov.nationalarchives.notifications.messages.EventMessages._
 import uk.gov.nationalarchives.notifications.messages.Messages._
@@ -26,18 +27,19 @@ class Lambda {
   def process(input: InputStream, output: OutputStream): String = {
     val inputString = Source.fromInputStream(input).mkString
     IO.fromEither(decode[IncomingEvent](inputString).map {
-      case scan: ScanEvent                                            => sendMessages(scan)
-      case exportStatus: ExportStatusEvent                            => sendMessages(exportStatus)
-      case keycloakEvent: KeycloakEvent                               => sendMessages(keycloakEvent)
-      case genericMessagesEvent: GenericMessagesEvent                 => sendMessages(genericMessagesEvent)
-      case cloudwatchAlarmEvent: CloudwatchAlarmEvent                 => sendMessages(cloudwatchAlarmEvent)
-      case parameterStoreExpiryEvent: ParameterStoreExpiryEvent       => sendMessages(parameterStoreExpiryEvent)
-      case malwareScanNotificationEvent: MalwareScanThreatFoundEvent  => sendMessages(malwareScanNotificationEvent)
-      case stepFunctionError: StepFunctionError                       => sendMessages(stepFunctionError)
-      case transferCompleteEvent: TransferCompleteEvent               => sendMessages(transferCompleteEvent)
-      case metadataReviewRequestEvent: MetadataReviewRequestEvent     => sendMessages(metadataReviewRequestEvent)
-      case metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent => sendMessages(metadataReviewSubmittedEvent)
+      case scan: ScanEvent                                               => sendMessages(scan)
+      case exportStatus: ExportStatusEvent                               => sendMessages(exportStatus)
+      case keycloakEvent: KeycloakEvent                                  => sendMessages(keycloakEvent)
+      case genericMessagesEvent: GenericMessagesEvent                    => sendMessages(genericMessagesEvent)
+      case cloudwatchAlarmEvent: CloudwatchAlarmEvent                    => sendMessages(cloudwatchAlarmEvent)
+      case parameterStoreExpiryEvent: ParameterStoreExpiryEvent          => sendMessages(parameterStoreExpiryEvent)
+      case malwareScanNotificationEvent: MalwareScanThreatFoundEvent     => sendMessages(malwareScanNotificationEvent)
+      case stepFunctionError: StepFunctionError                          => sendMessages(stepFunctionError)
+      case transferCompleteEvent: TransferCompleteEvent                  => sendMessages(transferCompleteEvent)
+      case metadataReviewRequestEvent: MetadataReviewRequestEvent        => sendMessages(metadataReviewRequestEvent)
+      case metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent    => sendMessages(metadataReviewSubmittedEvent)
       case draftMetadataStepFunctionError:DraftMetadataStepFunctionError => sendMessages(draftMetadataStepFunctionError)
+      case uploadEvent: UploadEvent                                      => sendMessages(uploadEvent)
     }).flatten
       .unsafeRunSync()
   }
