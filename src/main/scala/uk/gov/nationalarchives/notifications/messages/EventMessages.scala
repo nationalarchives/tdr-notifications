@@ -29,6 +29,7 @@ import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventD
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent}
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransferCompleteEventDecoder.TransferCompleteEvent
+import uk.gov.nationalarchives.notifications.decoders.UploadEventDecoder.UploadEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import java.net.URI
@@ -223,6 +224,31 @@ object EventMessages {
         None
       }
     }
+  }
+
+  implicit val uploadEventMessages: Messages[UploadEvent, Unit] = new Messages[UploadEvent, Unit] {
+    private def govUKNotifTemplateId(event: UploadEvent): String = event match {
+      case _ if event.status == "Complete" => eventConfig("gov_uk_notify.upload_complete_template_id")
+      case _ => eventConfig("gov_uk_notify.upload_failed_template_id")
+    }
+
+    override def context(event: UploadEvent): IO[Unit] = IO.unit
+
+    override def govUkNotifyEmail(uploadEvent: UploadEvent, context: Unit): List[GovUKEmailDetails] = List(
+      GovUKEmailDetails(
+        templateId = govUKNotifTemplateId(uploadEvent),
+        userEmail = uploadEvent.userEmail,
+        personalisation = Map(
+          "userEmail" -> uploadEvent.userEmail,
+          "userId" -> uploadEvent.userId,
+          "transferringBodyName" -> uploadEvent.transferringBodyName,
+          "consignmentId" -> uploadEvent.consignmentId,
+          "consignmentReference" -> uploadEvent.consignmentReference,
+          "status" -> uploadEvent.status
+        ),
+        reference = s"${uploadEvent.consignmentReference}-${uploadEvent.userId}"
+      )
+    )
   }
 
   implicit val transferCompleteEventMessages: Messages[TransferCompleteEvent, Unit] = new Messages[TransferCompleteEvent, Unit] {
