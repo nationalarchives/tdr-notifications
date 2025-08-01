@@ -18,6 +18,7 @@ lazy val root = (project in file("."))
       sesUtils,
       snsUtils,
       ecrUtils,
+      ssmUtils,
       typesafe,
       scalaTags,
       typeSafeLogging,
