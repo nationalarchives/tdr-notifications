@@ -9,13 +9,15 @@ class MetadataReviewRequestIntegrationSpec extends LambdaIntegrationSpec {
       description = "A metadata review DTA request event",
       input = metadataReviewRequestNotificationInputString(
         MetadataReviewRequestEvent(
+          environment = "intg",
           transferringBodyName = "SomeTransferringBody",
           consignmentReference = "SomeConsignmentReference",
           consignmentId = "SomeConsignmentId",
           seriesCode = "SomeSeries",
           userId = "SomeUserId",
-          userEmail = "test@test.test"
-        )
+          userEmail = "test@test.test",
+          closedRecords = true,
+          totalRecords = 10)
       ),
       stubContext = stubDummyGovUkNotifyEmailResponse,
       expectedOutput = ExpectedOutput(
@@ -33,6 +35,12 @@ class MetadataReviewRequestIntegrationSpec extends LambdaIntegrationSpec {
               "seriesCode" -> "SomeSeries"
             )
           )
+        ),
+        slackMessage = Some(
+          SlackMessage(
+            body = slackMessage("SomeConsignmentReference", "SomeTransferringBody", "SomeSeries", "YES"),
+            webhookUrl = "/webhook-releases"
+          )
         )
       )
     ),
@@ -40,37 +48,58 @@ class MetadataReviewRequestIntegrationSpec extends LambdaIntegrationSpec {
       description = "A metadata review TB request event",
       input = metadataReviewRequestNotificationInputString(
         MetadataReviewRequestEvent(
-          transferringBodyName = "SomeTransferringBody",
-          consignmentReference = "SomeConsignmentReference",
+          environment = "intg",
+          transferringBodyName = "ABCD",
+          consignmentReference = "TDR-2024",
           consignmentId = "SomeConsignmentId",
+          seriesCode = "1234",
           userId = "SomeUserId",
           userEmail = "test@test.test",
-          seriesCode = "SomeSeries"
-        )
+          closedRecords = false,
+          totalRecords = 10)
       ),
       stubContext = stubDummyGovUkNotifyEmailResponse,
       expectedOutput = ExpectedOutput(
         govUKEmail = Some(
           GovUKEmailDetails(
-            reference = "SomeConsignmentReference",
+            reference = "TDR-2024",
             templateId = "TestRequestTBTemplateId",
             userEmail = "test@test.test",
             personalisation = Map(
-              "consignmentReference" -> "SomeConsignmentReference",
+              "consignmentReference" -> "TDR-2024",
             )
+          )
+        ),
+        slackMessage = Some(
+          SlackMessage(
+            body = slackMessage("TDR-2024", "ABCD", "1234", "NO"),
+            webhookUrl = "/webhook-releases"
           )
         )
       )
     )
   )
-  
+
+  private def slackMessage(consignmentReference: String, transferringBody: String, series: String, closedRecords: String): String = {
+    s"""{
+       |  "blocks" : [ {
+       |    "type" : "section",
+       |    "text" : {
+       |      "type" : "mrkdwn",
+       |      "text" : ":warning: *A Metadata Review has been SUBMITTED*\\n*Consignment Reference*: $consignmentReference\\n*Transferring Body*: $transferringBody\\n*Series*: $series\\n*UserID*: SomeUserId\\n*Number of Records*: 10\\n*Closed Records*: $closedRecords"
+       |    }
+       |  } ]
+       |}
+       |""".stripMargin
+  }
+
   def metadataReviewRequestNotificationInputString(metadataReviewRequestEvent: MetadataReviewRequestEvent): String = {
     import metadataReviewRequestEvent._
     s"""{
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"transferringBodyName\\":\\"$transferringBodyName\\",\\"consignmentReference\\":\\"$consignmentReference\\",\\"consignmentId\\" : \\"$consignmentId\\",\\"seriesCode\\" : \\"$seriesCode\\",\\"userId\\" : \\"$userId\\",\\"userEmail\\" : \\"$userEmail\\"}"
+       |       "Message": "{\\"environment\\":\\"$environment\\",\\"transferringBodyName\\":\\"$transferringBodyName\\",\\"consignmentReference\\":\\"$consignmentReference\\",\\"consignmentId\\" : \\"$consignmentId\\",\\"seriesCode\\" : \\"$seriesCode\\",\\"userId\\" : \\"$userId\\",\\"userEmail\\" : \\"$userEmail\\",\\"closedRecords\\":$closedRecords,\\"totalRecords\\":$totalRecords}"
        |      }
        |    }
        |  ]}""".stripMargin

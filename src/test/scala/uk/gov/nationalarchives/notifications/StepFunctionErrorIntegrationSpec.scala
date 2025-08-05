@@ -20,14 +20,14 @@ class StepFunctionErrorIntegrationSpec extends LambdaIntegrationSpec {
       description = "a step function error on staging",
       input = stepFunctionErrorInput(stepFunctionError("staging")),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(slackMessage(stepFunctionError("staging")).get, "/webhook"))
+        slackMessage = Some(SlackMessage(slackMessage(stepFunctionError("staging")).get, "/webhook-url"))
       )
     ),
     Event(
       description = "a step function error on prod",
       input = stepFunctionErrorInput(stepFunctionError("prod")),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(slackMessage(stepFunctionError("prod")).get, "/webhook"))
+        slackMessage = Some(SlackMessage(slackMessage(stepFunctionError("prod")).get, "/webhook-url"))
       )
     )
   )
