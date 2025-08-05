@@ -45,16 +45,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
       decode[SSMRequest](serveEvent.getRequest.getBodyAsString) match {
         case Left(err) => throw err
         case Right(req) =>
-          val value = req.Name match {
-            case "/test/slack/webhook" => "http://localhost:9002/webhook"
-            case "/test/slack/webhook-judgment" => "http://localhost:9002/webhook-judgment"
-            case "/test/slack/webhook-standard" => "http://localhost:9002/webhook-standard"
-            case "/test/slack/webhook-tdr" => "http://localhost:9002/webhook-tdr"
-            case "/test/slack/webhook-export" => "http://localhost:9002/webhook-export"
-            case "/test/slack/webhook-bau" => "http://localhost:9002/webhook-bau"
-            case "/test/slack/webhook-transfers" => "http://localhost:9002/webhook-transfers"
-            case "/test/slack/webhook-releases" => "http://localhost:9002/webhook-releases"
-          }
+          val value = s"http://localhost:9002/webhook-${req.Name.split("-").last}"
           ResponseDefinitionBuilder
             .like(serveEvent.getResponseDefinition)
             .withBody(s"""{"Parameter": {"Value": "$value"}}""")
@@ -95,7 +86,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
       )
   }
   override def beforeEach(): Unit = {
-    wiremockSlackServer.stubFor(post(urlEqualTo("/webhook")).willReturn(ok("")))
+    wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-url")).willReturn(ok("")))
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-judgment")).willReturn(ok("")))
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-standard")).willReturn(ok("")))
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-tdr")).willReturn(ok("")))
