@@ -11,35 +11,35 @@ class ParameterStoreExpiryEventSpec extends LambdaIntegrationSpec {
       description = "a GovUk key rotation event on intg",
       input = rotationEventInputText(intgApiKeyRotationEvent),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(expectedSlackMessageForApiKey(intgApiKeyRotationEvent), "/webhook"))
+        slackMessage = Some(SlackMessage(expectedSlackMessageForApiKey(intgApiKeyRotationEvent), "/webhook-url"))
       )
     ),
     Event(
       description = "a GovUk key rotation event on staging",
       input = rotationEventInputText(stagingApiKeyRotationEvent),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(expectedSlackMessageForApiKey(stagingApiKeyRotationEvent), "/webhook"))
+        slackMessage = Some(SlackMessage(expectedSlackMessageForApiKey(stagingApiKeyRotationEvent), "/webhook-url"))
       )
     ),
     Event(
       description = "a GovUk key rotation event on prod",
       input = rotationEventInputText(prodApiKeyRotationEvent),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(expectedSlackMessageForApiKey(prodApiKeyRotationEvent), "/webhook"))
+        slackMessage = Some(SlackMessage(expectedSlackMessageForApiKey(prodApiKeyRotationEvent), "/webhook-url"))
       )
     ),
     Event(
       description = "a GitHub access token rotation event",
       input = rotationEventInputText(mgmtApiKeyRotationEvent),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(expectedSlackMessageForGitHubAccessToken(mgmtApiKeyRotationEvent), "/webhook"))
+        slackMessage = Some(SlackMessage(expectedSlackMessageForGitHubAccessToken(mgmtApiKeyRotationEvent), "/webhook-url"))
       )
     ),
     Event(
       description = "Unknown event",
       input = rotationEventInputText(unknownEvent),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(expectedSlackMessageForUnknownEvent, "/webhook"))
+        slackMessage = Some(SlackMessage(expectedSlackMessageForUnknownEvent, "/webhook-url"))
       )
     )
   )

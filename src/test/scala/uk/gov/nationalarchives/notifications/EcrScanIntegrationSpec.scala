@@ -14,7 +14,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       description = "an ECR scan of 'latest' with a mix of severities",
       input = scanEventInputText(mixedSeverityEvent),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(body = expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1)), webhookUrl = "/webhook"))
+        slackMessage = Some(SlackMessage(body = expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 4, 1)), webhookUrl = "/webhook-url"))
       ),
       stubContext = stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, mixedSeverityFindings)
     ),
@@ -22,7 +22,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       description = "an ECR scan of 'latest' with only medium severity vulnerabilities",
       input = scanEventInputText(mediumSeverityEvent),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(body = expectedSlackBody(mediumSeverityEvent, ExpectedFindings(0, 0, 1, 0, 0)), webhookUrl = "/webhook"))
+        slackMessage = Some(SlackMessage(body = expectedSlackBody(mediumSeverityEvent, ExpectedFindings(0, 0, 1, 0, 0)), webhookUrl = "/webhook-url"))
       ),
       stubContext = stubEcrApiResponse(mediumSeverityEvent.detail.imageDigest, mediumSeverityFindings)
     ),
@@ -30,7 +30,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       description = "an ECR scan of 'latest' with only low severity vulnerabilities",
       input = scanEventInputText(lowSeverityEvent),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(body = expectedSlackBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1, 0)), webhookUrl = "/webhook"))
+        slackMessage = Some(SlackMessage(body = expectedSlackBody(lowSeverityEvent, ExpectedFindings(0, 0, 0, 1, 0)), webhookUrl = "/webhook-url"))
       ),
       stubContext = stubEcrApiResponse(lowSeverityEvent.detail.imageDigest, lowSeverityFindings)
     ),
@@ -38,7 +38,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       description = "an ECR scan of 'latest' with only undefined severity vulnerabilities",
       input = scanEventInputText(undefinedSeverityEvent),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(body = expectedSlackBody(undefinedSeverityEvent, ExpectedFindings(0, 0, 0, 0, 1)), webhookUrl = "/webhook"))
+        slackMessage = Some(SlackMessage(body = expectedSlackBody(undefinedSeverityEvent, ExpectedFindings(0, 0, 0, 0, 1)), webhookUrl = "/webhook-url"))
       ),
       stubContext = stubEcrApiResponse(undefinedSeverityEvent.detail.imageDigest, undefinedFindings)
     ),
@@ -76,7 +76,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       description = "an ECR scan with a mix of muted and non-muted vulnerabilities",
       input = scanEventInputText(mixedSeverityEvent),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(body = expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0)), webhookUrl = "/webhook"))
+        slackMessage = Some(SlackMessage(body = expectedSlackBody(mixedSeverityEvent, ExpectedFindings(1, 2, 24, 3, 0)), webhookUrl = "/webhook-url"))
       ),
       stubContext = stubEcrApiResponse(mixedSeverityEvent.detail.imageDigest, findingsIncludingMutedVulnerability)
     )
