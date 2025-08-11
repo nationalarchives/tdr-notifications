@@ -3,10 +3,9 @@ package uk.gov.nationalarchives.notifications
 import com.github.tomakehurst.wiremock.WireMockServer
 import com.github.tomakehurst.wiremock.client.ResponseDefinitionBuilder
 import com.github.tomakehurst.wiremock.client.WireMock.{ok, okJson, post, urlEqualTo}
-import com.github.tomakehurst.wiremock.common.FileSource
 import com.github.tomakehurst.wiremock.core.WireMockConfiguration
-import com.github.tomakehurst.wiremock.extension.{Parameters, ResponseDefinitionTransformerV2}
-import com.github.tomakehurst.wiremock.http.{Request, ResponseDefinition}
+import com.github.tomakehurst.wiremock.extension.ResponseDefinitionTransformerV2
+import com.github.tomakehurst.wiremock.http.ResponseDefinition
 import com.github.tomakehurst.wiremock.stubbing.{ServeEvent, StubMapping}
 import io.circe.generic.auto._
 import io.circe.parser.decode
@@ -40,6 +39,21 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
   }))
   val wiremockSnsEndpoint = new WireMockServer(9005)
   val wiremockGovUkNotifyEndpoint = new WireMockServer(9006)
+  val wiremockSsmEndpoint = new WireMockServer(new WireMockConfiguration().port(8004).extensions(new ResponseDefinitionTransformerV2 {
+    override def transform(serveEvent: ServeEvent): ResponseDefinition = {
+      case class SSMRequest(Name: String)
+      decode[SSMRequest](serveEvent.getRequest.getBodyAsString) match {
+        case Left(err) => throw err
+        case Right(req) =>
+          val value = s"http://localhost:9002/webhook-${req.Name.split("-").last}"
+          ResponseDefinitionBuilder
+            .like(serveEvent.getResponseDefinition)
+            .withBody(s"""{"Parameter": {"Value": "$value"}}""")
+            .build()
+      }
+    }
+    override def getName: String = ""
+  }))
 
   def stubKmsResponse: StubMapping = wiremockKmsEndpoint.stubFor(post(urlEqualTo("/")))
 
@@ -72,12 +86,14 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
       )
   }
   override def beforeEach(): Unit = {
-    wiremockSlackServer.stubFor(post(urlEqualTo("/webhook")).willReturn(ok("")))
+    wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-url")).willReturn(ok("")))
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-judgment")).willReturn(ok("")))
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-standard")).willReturn(ok("")))
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-tdr")).willReturn(ok("")))
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-export")).willReturn(ok("")))
     wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-bau")).willReturn(ok("")))
+    wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-transfers")).willReturn(ok("")))
+    wiremockSlackServer.stubFor(post(urlEqualTo("/webhook-releases")).willReturn(ok("")))
     wiremockSesEndpoint.stubFor(post(urlEqualTo("/"))
       .willReturn(ok(
         """
@@ -105,6 +121,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
         |""".stripMargin))
     )
     stubKmsResponse
+    wiremockSsmEndpoint.stubFor(post(urlEqualTo("/")))
     super.beforeEach()
   }
   
@@ -123,6 +140,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     wiremockKmsEndpoint.start()
     wiremockSnsEndpoint.start()
     wiremockGovUkNotifyEndpoint.start()
+    wiremockSsmEndpoint.start()
     super.beforeAll()
   }
 
@@ -132,6 +150,7 @@ class LambdaSpecUtils extends AnyFlatSpec with Matchers with BeforeAndAfterAll w
     wiremockKmsEndpoint.stop()
     wiremockSnsEndpoint.stop()
     wiremockGovUkNotifyEndpoint.stop()
+    wiremockSsmEndpoint.stop()
     super.afterAll()
   }
 }

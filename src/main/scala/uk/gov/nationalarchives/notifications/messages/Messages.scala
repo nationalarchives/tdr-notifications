@@ -12,10 +12,14 @@ import uk.gov.nationalarchives.aws.utils.kms.KMSClients.kms
 import uk.gov.nationalarchives.aws.utils.kms._
 import uk.gov.nationalarchives.aws.utils.ses._
 import uk.gov.nationalarchives.aws.utils.sns._
+import uk.gov.nationalarchives.aws.utils.ssm.SSMClients.ssm
+import uk.gov.nationalarchives.aws.utils.ssm.SSMUtils
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
+import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
+import uk.gov.nationalarchives.notifications.decoders.MetadataReviewSubmittedDecoder.MetadataReviewSubmittedEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.{GovUKEmailDetails, SlackMessage, SnsMessageDetails}
 import uk.gov.service.notify.NotificationClient
 
@@ -38,15 +42,20 @@ object Messages {
   private val env = sys.env.getOrElse("ENVIRONMENT", "test")
   val config: Config = ConfigFactory.load(s"application.$env.conf").withFallback(ConfigFactory.load())
   val kmsUtils: KMSUtils = KMSUtils(kms(config.getString("kms.endpoint")), Map("LambdaFunctionName" -> config.getString("function.name")))
-  val eventConfig: Map[String, String] = List(
-    "alerts.ecr-scan.mute",
-    "ses.email.to",
+  private val ssmUtils = SSMUtils(ssm(config.getString("ssm.endpoint")))
+  private val slackWebhooks = List(
     "slack.webhook.url",
     "slack.webhook.judgment_url",
     "slack.webhook.standard_url",
     "slack.webhook.tdr_url",
     "slack.webhook.export_url",
     "slack.webhook.bau_url",
+    "slack.webhook.tdr_transfers_url",
+    "slack.webhook.tdr_releases_url"
+  )
+  val eventConfig: Map[String, String] = List(
+    "alerts.ecr-scan.mute",
+    "ses.email.to",
     "sns.topic.da_event_bus_arn",
     "gov_uk_notify.external_emails_on",
     "gov_uk_notify.api_key",
@@ -59,10 +68,10 @@ object Messages {
     "gov_uk_notify.upload_failed_template_id",
     "gov_uk_notify.upload_complete_template_id",
     "tdr_inbox_email_address"
-  ).flatMap { configName => 
+  ).flatMap { configName =>
     Try(config.getString(configName)).toOption
-      .map(configValue => configName -> kmsUtils.decryptValue(configValue)) 
-  }.toMap
+      .map(configValue => configName -> kmsUtils.decryptValue(configValue))
+  }.toMap ++ slackWebhooks.map(configName => configName -> ssmUtils.getParameterValue(config.getString(configName))).toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
@@ -131,19 +140,28 @@ object Messages {
     basicRequest.post(uri"$webhookUrl").body(message.asJson.noSpaces).contentType(MediaType.ApplicationJson)
 
   private def webhookUrlsForEvent[TContext, T <: IncomingEvent](incomingEvent: T): Seq[String] = {
+
+    val eventConfigForMetadataReview = (environment: String) => if (environment == "prod") {
+      Seq(eventConfig("slack.webhook.tdr_transfers_url"))
+    } else {
+      Seq(eventConfig("slack.webhook.tdr_releases_url"))
+    }
+
     incomingEvent match {
       case ev: ExportStatusEvent if ev.environment == "prod" && ev.successDetails.exists(_.consignmentType == "judgment") =>
         Seq(eventConfig("slack.webhook.judgment_url"))
       case ev: ExportStatusEvent if ev.environment == "prod" &&
         ev.successDetails.exists(details => details.consignmentType == "standard" || details.consignmentType == "historicalTribunal") =>
-          Seq(eventConfig("slack.webhook.standard_url"))
+        Seq(eventConfig("slack.webhook.standard_url"))
       case ev: ExportStatusEvent =>
         val failureEscalationUrl = Option.when(ev.environment == "prod" && !ev.success)(eventConfig("slack.webhook.tdr_url"))
         Seq(Some(eventConfig("slack.webhook.export_url")), failureEscalationUrl).flatten
       case ev: KeycloakEvent if ev.tdrEnv == "prod" => Seq(eventConfig("slack.webhook.tdr_url"))
       case ev: KeycloakEvent if ev.tdrEnv != "prod" => Seq(eventConfig("slack.webhook.bau_url"))
       case _: DraftMetadataStepFunctionError => Seq(eventConfig("slack.webhook.tdr_url"))
-      case _                => Seq(eventConfig("slack.webhook.url"))
+      case ev: MetadataReviewRequestEvent => eventConfigForMetadataReview(ev.environment)
+      case ev: MetadataReviewSubmittedEvent => eventConfigForMetadataReview(ev.environment)
+      case _ => Seq(eventConfig("slack.webhook.url"))
     }
   }
 }

@@ -18,14 +18,14 @@ class GenericMessageIntegrationSpec extends LambdaIntegrationSpec {
         description = "one message",
         input = genericEventInput(oneMessage),
         expectedOutput = ExpectedOutput(
-          slackMessage = Some(SlackMessage(slackMsg(oneMessageText), "/webhook"))
+          slackMessage = Some(SlackMessage(slackMsg(oneMessageText), "/webhook-url"))
         )
       ),
       Event(
         description = "two messages",
         input = genericEventInput(twoMessages),
         expectedOutput = ExpectedOutput(
-          slackMessage = Some(SlackMessage(slackMsg(twoMessagesText), "/webhook"))
+          slackMessage = Some(SlackMessage(slackMsg(twoMessagesText), "/webhook-url"))
         )
       )
     )
