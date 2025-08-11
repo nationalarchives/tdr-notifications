@@ -311,6 +311,18 @@ object EventMessages {
         )
       ) else List.empty)
     }
+
+    override def slack(incomingEvent: MetadataReviewRequestEvent, context: Unit): Option[SlackMessage] = {
+      slackMessageForMetadataReview(
+        "SUBMITTED",
+        incomingEvent.consignmentReference,
+        incomingEvent.transferringBodyName,
+        incomingEvent.seriesCode,
+        incomingEvent.userId,
+        incomingEvent.closedRecords,
+        incomingEvent.totalRecords
+      ).some
+    }
   }
 
   implicit val metadataReviewSubmittedEventMessages: Messages[MetadataReviewSubmittedEvent, Unit] = new Messages[MetadataReviewSubmittedEvent, Unit] {
@@ -332,6 +344,41 @@ object EventMessages {
         )
       } else Nil
     }
+
+    override def slack(incomingEvent: MetadataReviewSubmittedEvent, context: Unit): Option[SlackMessage] = {
+      val status = if (incomingEvent.status == "Completed") "APPROVED" else "REJECTED"
+      slackMessageForMetadataReview(
+        status,
+        incomingEvent.consignmentReference,
+        incomingEvent.transferringBodyName,
+        incomingEvent.seriesCode,
+        incomingEvent.userId,
+        incomingEvent.closedRecords,
+        incomingEvent.totalRecords
+      ).some
+    }
+  }
+
+  private def slackMessageForMetadataReview(
+                                             status: String,
+                                             consignmentReference: String,
+                                             transferringBodyName: String,
+                                             seriesCode: String,
+                                             userId: String,
+                                             closedRecords: Boolean,
+                                             totalRecords: Int
+                                           ): SlackMessage = {
+    val closedRecordsText = if (closedRecords) "YES" else "NO"
+    val messageList = List(
+      s":warning: *A Metadata Review has been $status*",
+      s"*Consignment Reference*: $consignmentReference",
+      s"*Transferring Body*: $transferringBodyName",
+      s"*Series*: $seriesCode",
+      s"*UserID*: $userId",
+      s"*Number of Records*: $totalRecords",
+      s"*Closed Records*: $closedRecordsText",
+    )
+    SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
   }
 
   implicit val genericRotationMessages: Messages[GenericMessagesEvent, Unit] = new Messages[GenericMessagesEvent, Unit] {

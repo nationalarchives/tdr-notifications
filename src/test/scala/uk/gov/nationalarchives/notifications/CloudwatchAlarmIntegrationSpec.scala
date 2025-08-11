@@ -39,14 +39,14 @@ class CloudwatchAlarmIntegrationSpec extends LambdaIntegrationSpec {
       description = "Alarm Test1 with state OK, reason TestReason1, dimensions test1Name - test1Value",
       input = event("OK", "Test1", "TestReason1", "test1Name", "test1Value"),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(body = slackMessage("OK", "Test1", "TestReason1", "test1Name - test1Value"), webhookUrl = "/webhook"))
+        slackMessage = Some(SlackMessage(body = slackMessage("OK", "Test1", "TestReason1", "test1Name - test1Value"), webhookUrl = "/webhook-url"))
       )
     ),
     Event(
       description = "Alarm Test2 with state ALARM, reason TestReason2, dimensions test2Name - test2Value",
       input = event("ALARM", "Test2", "TestReason2", "test2Name", "test2Value"),
       expectedOutput = ExpectedOutput(
-        slackMessage = Some(SlackMessage(slackMessage("ALARM", "Test2", "TestReason2", "test2Name - test2Value"), webhookUrl = "/webhook"))
+        slackMessage = Some(SlackMessage(slackMessage("ALARM", "Test2", "TestReason2", "test2Name - test2Value"), webhookUrl = "/webhook-url"))
       )
     )
   )
