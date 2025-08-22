@@ -313,7 +313,7 @@ object EventMessages {
     }
 
     override def slack(incomingEvent: MetadataReviewRequestEvent, context: Unit): Option[SlackMessage] = {
-      slackMessageForMetadataReview(
+      Option.when(!incomingEvent.isMockEvent)(slackMessageForMetadataReview(
         "SUBMITTED",
         incomingEvent.consignmentReference,
         incomingEvent.transferringBodyName,
@@ -321,7 +321,7 @@ object EventMessages {
         incomingEvent.userId,
         incomingEvent.closedRecords,
         incomingEvent.totalRecords
-      ).some
+      ))
     }
   }
 
@@ -347,7 +347,7 @@ object EventMessages {
 
     override def slack(incomingEvent: MetadataReviewSubmittedEvent, context: Unit): Option[SlackMessage] = {
       val status = if (incomingEvent.status == "Completed") "APPROVED" else "REJECTED"
-      slackMessageForMetadataReview(
+      Option.when(!incomingEvent.isMockEvent)(slackMessageForMetadataReview(
         status,
         incomingEvent.consignmentReference,
         incomingEvent.transferringBodyName,
@@ -355,7 +355,7 @@ object EventMessages {
         incomingEvent.userId,
         incomingEvent.closedRecords,
         incomingEvent.totalRecords
-      ).some
+      ))
     }
   }
 

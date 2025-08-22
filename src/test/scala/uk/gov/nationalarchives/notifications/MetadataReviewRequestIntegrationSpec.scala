@@ -77,6 +77,35 @@ class MetadataReviewRequestIntegrationSpec extends LambdaIntegrationSpec {
           )
         )
       )
+    ),
+    Event(
+      description = "A metadata review request event from a mock transferring body",
+      input = metadataReviewRequestNotificationInputString(
+        MetadataReviewRequestEvent(
+          environment = "intg",
+          transferringBodyName = "Mock 1 Department",
+          consignmentReference = "TDR-2024",
+          consignmentId = "SomeConsignmentId",
+          seriesCode = "1234",
+          userId = "SomeUserId",
+          userEmail = "test@test.test",
+          closedRecords = false,
+          totalRecords = 10)
+      ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
+      expectedOutput = ExpectedOutput(
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            reference = "TDR-2024",
+            templateId = "TestRequestTBTemplateId",
+            userEmail = "test@test.test",
+            personalisation = Map(
+              "consignmentReference" -> "TDR-2024",
+            )
+          )
+        ),
+        slackMessage = None
+      )
     )
   )
 
