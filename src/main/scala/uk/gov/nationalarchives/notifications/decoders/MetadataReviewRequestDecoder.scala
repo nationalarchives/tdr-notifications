@@ -11,5 +11,7 @@ object MetadataReviewRequestDecoder {
                                          userEmail: String,
                                          closedRecords: Boolean,
                                          totalRecords: Int
-                                       ) extends IncomingEvent
+                                       ) extends IncomingEvent {
+    val isMockEvent:Boolean = transferringBodyName.toUpperCase.contains("MOCK")
+  }
 }

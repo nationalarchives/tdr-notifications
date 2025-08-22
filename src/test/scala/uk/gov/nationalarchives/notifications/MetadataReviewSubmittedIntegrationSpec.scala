@@ -42,6 +42,37 @@ class MetadataReviewSubmittedIntegrationSpec extends LambdaIntegrationSpec {
       )
     ),
     Event(
+      description = "An approved metadata review submitted event for a mock transferring body",
+      input = metadataReviewSubmittedNotificationInputString(
+        MetadataReviewSubmittedEvent(
+          environment = "intg",
+          consignmentReference = "SomeConsignmentReference",
+          urlLink = "example.com",
+          userEmail = "email@mail.com",
+          status = "Completed",
+          transferringBodyName = "Mock 1 Department",
+          seriesCode = "SomeSeries",
+          userId = "SomeUserId",
+          closedRecords = true,
+          totalRecords = 10)
+      ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
+      expectedOutput = ExpectedOutput(
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            reference = "SomeConsignmentReference",
+            templateId = "TestApprovedTemplateId",
+            userEmail = "email@mail.com",
+            personalisation = Map(
+              "urlLink" -> "example.com",
+              "consignmentReference" -> "SomeConsignmentReference",
+            )
+          )
+        ),
+        slackMessage = None
+      )
+    ),
+    Event(
       description = "A rejected metadata review submitted event",
       input = metadataReviewSubmittedNotificationInputString(
         MetadataReviewSubmittedEvent(
