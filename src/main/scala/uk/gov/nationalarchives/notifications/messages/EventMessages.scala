@@ -544,7 +544,7 @@ object EventMessages {
         List(SlackBlock("section", SlackText(`type` = "mrkdwn",
           text =
             s""":broom: Keycloak disable users lambda run in $environment. $disabledUsersCount users disabled.
-               |:memo: <View the logs|https://$region.console.aws.amazon.com/cloudwatch/home?region=$region#logsV2:log-groups/log-group${logInfo.logGroupName}/log-events/${logInfo.logStreamName}>""".stripMargin
+               |:memo: <https://$region.console.aws.amazon.com/cloudwatch/home?region=$region#logsV2:log-groups/log-group${logInfo.logGroupName}/log-events/${logInfo.logStreamName}|View the logs on Cloudwatch>""".stripMargin
         )))
       ).some
     }
