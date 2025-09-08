@@ -539,12 +539,14 @@ object EventMessages {
 
     override def slack(keycloakEvent: UsersDisabledEvent, context: Unit): Option[SlackMessage] = {
       import keycloakEvent._
+      val encodedLogGroup = java.net.URLEncoder.encode(logInfo.logGroupName, "UTF-8")
+      val encodedLogStream = java.net.URLEncoder.encode(logInfo.logStreamName, "UTF-8")
       val region = "eu-west-2"
       SlackMessage(
         List(SlackBlock("section", SlackText(`type` = "mrkdwn",
           text =
             s""":broom: Keycloak disable users lambda run in $environment. $disabledUsersCount users disabled.
-               |:memo: <https://$region.console.aws.amazon.com/cloudwatch/home?region=$region#logsV2:log-groups/log-group${logInfo.logGroupName}/log-events/${logInfo.logStreamName}|View the logs on Cloudwatch>""".stripMargin
+               |:memo: <https://$region.console.aws.amazon.com/cloudwatch/home?region=$region#logsV2:log-groups/log-group/$encodedLogGroup/log-events/$encodedLogStream|View the logs on Cloudwatch>""".stripMargin
         )))
       ).some
     }

@@ -49,7 +49,9 @@ class UsersDisabledEventIntegrationSpec extends LambdaIntegrationSpec {
   )
 
   private def slackMessage(environment: String, usersDisabled: Int, logGroupName: String, logStreamName: String): String = {
-    val text = s":broom: Keycloak disable users lambda run in $environment. $usersDisabled users disabled.\\n:memo: <https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=eu-west-2#logsV2:log-groups/log-group$logGroupName/log-events/$logStreamName|View the logs on Cloudwatch>"
+    val encodedLogGroup = java.net.URLEncoder.encode(logGroupName, "UTF-8")
+    val encodedLogStream = java.net.URLEncoder.encode(logStreamName, "UTF-8")
+    val text = s":broom: Keycloak disable users lambda run in $environment. $usersDisabled users disabled.\\n:memo: <https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=eu-west-2#logsV2:log-groups/log-group/$encodedLogGroup/log-events/$encodedLogStream|View the logs on Cloudwatch>"
 
     s"""{"blocks":[{"type":"section","text":{"type":"mrkdwn","text":"$text"}}]}"""
   }
