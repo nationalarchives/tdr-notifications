@@ -17,6 +17,7 @@ import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransferCompleteEventDecoder.TransferCompleteEvent
 import uk.gov.nationalarchives.notifications.decoders.UploadEventDecoder.UploadEvent
+import uk.gov.nationalarchives.notifications.decoders.UsersDisabledEventDecoder.UsersDisabledEvent
 import uk.gov.nationalarchives.notifications.decoders._
 import uk.gov.nationalarchives.notifications.messages.EventMessages._
 import uk.gov.nationalarchives.notifications.messages.Messages._
@@ -40,6 +41,7 @@ class Lambda {
       case metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent    => sendMessages(metadataReviewSubmittedEvent)
       case draftMetadataStepFunctionError:DraftMetadataStepFunctionError => sendMessages(draftMetadataStepFunctionError)
       case uploadEvent: UploadEvent                                      => sendMessages(uploadEvent)
+      case usersDisabledEvent: UsersDisabledEvent                        => sendMessages(usersDisabledEvent)  
     }).flatten
       .unsafeRunSync()
   }
