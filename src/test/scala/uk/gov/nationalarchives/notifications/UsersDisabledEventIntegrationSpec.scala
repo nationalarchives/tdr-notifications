@@ -13,13 +13,36 @@ class UsersDisabledEventIntegrationSpec extends LambdaIntegrationSpec {
           logInfo = LogInfo(
             logGroupName = "/aws/lambda/test-users-disabled", 
             logStreamName = "2025/01/01/abcde"
-          )
+          ),
+          dryRun = false
         )
       ),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
             body = slackMessage("test", 1, "/aws/lambda/test-users-disabled", "2025/01/01/abcde"),
+            webhookUrl = "/webhook-url"
+          )
+        )
+      )
+    ),
+    Event(
+      description = "Dry run of keycloak users disabled lambda in lower environment",
+      input = usersDisabledEventNotificationInputString(
+        UsersDisabledEvent(
+          environment = "test",
+          disabledUsersCount = 1,
+          logInfo = LogInfo(
+            logGroupName = "/aws/lambda/test-users-disabled",
+            logStreamName = "2025/01/01/abcde"
+          ),
+          dryRun = true
+        )
+      ),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(
+          SlackMessage(
+            body = slackMessage("test", 1, "/aws/lambda/test-users-disabled", "2025/01/01/abcde", ":test_tube: DRY RUN :test_tube:\\n"),
             webhookUrl = "/webhook-url"
           )
         )
@@ -34,7 +57,8 @@ class UsersDisabledEventIntegrationSpec extends LambdaIntegrationSpec {
           logInfo = LogInfo(
             logGroupName = "/aws/lambda/test-users-disabled",
             logStreamName = "2025/01/01/abcde"
-          )
+          ),
+          dryRun = false
         )
       ),
       expectedOutput = ExpectedOutput(
@@ -48,12 +72,12 @@ class UsersDisabledEventIntegrationSpec extends LambdaIntegrationSpec {
     ),
   )
 
-  private def slackMessage(environment: String, usersDisabled: Int, logGroupName: String, logStreamName: String): String = {
+  private def slackMessage(environment: String, usersDisabled: Int, logGroupName: String, logStreamName: String, frontAppend: String = ""): String = {
     val encodedLogGroup = java.net.URLEncoder.encode(logGroupName, "UTF-8")
     val encodedLogStream = java.net.URLEncoder.encode(logStreamName, "UTF-8")
     val text = s":broom: Keycloak disable users lambda run in $environment. $usersDisabled users disabled.\\n:memo: <https://eu-west-2.console.aws.amazon.com/cloudwatch/home?region=eu-west-2#logsV2:log-groups/log-group/$encodedLogGroup/log-events/$encodedLogStream|View the logs on Cloudwatch>"
 
-    s"""{"blocks":[{"type":"section","text":{"type":"mrkdwn","text":"$text"}}]}"""
+    s"""{"blocks":[{"type":"section","text":{"type":"mrkdwn","text":"$frontAppend$text"}}]}"""
   }
   
   def usersDisabledEventNotificationInputString(usersDisabledEvent: UsersDisabledEvent): String = {
@@ -62,7 +86,7 @@ class UsersDisabledEventIntegrationSpec extends LambdaIntegrationSpec {
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"environment\\":\\"$environment\\",\\"disabledUsersCount\\":\\"$disabledUsersCount\\",\\"logInfo\\": { \\"logGroupName\\" : \\"${logInfo.logGroupName}\\", \\"logStreamName\\" : \\"${logInfo.logStreamName}\\" } }"
+       |       "Message": "{\\"environment\\":\\"$environment\\",\\"disabledUsersCount\\":\\"$disabledUsersCount\\",\\"logInfo\\": { \\"logGroupName\\" : \\"${logInfo.logGroupName}\\", \\"logStreamName\\" : \\"${logInfo.logStreamName}\\" }, \\"dryRun\\": $dryRun }"
        |      }
        |    }
        |  ]}""".stripMargin
