@@ -30,6 +30,7 @@ import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, S
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransferCompleteEventDecoder.TransferCompleteEvent
 import uk.gov.nationalarchives.notifications.decoders.UploadEventDecoder.UploadEvent
+import uk.gov.nationalarchives.notifications.decoders.UsersDisabledEventDecoder.UsersDisabledEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
 import java.net.URI
@@ -531,6 +532,25 @@ object EventMessages {
         s"*$ssmParameter*: $reason",
         s"\nSee here for instructions to rotate GitHub access token: https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/notify-github-access-token.md#rotate-github-personal-access-token"
       )
+  }
+  
+  implicit val usersDisabledEventMessages: Messages[UsersDisabledEvent, Unit] = new Messages[UsersDisabledEvent, Unit] {
+    override def context(event: UsersDisabledEvent): IO[Unit] = IO.unit
+
+    override def slack(keycloakEvent: UsersDisabledEvent, context: Unit): Option[SlackMessage] = {
+      import keycloakEvent._
+      val encodedLogGroup = java.net.URLEncoder.encode(logInfo.logGroupName, "UTF-8")
+      val encodedLogStream = java.net.URLEncoder.encode(logInfo.logStreamName, "UTF-8")
+      val region = "eu-west-2"
+      val dryRunHeader = Option.when(dryRun)(":test_tube: DRY RUN :test_tube:\n").getOrElse("")
+      SlackMessage(
+        List(SlackBlock("section", SlackText(`type` = "mrkdwn",
+          text =
+            s"""$dryRunHeader:broom: Keycloak disable users lambda run in $environment. $disabledUsersCount users disabled.
+               |:memo: <https://$region.console.aws.amazon.com/cloudwatch/home?region=$region#logsV2:log-groups/log-group/$encodedLogGroup/log-events/$encodedLogStream|View the logs on Cloudwatch>""".stripMargin
+        )))
+      ).some
+    }
   }
 }
 

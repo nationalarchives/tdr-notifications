@@ -17,6 +17,7 @@ import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.decodeScanEven
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.decodeStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransferCompleteEventDecoder.TransferCompleteEvent
 import uk.gov.nationalarchives.notifications.decoders.UploadEventDecoder.UploadEvent
+import uk.gov.nationalarchives.notifications.decoders.UsersDisabledEventDecoder.UsersDisabledEvent
 
 trait IncomingEvent {}
 
@@ -25,7 +26,7 @@ object IncomingEvent {
     decodeSnsEvent[KeycloakEvent] or decodeSnsEvent[GenericMessagesEvent] or
     decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[ParameterStoreExpiryEvent] or decodeStepFunctionError or decodeSnsEvent[TransferCompleteEvent] or
     decodeSnsEvent[MetadataReviewRequestEvent] or decodeSnsEvent[MetadataReviewSubmittedEvent] or decodeSnsEvent[DraftMetadataStepFunctionError] or decodeSnsEvent[MalwareScanThreatFoundEvent] or
-    decodeSnsEvent[UploadEvent]
+    decodeSnsEvent[UploadEvent] or decodeSnsEvent[UsersDisabledEvent]
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- c.downField("Records").as[List[SnsRecord]]

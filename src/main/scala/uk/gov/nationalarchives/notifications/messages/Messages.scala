@@ -20,6 +20,7 @@ import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewSubmittedDecoder.MetadataReviewSubmittedEvent
+import uk.gov.nationalarchives.notifications.decoders.UsersDisabledEventDecoder.UsersDisabledEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.{GovUKEmailDetails, SlackMessage, SnsMessageDetails}
 import uk.gov.service.notify.NotificationClient
 
@@ -161,6 +162,7 @@ object Messages {
       case _: DraftMetadataStepFunctionError => Seq(eventConfig("slack.webhook.tdr_url"))
       case ev: MetadataReviewRequestEvent => eventConfigForMetadataReview(ev.environment)
       case ev: MetadataReviewSubmittedEvent => eventConfigForMetadataReview(ev.environment)
+      case ev: UsersDisabledEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_url")) else Seq(eventConfig("slack.webhook.url"))
       case _ => Seq(eventConfig("slack.webhook.url"))
     }
   }
