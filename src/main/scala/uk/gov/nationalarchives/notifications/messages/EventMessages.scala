@@ -229,7 +229,7 @@ object EventMessages {
 
   implicit val uploadEventMessages: Messages[UploadEvent, Unit] = new Messages[UploadEvent, Unit] {
     private def govUKNotifTemplateId(event: UploadEvent): String = event match {
-      case _ if event.status == "Complete" => eventConfig("gov_uk_notify.upload_complete_template_id")
+      case _ if event.status == "Completed" => eventConfig("gov_uk_notify.upload_complete_template_id") //
       case _ => eventConfig("gov_uk_notify.upload_failed_template_id")
     }
 
