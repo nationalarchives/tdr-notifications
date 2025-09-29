@@ -14,7 +14,7 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
           consignmentId = "SomeConsignmentId",
           userId = "SomeUserId",
           userEmail = "test@test.test",
-          status = "Complete"
+          status = "Completed"
         )
       ),
       stubContext = stubDummyGovUkNotifyEmailResponse,
@@ -30,7 +30,7 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
               "transferringBodyName" -> "SomeTransferringBody",
               "consignmentId" -> "SomeConsignmentId",
               "consignmentReference" -> "SomeConsignmentReference",
-              "status" -> "Complete"
+              "status" -> "Completed"
             )
           )
         )
