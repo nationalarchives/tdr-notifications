@@ -64,11 +64,23 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
               "status" -> "Failed"
             )
           )
+        ),
+        slackMessage = Some(
+          SlackMessage(
+            body = slackMessage(UploadEvent(
+              transferringBodyName = "SomeTransferringBody",
+              consignmentReference = "SomeConsignmentReference",
+              consignmentId = "SomeConsignmentId",
+              status = "Failed",
+              userId = "SomeUserId",
+              userEmail = "test@test.com")),
+            webhookUrl = "/webhook-url"
+          )
         )
       )
     )
   )
-  
+
   def uploadNotificationInputString(uploadEvent: UploadEvent): String = {
     import uploadEvent._
     s"""{
@@ -79,5 +91,28 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
        |      }
        |    }
        |  ]}""".stripMargin
+  }
+
+  private def slackMessage(uploadEvent: UploadEvent): String = {
+    val messageList = List(
+      s":warning: *Transfer Service*",
+      s"*Upload ${uploadEvent.status}*",
+      s"*Consignment Reference*: ${uploadEvent.consignmentReference}",
+      s"*Consignment Id*: ${uploadEvent.consignmentId}",
+      s"*Transferring Body*: ${uploadEvent.transferringBodyName}",
+      s"*User Id*: ${uploadEvent.userId}",
+    )
+    s"""{
+       |  "blocks": [
+       |    {
+       |      "type": "section",
+       |      "text": {
+       |        "type": "mrkdwn",
+       |        "text": "${messageList.mkString("\\n")}"
+       |      }
+       |    }
+       |  ]
+       |}
+       |""".stripMargin
   }
 }

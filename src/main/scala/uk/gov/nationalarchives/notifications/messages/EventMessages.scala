@@ -250,6 +250,20 @@ object EventMessages {
         reference = s"${uploadEvent.consignmentReference}-${uploadEvent.userId}"
       )
     )
+
+    override def slack(uploadEvent: UploadEvent, context: Unit): Option[SlackMessage] = {
+      Option.when(uploadEvent.status == "Failed") {
+        val messageList = List(
+          s":warning: *Transfer Service*",
+          s"*Upload ${uploadEvent.status}*",
+          s"*Consignment Reference*: ${uploadEvent.consignmentReference}",
+          s"*Consignment Id*: ${uploadEvent.consignmentId}",
+          s"*Transferring Body*: ${uploadEvent.transferringBodyName}",
+          s"*User Id*: ${uploadEvent.userId}",
+        )
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
+      }
+    }
   }
 
   implicit val transferCompleteEventMessages: Messages[TransferCompleteEvent, Unit] = new Messages[TransferCompleteEvent, Unit] {

@@ -20,6 +20,7 @@ import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewSubmittedDecoder.MetadataReviewSubmittedEvent
+import uk.gov.nationalarchives.notifications.decoders.UploadEventDecoder.UploadEvent
 import uk.gov.nationalarchives.notifications.decoders.UsersDisabledEventDecoder.UsersDisabledEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.{GovUKEmailDetails, SlackMessage, SnsMessageDetails}
 import uk.gov.service.notify.NotificationClient
@@ -163,6 +164,7 @@ object Messages {
       case ev: MetadataReviewRequestEvent => eventConfigForMetadataReview(ev.environment)
       case ev: MetadataReviewSubmittedEvent => eventConfigForMetadataReview(ev.environment)
       case ev: UsersDisabledEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_url")) else Seq(eventConfig("slack.webhook.url"))
+      case _: UploadEvent => Seq(eventConfig("slack.webhook.tdr_url"))  //what channel should it go to
       case _ => Seq(eventConfig("slack.webhook.url"))
     }
   }
