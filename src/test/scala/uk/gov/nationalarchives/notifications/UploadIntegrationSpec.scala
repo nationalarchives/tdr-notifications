@@ -14,7 +14,9 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
           consignmentId = "SomeConsignmentId",
           userId = "SomeUserId",
           userEmail = "test@test.test",
-          status = "Completed"
+          status = "Completed",
+          uploadSource = "SomeSource",
+          environment = "intg"
         )
       ),
       stubContext = stubDummyGovUkNotifyEmailResponse,
@@ -45,7 +47,9 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
           consignmentId = "SomeConsignmentId",
           status = "Failed",
           userId = "SomeUserId",
-          userEmail = "test@test.test"
+          userEmail = "test@test.test",
+          uploadSource = "SomeSource",
+          environment = "prod"
         )
       ),
       stubContext = stubDummyGovUkNotifyEmailResponse,
@@ -73,8 +77,10 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
               consignmentId = "SomeConsignmentId",
               status = "Failed",
               userId = "SomeUserId",
-              userEmail = "test@test.com")),
-            webhookUrl = "/webhook-url"
+              userEmail = "test@test.com",
+              uploadSource = "SomeSource",
+              environment = "prod")),
+            webhookUrl = "/webhook-tdr"
           )
         )
       )
@@ -87,7 +93,7 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"transferringBodyName\\":\\"$transferringBodyName\\",\\"consignmentReference\\":\\"$consignmentReference\\",\\"consignmentId\\" : \\"$consignmentId\\",\\"status\\" : \\"$status\\",\\"userId\\" : \\"$userId\\",\\"userEmail\\" : \\"$userEmail\\"}"
+       |       "Message": "{\\"transferringBodyName\\":\\"$transferringBodyName\\",\\"consignmentReference\\":\\"$consignmentReference\\",\\"consignmentId\\" : \\"$consignmentId\\",\\"status\\" : \\"$status\\",\\"userId\\" : \\"$userId\\",\\"userEmail\\" : \\"$userEmail\\",\\"uploadSource\\" : \\"$uploadSource\\",\\"environment\\" : \\"$environment\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
@@ -95,11 +101,10 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
 
   private def slackMessage(uploadEvent: UploadEvent): String = {
     val messageList = List(
-      s":warning: *Transfer Service*",
-      s"*Upload ${uploadEvent.status}*",
+      s":warning: *Transfer Upload ${uploadEvent.status}*",
+      s"*Upload Source*: ${uploadEvent.uploadSource}",
       s"*Consignment Reference*: ${uploadEvent.consignmentReference}",
       s"*Consignment Id*: ${uploadEvent.consignmentId}",
-      s"*Transferring Body*: ${uploadEvent.transferringBodyName}",
       s"*User Id*: ${uploadEvent.userId}",
     )
     s"""{
