@@ -14,7 +14,9 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
           consignmentId = "SomeConsignmentId",
           userId = "SomeUserId",
           userEmail = "test@test.test",
-          status = "Completed"
+          status = "Completed",
+          uploadSource = "SomeSource",
+          environment = "intg"
         )
       ),
       stubContext = stubDummyGovUkNotifyEmailResponse,
@@ -45,7 +47,9 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
           consignmentId = "SomeConsignmentId",
           status = "Failed",
           userId = "SomeUserId",
-          userEmail = "test@test.test"
+          userEmail = "test@test.test",
+          uploadSource = "SomeSource",
+          environment = "prod"
         )
       ),
       stubContext = stubDummyGovUkNotifyEmailResponse,
@@ -64,20 +68,56 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
               "status" -> "Failed"
             )
           )
+        ),
+        slackMessage = Some(
+          SlackMessage(
+            body = slackMessage(UploadEvent(
+              transferringBodyName = "SomeTransferringBody",
+              consignmentReference = "SomeConsignmentReference",
+              consignmentId = "SomeConsignmentId",
+              status = "Failed",
+              userId = "SomeUserId",
+              userEmail = "test@test.com",
+              uploadSource = "SomeSource",
+              environment = "prod")),
+            webhookUrl = "/webhook-tdr"
+          )
         )
       )
     )
   )
-  
+
   def uploadNotificationInputString(uploadEvent: UploadEvent): String = {
     import uploadEvent._
     s"""{
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"transferringBodyName\\":\\"$transferringBodyName\\",\\"consignmentReference\\":\\"$consignmentReference\\",\\"consignmentId\\" : \\"$consignmentId\\",\\"status\\" : \\"$status\\",\\"userId\\" : \\"$userId\\",\\"userEmail\\" : \\"$userEmail\\"}"
+       |       "Message": "{\\"transferringBodyName\\":\\"$transferringBodyName\\",\\"consignmentReference\\":\\"$consignmentReference\\",\\"consignmentId\\" : \\"$consignmentId\\",\\"status\\" : \\"$status\\",\\"userId\\" : \\"$userId\\",\\"userEmail\\" : \\"$userEmail\\",\\"uploadSource\\" : \\"$uploadSource\\",\\"environment\\" : \\"$environment\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
+  }
+
+  private def slackMessage(uploadEvent: UploadEvent): String = {
+    val messageList = List(
+      s":warning: *Transfer Upload ${uploadEvent.status}*",
+      s"*Upload Source*: ${uploadEvent.uploadSource}",
+      s"*Consignment Reference*: ${uploadEvent.consignmentReference}",
+      s"*Consignment Id*: ${uploadEvent.consignmentId}",
+      s"*User Id*: ${uploadEvent.userId}",
+    )
+    s"""{
+       |  "blocks": [
+       |    {
+       |      "type": "section",
+       |      "text": {
+       |        "type": "mrkdwn",
+       |        "text": "${messageList.mkString("\\n")}"
+       |      }
+       |    }
+       |  ]
+       |}
+       |""".stripMargin
   }
 }

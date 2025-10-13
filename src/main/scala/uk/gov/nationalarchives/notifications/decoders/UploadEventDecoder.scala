@@ -7,6 +7,8 @@ object UploadEventDecoder {
     consignmentId: String,
     status: String,
     userId: String,
-    userEmail: String
+    userEmail: String,
+    uploadSource: String,
+    environment: String
   ) extends IncomingEvent
 }
