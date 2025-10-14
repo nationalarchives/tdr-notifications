@@ -93,7 +93,7 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"transferringBodyName\\":\\"$transferringBodyName\\",\\"consignmentReference\\":\\"$consignmentReference\\",\\"consignmentId\\" : \\"$consignmentId\\",\\"status\\" : \\"$status\\",\\"userId\\" : \\"$userId\\",\\"userEmail\\" : \\"$userEmail\\",\\"uploadSource\\" : \\"$assetSource\\",\\"environment\\" : \\"$environment\\"}"
+       |       "Message": "{\\"transferringBodyName\\":\\"$transferringBodyName\\",\\"consignmentReference\\":\\"$consignmentReference\\",\\"consignmentId\\" : \\"$consignmentId\\",\\"status\\" : \\"$status\\",\\"userId\\" : \\"$userId\\",\\"userEmail\\" : \\"$userEmail\\",\\"assetSource\\" : \\"$assetSource\\",\\"environment\\" : \\"$environment\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
@@ -102,7 +102,7 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
   private def slackMessage(uploadEvent: UploadEvent): String = {
     val messageList = List(
       s":warning: *Transfer Upload ${uploadEvent.status}*",
-      s"*Upload Source*: ${uploadEvent.assetSource}",
+      s"*Asset Source*: ${uploadEvent.assetSource}",
       s"*Consignment Reference*: ${uploadEvent.consignmentReference}",
       s"*Consignment Id*: ${uploadEvent.consignmentId}",
       s"*User Id*: ${uploadEvent.userId}",
