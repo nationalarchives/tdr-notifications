@@ -126,7 +126,7 @@ object LambdaRunner extends App {
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"transferringBodyName\\":\\"transferringBodyName\\",\\"consignmentReference\\":\\"consignmentReference\\",\\"consignmentId\\" : \\"consignmentId\\",\\"status\\" : \\"Failed\\",\\"userId\\" : \\"userId\\",\\"userEmail\\" : \\"userEmail\\",\\"uploadSource\\" : \\"uploadSource\\",\\"environment\\" : \\"test\\"}"
+       |       "Message": "{\\"transferringBodyName\\":\\"transferringBodyName\\",\\"consignmentReference\\":\\"consignmentReference\\",\\"consignmentId\\" : \\"consignmentId\\",\\"status\\" : \\"Failed\\",\\"userId\\" : \\"userId\\",\\"userEmail\\" : \\"userEmail\\",\\"assetSource\\" : \\"assetSource\\",\\"environment\\" : \\"test\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
