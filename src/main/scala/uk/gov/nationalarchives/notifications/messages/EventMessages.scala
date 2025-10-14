@@ -255,7 +255,7 @@ object EventMessages {
       Option.when(uploadEvent.status == "Failed") {
         val messageList = List(
           s":warning: *Transfer Upload ${uploadEvent.status}*",
-          s"*Upload Source*: ${uploadEvent.uploadSource}",
+          s"*Asset Source*: ${uploadEvent.assetSource}",
           s"*Consignment Reference*: ${uploadEvent.consignmentReference}",
           s"*Consignment Id*: ${uploadEvent.consignmentId}",
           s"*User Id*: ${uploadEvent.userId}",
