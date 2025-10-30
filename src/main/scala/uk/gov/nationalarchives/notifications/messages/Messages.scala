@@ -20,6 +20,7 @@ import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewSubmittedDecoder.MetadataReviewSubmittedEvent
+import uk.gov.nationalarchives.notifications.decoders.UploadEventDecoder.UploadEvent
 import uk.gov.nationalarchives.notifications.decoders.UsersDisabledEventDecoder.UsersDisabledEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.{GovUKEmailDetails, SlackMessage, SnsMessageDetails}
 import uk.gov.service.notify.NotificationClient
@@ -52,7 +53,8 @@ object Messages {
     "slack.webhook.export_url",
     "slack.webhook.bau_url",
     "slack.webhook.tdr_transfers_url",
-    "slack.webhook.tdr_releases_url"
+    "slack.webhook.tdr_releases_url",
+    "slack.webhook.tdr_dev_notifications_url"
   )
   val eventConfig: Map[String, String] = List(
     "alerts.ecr-scan.mute",
@@ -163,6 +165,7 @@ object Messages {
       case ev: MetadataReviewRequestEvent => eventConfigForMetadataReview(ev.environment)
       case ev: MetadataReviewSubmittedEvent => eventConfigForMetadataReview(ev.environment)
       case ev: UsersDisabledEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_url")) else Seq(eventConfig("slack.webhook.url"))
+      case ev: UploadEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_url")) else Seq(eventConfig("slack.webhook.tdr_dev_notifications_url"))
       case _ => Seq(eventConfig("slack.webhook.url"))
     }
   }
