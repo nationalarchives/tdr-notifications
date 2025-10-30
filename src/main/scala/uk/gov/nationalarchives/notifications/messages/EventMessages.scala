@@ -250,6 +250,19 @@ object EventMessages {
         reference = s"${uploadEvent.consignmentReference}-${uploadEvent.userId}"
       )
     )
+
+    override def slack(uploadEvent: UploadEvent, context: Unit): Option[SlackMessage] = {
+      Option.when(uploadEvent.status == "Failed") {
+        val messageList = List(
+          s":warning: *Transfer Upload ${uploadEvent.status}*",
+          s"*Asset Source*: ${uploadEvent.assetSource}",
+          s"*Consignment Reference*: ${uploadEvent.consignmentReference}",
+          s"*Consignment Id*: ${uploadEvent.consignmentId}",
+          s"*User Id*: ${uploadEvent.userId}",
+        )
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
+      }
+    }
   }
 
   implicit val transferCompleteEventMessages: Messages[TransferCompleteEvent, Unit] = new Messages[TransferCompleteEvent, Unit] {
@@ -493,9 +506,11 @@ object EventMessages {
   }
 
   implicit val snsNotifyMessage: Messages[ParameterStoreExpiryEvent, Unit] = new Messages[ParameterStoreExpiryEvent, Unit] {
-
-    val githubAccessTokenParameterName = "/github/access_token"
+    val githubAccessTokenParameterName = "/github_enterprise/access_token"
     val govukNotifyApiKeyParameterName = "/keycloak/govuk_notify/api_key"
+    val npmTokenParameterName          = "/npm_granular_token"
+
+    val tokenParameters = List(githubAccessTokenParameterName, govukNotifyApiKeyParameterName, npmTokenParameterName)
 
     override def context(incomingEvent: ParameterStoreExpiryEvent): IO[Unit] = IO.unit
 
@@ -504,11 +519,8 @@ object EventMessages {
     override def slack(incomingEvent: ParameterStoreExpiryEvent, context: Unit): Option[SlackMessage] = {
       val ssmParameter: String = incomingEvent.detail.`parameter-name`
       val reason: String = incomingEvent.detail.`action-reason`
-
-      val messageList = if (ssmParameter.contains(govukNotifyApiKeyParameterName)) {
-        getMessageListForGovtUKNotifyApiKeyEvent(ssmParameter, reason)
-      } else if (ssmParameter.contains(githubAccessTokenParameterName)) {
-        getMessageListForGitHubAccessTokenEvent(ssmParameter, reason)
+      val messageList = if (tokenParameters.exists(ssmParameter.contains(_))) {
+        ssmParameterMessage(ssmParameter, reason)
       } else {
         List(
           ":error: *Unknown notify event*",
@@ -519,19 +531,24 @@ object EventMessages {
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
     }
 
-    def getMessageListForGovtUKNotifyApiKeyEvent(ssmParameter: String, reason: String): List[String] =
-      List(
-        ":warning: *Rotate GOV.UK Notify API Key*",
-        s"*$ssmParameter*: $reason",
-        s"\nSee here for instructions to rotate GOV.UK Notify API Keys: https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/govuk-notify.md#rotating-api-key"
-      )
+    def ssmParameterMessage(ssmParameter: String, reason: String): List[String] = {
+      val defaultInstructions = "https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/rotate-tokens.md"
+      val detail: String = ssmParameter match {
+        case _ if ssmParameter.contains(githubAccessTokenParameterName) =>
+          s"\nSee here for instructions to rotate GitHub access token: $defaultInstructions"
+        case _ if ssmParameter.contains(govukNotifyApiKeyParameterName) =>
+          s"\nSee here for instructions to rotate GOV.UK Notify API Keys: https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/govuk-notify.md#rotating-api-key"
+        case _ if ssmParameter.contains(npmTokenParameterName) =>
+          s"\nSee here for instructions to rotate NPM token: $defaultInstructions"
+        case _ => s"\nRotate value for SSM parameter $ssmParameter"
+      }
 
-    def getMessageListForGitHubAccessTokenEvent(ssmParameter: String, reason: String): List[String] =
       List(
-        ":warning: *Rotate GitHub access token*",
+        ":warning: *Rotate SSM Parameter Value*",
         s"*$ssmParameter*: $reason",
-        s"\nSee here for instructions to rotate GitHub access token: https://github.com/nationalarchives/tdr-dev-documentation-internal/blob/main/manual/notify-github-access-token.md#rotate-github-personal-access-token"
+        detail
       )
+    }
   }
   
   implicit val usersDisabledEventMessages: Messages[UsersDisabledEvent, Unit] = new Messages[UsersDisabledEvent, Unit] {
