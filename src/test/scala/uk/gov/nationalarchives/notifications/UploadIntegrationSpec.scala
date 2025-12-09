@@ -84,6 +84,44 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
           )
         )
       )
+    ),
+    Event(
+      description = "A upload complete event with MOCK transferring body",
+      input = uploadNotificationInputString(
+        UploadEvent(
+          transferringBodyName = "MOCK123",
+          consignmentReference = "SomeConsignmentReference",
+          consignmentId = "SomeConsignmentId",
+          userId = "SomeUserId",
+          userEmail = "test@test.test",
+          status = "Completed",
+          assetSource = "SomeSource",
+          environment = "intg"
+        )
+      ),
+      expectedOutput = ExpectedOutput(
+        govUKEmail = None,
+        slackMessage = None
+      )
+    ),
+    Event(
+      description = "An upload failed event with MOCK transferring body",
+      input = uploadNotificationInputString(
+        UploadEvent(
+          transferringBodyName = "MOCK123",
+          consignmentReference = "SomeConsignmentReference",
+          consignmentId = "SomeConsignmentId",
+          status = "Failed",
+          userId = "SomeUserId",
+          userEmail = "test@test.test",
+          assetSource = "SomeSource",
+          environment = "prod"
+        )
+      ),
+      expectedOutput = ExpectedOutput(
+        govUKEmail = None,
+        slackMessage = None
+      )
     )
   )
 
@@ -101,7 +139,7 @@ class UploadIntegrationSpec extends LambdaIntegrationSpec {
 
   private def slackMessage(uploadEvent: UploadEvent): String = {
     val messageList = List(
-      s":warning: *Transfer Upload ${uploadEvent.status}*",
+      s":warning: *Transfer Upload ${uploadEvent.status} ${uploadEvent.environment}*",
       s"*Asset Source*: ${uploadEvent.assetSource}",
       s"*Consignment Reference*: ${uploadEvent.consignmentReference}",
       s"*Consignment Id*: ${uploadEvent.consignmentId}",

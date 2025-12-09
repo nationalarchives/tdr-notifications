@@ -235,26 +235,29 @@ object EventMessages {
 
     override def context(event: UploadEvent): IO[Unit] = IO.unit
 
-    override def govUkNotifyEmail(uploadEvent: UploadEvent, context: Unit): List[GovUKEmailDetails] = List(
-      GovUKEmailDetails(
-        templateId = govUKNotifTemplateId(uploadEvent),
-        userEmail = uploadEvent.userEmail,
-        personalisation = Map(
-          "userEmail" -> uploadEvent.userEmail,
-          "userId" -> uploadEvent.userId,
-          "transferringBodyName" -> uploadEvent.transferringBodyName,
-          "consignmentId" -> uploadEvent.consignmentId,
-          "consignmentReference" -> uploadEvent.consignmentReference,
-          "status" -> uploadEvent.status
-        ),
-        reference = s"${uploadEvent.consignmentReference}-${uploadEvent.userId}"
-      )
-    )
+    override def govUkNotifyEmail(uploadEvent: UploadEvent, context: Unit): List[GovUKEmailDetails] =
+      if (!uploadEvent.transferringBodyName.toUpperCase.contains("MOCK")) {
+        List(
+          GovUKEmailDetails(
+            templateId = govUKNotifTemplateId(uploadEvent),
+            userEmail = uploadEvent.userEmail,
+            personalisation = Map(
+              "userEmail" -> uploadEvent.userEmail,
+              "userId" -> uploadEvent.userId,
+              "transferringBodyName" -> uploadEvent.transferringBodyName,
+              "consignmentId" -> uploadEvent.consignmentId,
+              "consignmentReference" -> uploadEvent.consignmentReference,
+              "status" -> uploadEvent.status
+            ),
+            reference = s"${uploadEvent.consignmentReference}-${uploadEvent.userId}"
+          )
+        )
+      } else Nil
 
     override def slack(uploadEvent: UploadEvent, context: Unit): Option[SlackMessage] = {
-      Option.when(uploadEvent.status == "Failed") {
+      Option.when(uploadEvent.status == "Failed" && !uploadEvent.transferringBodyName.toUpperCase.contains("MOCK")) {
         val messageList = List(
-          s":warning: *Transfer Upload ${uploadEvent.status}*",
+          s":warning: *Transfer Upload ${uploadEvent.status} ${uploadEvent.environment}*",
           s"*Asset Source*: ${uploadEvent.assetSource}",
           s"*Consignment Reference*: ${uploadEvent.consignmentReference}",
           s"*Consignment Id*: ${uploadEvent.consignmentId}",
