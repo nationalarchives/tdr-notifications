@@ -236,7 +236,7 @@ object EventMessages {
     override def context(event: UploadEvent): IO[Unit] = IO.unit
 
     override def govUkNotifyEmail(uploadEvent: UploadEvent, context: Unit): List[GovUKEmailDetails] =
-      if (!uploadEvent.transferringBodyName.toUpperCase.contains("MOCK")) {
+      if (!uploadEvent.isMockEvent) {
         List(
           GovUKEmailDetails(
             templateId = govUKNotifTemplateId(uploadEvent),
@@ -255,7 +255,7 @@ object EventMessages {
       } else Nil
 
     override def slack(uploadEvent: UploadEvent, context: Unit): Option[SlackMessage] = {
-      Option.when(uploadEvent.status == "Failed" && !uploadEvent.transferringBodyName.toUpperCase.contains("MOCK")) {
+      Option.when(uploadEvent.status == "Failed" && !uploadEvent.isMockEvent) {
         val messageList = List(
           s":warning: *Transfer Upload ${uploadEvent.status} ${uploadEvent.environment}*",
           s"*Asset Source*: ${uploadEvent.assetSource}",

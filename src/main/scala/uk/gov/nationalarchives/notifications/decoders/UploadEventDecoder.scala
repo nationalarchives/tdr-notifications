@@ -10,5 +10,7 @@ object UploadEventDecoder {
                           userEmail: String,
                           assetSource: String,
                           environment: String
-                        ) extends IncomingEvent
+                        ) extends IncomingEvent {
+    val isMockEvent: Boolean = transferringBodyName.toUpperCase.contains("MOCK")
+  }
 }
