@@ -7,6 +7,7 @@ import io.circe.{Decoder, DecodingFailure, HCursor, Json}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.MalwareScanThreatFoundEventDecoder.MalwareScanThreatFoundEvent
@@ -26,7 +27,7 @@ object IncomingEvent {
     decodeSnsEvent[KeycloakEvent] or decodeSnsEvent[GenericMessagesEvent] or
     decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[ParameterStoreExpiryEvent] or decodeStepFunctionError or decodeSnsEvent[TransferCompleteEvent] or
     decodeSnsEvent[MetadataReviewRequestEvent] or decodeSnsEvent[MetadataReviewSubmittedEvent] or decodeSnsEvent[DraftMetadataStepFunctionError] or decodeSnsEvent[MalwareScanThreatFoundEvent] or
-    decodeSnsEvent[UploadEvent] or decodeSnsEvent[UsersDisabledEvent]
+    decodeSnsEvent[UploadEvent] or decodeSnsEvent[UsersDisabledEvent] or decodeSnsEvent[FileCheckFailureEvent]
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- c.downField("Records").as[List[SnsRecord]]

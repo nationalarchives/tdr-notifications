@@ -7,6 +7,7 @@ import io.circe.parser.decode
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.MalwareScanThreatFoundEventDecoder.MalwareScanThreatFoundEvent
@@ -41,7 +42,8 @@ class Lambda {
       case metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent    => sendMessages(metadataReviewSubmittedEvent)
       case draftMetadataStepFunctionError:DraftMetadataStepFunctionError => sendMessages(draftMetadataStepFunctionError)
       case uploadEvent: UploadEvent                                      => sendMessages(uploadEvent)
-      case usersDisabledEvent: UsersDisabledEvent                        => sendMessages(usersDisabledEvent)  
+      case usersDisabledEvent: UsersDisabledEvent                        => sendMessages(usersDisabledEvent)
+      case fileCheckFailureEvent: FileCheckFailureEvent                  => sendMessages(fileCheckFailureEvent)
     }).flatten
       .unsafeRunSync()
   }

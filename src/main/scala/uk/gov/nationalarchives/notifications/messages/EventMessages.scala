@@ -20,6 +20,7 @@ import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.Clo
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.MalwareScanThreatFoundEventDecoder.MalwareScanThreatFoundEvent
@@ -570,6 +571,24 @@ object EventMessages {
                |:memo: <https://$region.console.aws.amazon.com/cloudwatch/home?region=$region#logsV2:log-groups/log-group/$encodedLogGroup/log-events/$encodedLogStream|View the logs on Cloudwatch>""".stripMargin
         )))
       ).some
+    }
+  }
+
+  implicit val fileCheckFailureEventMessages: Messages[FileCheckFailureEvent, Unit] = new Messages[FileCheckFailureEvent, Unit] {
+    override def context(event: FileCheckFailureEvent): IO[Unit] = IO.unit
+
+    override def slack(incomingEvent: FileCheckFailureEvent, context: Unit): Option[SlackMessage] = {
+      Option.when(!incomingEvent.isMockEvent) {
+        val messageList = List(
+          ":warning: *A user has experienced a File Check Failure*",
+          s"*Consignment Type*: ${incomingEvent.consignmentType}",
+          s"*Consignment Reference*: ${incomingEvent.consignmentReference}",
+          s"*Consignment ID*: ${incomingEvent.consignmentId}",
+          s"*Transferring Body*: ${incomingEvent.transferringBodyName}",
+          s"*UserID*: ${incomingEvent.userId}"
+        )
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
+      }
     }
   }
 }
