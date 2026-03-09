@@ -455,7 +455,7 @@ object EventMessages {
     override def email(incomingEvent: DraftMetadataStepFunctionError, context: Unit): Option[Email] = None
 
     override def slack(incomingEvent: DraftMetadataStepFunctionError, context: Unit): Option[SlackMessage] = {
-      if (incomingEvent.environment == "prod") {
+      Option.when(incomingEvent.environment == "prod") {
         val messageList = List(
           ":warning: *DraftMetadata upload has failed for consignment*",
           s"*ConsignmentId* ${incomingEvent.consignmentId}",
@@ -463,9 +463,7 @@ object EventMessages {
           s"*Cause*: ${incomingEvent.cause}",
           s"*Error*: ${incomingEvent.metaDataError}"
         )
-        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
-      } else {
-        None
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
       }
     }
   }
