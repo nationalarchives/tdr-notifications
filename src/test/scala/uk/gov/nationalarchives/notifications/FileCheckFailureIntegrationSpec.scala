@@ -2,21 +2,24 @@ package uk.gov.nationalarchives.notifications
 
 class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
 
+  private lazy val consignmentId = "c2e7e539-0410-4dbf-b96e-1e3871d868ad"
+  private lazy val userId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+
   override lazy val events: Seq[Event] = Seq(
     Event(
       description = "A file check failure event on prod",
       input = fileCheckFailureInputString(
         consignmentType = "standard",
         consignmentReference = "TDR-2025-ABC",
-        consignmentId = "c2e7e539-0410-4dbf-b96e-1e3871d868ad",
+        consignmentId = consignmentId,
         transferringBodyName = "SomeTransferringBody",
-        userId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        userId = userId,
         environment = "prod"
       ),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("standard", "TDR-2025-ABC", "c2e7e539-0410-4dbf-b96e-1e3871d868ad", "SomeTransferringBody", "a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+            body = slackMessage("standard", "TDR-2025-ABC", consignmentId, "SomeTransferringBody", userId),
             webhookUrl = "/webhook-transfers"
           )
         )
@@ -27,15 +30,15 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       input = fileCheckFailureInputString(
         consignmentType = "judgment",
         consignmentReference = "TDR-2025-JDG",
-        consignmentId = "c2e7e539-0410-4dbf-b96e-1e3871d868ad",
+        consignmentId = consignmentId,
         transferringBodyName = "SomeTransferringBody",
-        userId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        userId = userId,
         environment = "prod"
       ),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("judgment", "TDR-2025-JDG", "c2e7e539-0410-4dbf-b96e-1e3871d868ad", "SomeTransferringBody", "a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+            body = slackMessage("judgment", "TDR-2025-JDG", consignmentId, "SomeTransferringBody", userId),
             webhookUrl = "/webhook-transfers"
           )
         )
@@ -46,15 +49,15 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       input = fileCheckFailureInputString(
         consignmentType = "standard",
         consignmentReference = "TDR-2025-DEF",
-        consignmentId = "c2e7e539-0410-4dbf-b96e-1e3871d868ad",
+        consignmentId = consignmentId,
         transferringBodyName = "SomeTransferringBody",
-        userId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        userId = userId,
         environment = "intg"
       ),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("standard", "TDR-2025-DEF", "c2e7e539-0410-4dbf-b96e-1e3871d868ad", "SomeTransferringBody", "a1b2c3d4-e5f6-7890-abcd-ef1234567890"),
+            body = slackMessage("standard", "TDR-2025-DEF", consignmentId, "SomeTransferringBody", userId),
             webhookUrl = "/webhook-releases"
           )
         )
@@ -65,9 +68,42 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       input = fileCheckFailureInputString(
         consignmentType = "standard",
         consignmentReference = "TDR-2025-GHI",
-        consignmentId = "c2e7e539-0410-4dbf-b96e-1e3871d868ad",
+        consignmentId = consignmentId,
         transferringBodyName = "Mock 1 Department",
-        userId = "a1b2c3d4-e5f6-7890-abcd-ef1234567890",
+        userId = userId,
+        environment = "intg"
+      ),
+      expectedOutput = ExpectedOutput(
+        slackMessage = None
+      )
+    ),
+    Event(
+      description = "A file check failure event for judgment on non-prod",
+      input = fileCheckFailureInputString(
+        consignmentType = "judgment",
+        consignmentReference = "TDR-2025-JKL",
+        consignmentId = consignmentId,
+        transferringBodyName = "SomeTransferringBody",
+        userId = userId,
+        environment = "intg"
+      ),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(
+          SlackMessage(
+            body = slackMessage("judgment", "TDR-2025-JKL", consignmentId, "SomeTransferringBody", userId),
+            webhookUrl = "/webhook-releases"
+          )
+        )
+      )
+    ),
+    Event(
+      description = "A file check failure event for judgment with MOCK transferring body on non-prod",
+      input = fileCheckFailureInputString(
+        consignmentType = "judgment",
+        consignmentReference = "TDR-2025-MNO",
+        consignmentId = consignmentId,
+        transferringBodyName = "Mock 1 Department",
+        userId = userId,
         environment = "intg"
       ),
       expectedOutput = ExpectedOutput(
