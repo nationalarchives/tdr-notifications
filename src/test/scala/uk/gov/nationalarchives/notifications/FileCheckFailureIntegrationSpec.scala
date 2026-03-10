@@ -7,7 +7,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
 
   override lazy val events: Seq[Event] = Seq(
     Event(
-      description = "A file check failure event on prod",
+      description = "A file check failure event for standard on prod",
       input = fileCheckFailureInputString(
         consignmentType = "standard",
         consignmentReference = "TDR-2025-ABC",
@@ -45,7 +45,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       )
     ),
     Event(
-      description = "A file check failure event on non-prod",
+      description = "A file check failure event for standard on non-prod",
       input = fileCheckFailureInputString(
         consignmentType = "standard",
         consignmentReference = "TDR-2025-DEF",
@@ -64,7 +64,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       )
     ),
     Event(
-      description = "A file check failure event with MOCK transferring body",
+      description = "A file check failure event for standard with MOCK transferring body",
       input = fileCheckFailureInputString(
         consignmentType = "standard",
         consignmentReference = "TDR-2025-GHI",
