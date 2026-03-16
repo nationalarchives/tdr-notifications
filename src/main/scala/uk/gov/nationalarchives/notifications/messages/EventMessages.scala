@@ -17,6 +17,7 @@ import uk.gov.nationalarchives.common.messages.Properties
 import uk.gov.nationalarchives.da.messages.bag.available
 import uk.gov.nationalarchives.da.messages.bag.available.{BagAvailable, ConsignmentType}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
+import uk.gov.nationalarchives.notifications.decoders.BackendCheckFailureDecoder.BackendCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
@@ -587,6 +588,21 @@ object EventMessages {
         )
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
       }
+    }
+  }
+
+  implicit val backendCheckFailureEventMessages: Messages[BackendCheckFailureEvent, Unit] = new Messages[BackendCheckFailureEvent, Unit] {
+    override def context(event: BackendCheckFailureEvent): IO[Unit] = IO.unit
+
+    override def slack(incomingEvent: BackendCheckFailureEvent, context: Unit): Option[SlackMessage] = {
+      val messageList = List(
+        ":warning: *A user has experienced a step function backend File Check Failure*",
+        s"*Consignment ID*: ${incomingEvent.consignmentId}",
+        s"*Environment*: ${incomingEvent.environment}",
+        s"*Failure Cause*: ${incomingEvent.failureCause}",
+        s"*Backend Checks Process*: ${incomingEvent.backEndChecksProcess}"
+      )
+      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
     }
   }
 }

@@ -5,6 +5,7 @@ import io.circe.generic.auto._
 import io.circe.parser.parse
 import io.circe.{Decoder, DecodingFailure, HCursor, Json}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
+import uk.gov.nationalarchives.notifications.decoders.BackendCheckFailureDecoder.BackendCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
@@ -23,7 +24,7 @@ import uk.gov.nationalarchives.notifications.decoders.UsersDisabledEventDecoder.
 trait IncomingEvent {}
 
 object IncomingEvent {
-  implicit val allDecoders: Decoder[IncomingEvent] = decodeScanEvent or decodeSnsEvent[ExportStatusEvent] or
+  implicit val allDecoders: Decoder[IncomingEvent] = decodeScanEvent or decodeSnsEvent[BackendCheckFailureEvent] or decodeSnsEvent[ExportStatusEvent] or
     decodeSnsEvent[KeycloakEvent] or decodeSnsEvent[GenericMessagesEvent] or
     decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[ParameterStoreExpiryEvent] or decodeStepFunctionError or decodeSnsEvent[TransferCompleteEvent] or
     decodeSnsEvent[MetadataReviewRequestEvent] or decodeSnsEvent[MetadataReviewSubmittedEvent] or decodeSnsEvent[DraftMetadataStepFunctionError] or decodeSnsEvent[MalwareScanThreatFoundEvent] or
