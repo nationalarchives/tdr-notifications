@@ -24,11 +24,12 @@ import uk.gov.nationalarchives.notifications.decoders.UsersDisabledEventDecoder.
 trait IncomingEvent {}
 
 object IncomingEvent {
-  implicit val allDecoders: Decoder[IncomingEvent] = decodeScanEvent or decodeSnsEvent[BackendCheckFailureEvent] or decodeSnsEvent[ExportStatusEvent] or
-    decodeSnsEvent[KeycloakEvent] or decodeSnsEvent[GenericMessagesEvent] or
-    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[ParameterStoreExpiryEvent] or decodeStepFunctionError or decodeSnsEvent[TransferCompleteEvent] or
-    decodeSnsEvent[MetadataReviewRequestEvent] or decodeSnsEvent[MetadataReviewSubmittedEvent] or decodeSnsEvent[DraftMetadataStepFunctionError] or decodeSnsEvent[MalwareScanThreatFoundEvent] or
-    decodeSnsEvent[UploadEvent] or decodeSnsEvent[UsersDisabledEvent] or decodeSnsEvent[FileCheckFailureEvent]
+  implicit val allDecoders: Decoder[IncomingEvent] = decodeScanEvent or decodeSnsEvent[BackendCheckFailureEvent] or
+    decodeSnsEvent[ExportStatusEvent] or decodeSnsEvent[KeycloakEvent] or decodeSnsEvent[GenericMessagesEvent] or
+    decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[ParameterStoreExpiryEvent] or decodeStepFunctionError or
+    decodeSnsEvent[TransferCompleteEvent] or decodeSnsEvent[MetadataReviewRequestEvent] or decodeSnsEvent[MetadataReviewSubmittedEvent] or
+    decodeSnsEvent[DraftMetadataStepFunctionError] or decodeSnsEvent[MalwareScanThreatFoundEvent] or decodeSnsEvent[UploadEvent] or
+    decodeSnsEvent[UsersDisabledEvent] or decodeSnsEvent[FileCheckFailureEvent]
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- c.downField("Records").as[List[SnsRecord]]
