@@ -76,7 +76,7 @@ class BackendCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"consignmentId\\":\\"$consignmentId\\",\\"success\\":false,\\"environment\\":\\"$environment\\",\\"failureCause\\":\\"$failureCause\\",\\"backEndChecksProcess\\":\\"$backEndChecksProcess\\"}"
+       |       "Message": "{\\"consignmentId\\":\\"$consignmentId\\",\\"environment\\":\\"$environment\\",\\"failureCause\\":\\"$failureCause\\",\\"backEndChecksProcess\\":\\"$backEndChecksProcess\\"}"
        |      }
        |    }
        |  ]}""".stripMargin
