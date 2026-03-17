@@ -64,7 +64,7 @@ class BackendCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : ":warning: *A user has experienced a step function backend File Check Failure*\\n*Consignment ID*: $consignmentId\\n*Environment*: $environment\\n*Failure Cause*: $failureCause\\n*Backend Checks Process*: $backEndChecksProcess"
+       |      "text" : ":warning: *A user has experienced a step function Backend File Check Failure*\\n*Consignment ID*: $consignmentId\\n*Environment*: $environment\\n*Failure Cause*: $failureCause\\n*Backend Checks Process*: $backEndChecksProcess"
        |    }
        |  } ]
        |}
