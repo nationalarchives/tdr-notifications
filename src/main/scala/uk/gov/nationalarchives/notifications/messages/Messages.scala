@@ -17,6 +17,7 @@ import uk.gov.nationalarchives.aws.utils.ssm.SSMUtils
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
+import uk.gov.nationalarchives.notifications.decoders.BackendCheckFailureDecoder.BackendCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.IncomingEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
@@ -168,6 +169,7 @@ object Messages {
       case ev: UsersDisabledEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_url")) else Seq(eventConfig("slack.webhook.url"))
       case ev: UploadEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_url")) else Seq(eventConfig("slack.webhook.tdr_dev_notifications_url"))
       case ev: FileCheckFailureEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_transfers_url")) else Seq(eventConfig("slack.webhook.tdr_releases_url"))
+      case ev: BackendCheckFailureEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_transfers_url")) else Seq(eventConfig("slack.webhook.tdr_releases_url"))
       case _ => Seq(eventConfig("slack.webhook.url"))
     }
   }
