@@ -591,9 +591,9 @@ object EventMessages {
     }
   }
 
-  private def truncate(s: String, max: Int): String = Option(s).filter(_.nonEmpty).map { str =>
+  private def truncate(s: String, max: Int): String = Option(s).fold("") { str =>
     if (str.length <= max) str else str.take(max - 3) + "..."
-  }.getOrElse("")
+  }
 
   implicit val backendCheckFailureEventMessages: Messages[BackendCheckFailureEvent, Unit] = new Messages[BackendCheckFailureEvent, Unit] {
     override def context(event: BackendCheckFailureEvent): IO[Unit] = IO.unit
