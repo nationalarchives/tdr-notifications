@@ -596,7 +596,7 @@ object EventMessages {
 
     override def slack(incomingEvent: BackendCheckFailureEvent, context: Unit): Option[SlackMessage] = {
       val messageList = List(
-        ":warning: *A user has experienced a step function backend File Check Failure*",
+        ":warning: *A user has experienced a step function Backend File Check Failure*",
         s"*Consignment ID*: ${incomingEvent.consignmentId}",
         s"*Environment*: ${incomingEvent.environment}",
         s"*Failure Cause*: ${incomingEvent.failureCause}",
