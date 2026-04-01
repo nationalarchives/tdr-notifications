@@ -591,15 +591,21 @@ object EventMessages {
     }
   }
 
+  private def truncate(s: String, max: Int): String = Option(s).fold("") { str =>
+    if (str.length <= max) str else str.take(max - 3) + "..."
+  }
+
   implicit val backendCheckFailureEventMessages: Messages[BackendCheckFailureEvent, Unit] = new Messages[BackendCheckFailureEvent, Unit] {
     override def context(event: BackendCheckFailureEvent): IO[Unit] = IO.unit
 
     override def slack(incomingEvent: BackendCheckFailureEvent, context: Unit): Option[SlackMessage] = {
+      val truncatedFailureCause = truncate(incomingEvent.failureCause, 50)
+
       val messageList = List(
         ":warning: *A user has experienced a step function Backend File Check Failure*",
         s"*Consignment ID*: ${incomingEvent.consignmentId}",
         s"*Environment*: ${incomingEvent.environment}",
-        s"*Failure Cause*: ${incomingEvent.failureCause}",
+        s"*Failure Cause*: $truncatedFailureCause",
         s"*Backend Checks Process*: ${incomingEvent.backEndChecksProcess}"
       )
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some

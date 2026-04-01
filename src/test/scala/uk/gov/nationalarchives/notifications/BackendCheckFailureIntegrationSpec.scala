@@ -55,6 +55,40 @@ class BackendCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
           )
         )
       )
+    ),
+    Event(
+      description = "A backend check failure event with failure cause exactly 50 chars",
+      input = backendCheckFailureInputString(
+        consignmentId = consignmentId,
+        environment = "prod",
+        failureCause = "A" * 50,
+        backEndChecksProcess = "SomeProcess"
+      ),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(
+          SlackMessage(
+            body = slackMessage(consignmentId, "prod", "A" * 50, "SomeProcess"),
+            webhookUrl = "/webhook-transfers"
+          )
+        )
+      )
+    ),
+    Event(
+      description = "A backend check failure event with failure cause exceeding 50 chars is truncated",
+      input = backendCheckFailureInputString(
+        consignmentId = consignmentId,
+        environment = "prod",
+        failureCause = "A" * 100,
+        backEndChecksProcess = "SomeProcess"
+      ),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(
+          SlackMessage(
+            body = slackMessage(consignmentId, "prod", "A" * 47 + "...", "SomeProcess"),
+            webhookUrl = "/webhook-transfers"
+          )
+        )
+      )
     )
   )
 
