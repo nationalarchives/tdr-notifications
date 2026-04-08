@@ -169,12 +169,12 @@ object EventMessages {
         val exportInfoMessage = constructExportInfoMessage(incomingEvent)
 
         val message: String = if (incomingEvent.success) {
-          s":white_check_mark: Export *success* on *${incomingEvent.environment}!* \n" +
-            s"*Consignment ID:* ${incomingEvent.consignmentId}" +
+          s":white_check_mark: A consignment has been EXPORTED on *${incomingEvent.environment}!*" +
+            s"\n*Consignment ID:* ${incomingEvent.consignmentId}" +
             s"$exportInfoMessage"
         } else {
-          s":x: Export *failure* on *${incomingEvent.environment}!* \n" +
-            s"*Consignment ID:* ${incomingEvent.consignmentId}" +
+          s":x: Export *failure* on *${incomingEvent.environment}!*" +
+            s"\n*Consignment ID:* ${incomingEvent.consignmentId}" +
             s"$exportInfoMessage"
         }
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", message)))).some
@@ -186,9 +186,13 @@ object EventMessages {
     private def constructExportInfoMessage(incomingEvent: ExportStatusEvent): String = {
       if (incomingEvent.successDetails.isDefined) {
         val value = incomingEvent.successDetails.get
-        s"\n*User ID:* ${value.userId}" +
-          s"\n*Consignment Reference:* ${value.consignmentReference}" +
-          s"\n*Transferring Body Name:* ${value.transferringBodyName}"
+        val closedRecords = if (value.totalClosedRecords.exists(_ > 0)) "YES" else "NO"
+        s"\n*Consignment Reference:* ${value.consignmentReference}" +
+          s"\n*Transferring Body:* ${value.transferringBodyName}" +
+          s"\n*Series:* ${value.seriesName.getOrElse("N/A")}" +
+          s"\n*User ID:* ${value.userId}" +
+          s"\n*Number of Records:* ${value.totalFiles.getOrElse("N/A")}" +
+          s"\n*Closed Records:* $closedRecords"
       } else if (incomingEvent.failureCause.isDefined) {
         s"\n*Cause:* ${incomingEvent.failureCause.get}"
       } else ""

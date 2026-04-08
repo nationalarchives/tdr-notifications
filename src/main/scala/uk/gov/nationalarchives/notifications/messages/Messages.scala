@@ -144,7 +144,7 @@ object Messages {
 
   private def webhookUrlsForEvent[TContext, T <: IncomingEvent](incomingEvent: T): Seq[String] = {
 
-    val eventConfigForMetadataReview = (environment: String) => if (environment == "prod") {
+    val eventConfigForMetadataReview: String => Seq[String] = (environment: String) => if (environment == "prod") {
       Seq(eventConfig("slack.webhook.tdr_transfers_url"))
     } else {
       Seq(eventConfig("slack.webhook.tdr_releases_url"))
@@ -155,7 +155,7 @@ object Messages {
         Seq(eventConfig("slack.webhook.judgment_url"))
       case ev: ExportStatusEvent if ev.environment == "prod" &&
         ev.successDetails.exists(details => details.consignmentType == "standard" || details.consignmentType == "historicalTribunal") =>
-        Seq(eventConfig("slack.webhook.standard_url"))
+        Seq(Seq(eventConfig("slack.webhook.standard_url")), eventConfigForMetadataReview(ev.environment)).flatten
       case ev: ExportStatusEvent =>
         val failureEscalationUrl = Option.when(ev.environment == "prod" && !ev.success)(eventConfig("slack.webhook.tdr_url"))
         Seq(Some(eventConfig("slack.webhook.export_url")), failureEscalationUrl).flatten

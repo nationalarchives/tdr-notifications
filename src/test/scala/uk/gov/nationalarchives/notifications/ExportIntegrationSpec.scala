@@ -123,10 +123,18 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
       )
     ),
     Event(
-      description = "a successful standard export event on prod",
+      description = "a successful standard export event on prod sends to standard webhook",
       input = exportStatusEventInputText(prodStandardSuccess),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodStandardSuccess), webhookUrl = "/webhook-standard")),
+        snsMessage = expectedSnsMessage(prodStandardSuccess)
+      )
+    ),
+    Event(
+      description = "a successful standard export event on prod sends to transfers webhook",
+      input = exportStatusEventInputText(prodStandardSuccess),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodStandardSuccess), webhookUrl = "/webhook-transfers")),
         snsMessage = expectedSnsMessage(prodStandardSuccess)
       )
     ),
@@ -167,10 +175,18 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
       )
     ),
     Event(
-      description = "a successful historical tribunal export on prod",
+      description = "a successful historical tribunal export on prod sends to standard webhook",
       input = exportStatusEventInputText(prodHistoricalTribunalSuccess),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodHistoricalTribunalSuccess), webhookUrl = "/webhook-standard")),
+        snsMessage = expectedSnsMessage(prodHistoricalTribunalSuccess)
+      )
+    ),
+    Event(
+      description = "a successful historical tribunal export on prod sends to transfers webhook",
+      input = exportStatusEventInputText(prodHistoricalTribunalSuccess),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(SlackMessage(body = expectedSlackMessage(prodHistoricalTribunalSuccess), webhookUrl = "/webhook-transfers")),
         snsMessage = expectedSnsMessage(prodHistoricalTribunalSuccess)
       )
     ),
@@ -183,12 +199,12 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     )
   )
 
-  private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket")
-  private lazy val successDetailsJudgment = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "judgment", "export-bucket")
-  private lazy val successDetailsHistoricalTribunal = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "historicalTribunal", "export-bucket")
-  private lazy val successDetailsStandardMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "standard", "export-bucket")
-  private lazy val successDetailsJudgmentMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "judgment", "export-bucket")
-  private lazy val successDetailsHistoricalTribunalMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "historicalTribunal", "export-bucket")
+  private lazy val successDetailsStandard = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "standard", "export-bucket", Some("TB 123"), Some(10), Some(2))
+  private lazy val successDetailsJudgment = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "judgment", "export-bucket", None, None, None)
+  private lazy val successDetailsHistoricalTribunal = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "tb-body1", "historicalTribunal", "export-bucket", Some("TB 456"), Some(8), Some(3))
+  private lazy val successDetailsStandardMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "standard", "export-bucket", Some("MOCK 123"), Some(10), Some(0))
+  private lazy val successDetailsJudgmentMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "judgment", "export-bucket", None, None, None)
+  private lazy val successDetailsHistoricalTribunalMockBody = ExportSuccessDetails(UUID.randomUUID(), "consignmentRef1", "Mock 1 Department", "historicalTribunal", "export-bucket", Some("MOCK 456"), Some(8), Some(0))
   private lazy val causeOfFailure = "Cause of failure"
 
   private lazy val intgStandardSuccess = ExportStatusEvent(UUID.randomUUID(), success = true, environment = "intg", successDetails = Some(successDetailsStandard), failureCause = None)
@@ -220,10 +236,13 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
   private def exportStatusEventInputText(exportStatusEvent: ExportStatusEvent): String = {
     val successDetails = exportStatusEvent.successDetails
     val failureCause = exportStatusEvent.failureCause
-    val exportOutputJson = if(successDetails.isDefined) {
+    val exportOutputJson = if (successDetails.isDefined) {
       val sd = successDetails.get
-      s""", \\"successDetails\\":{\\"userId\\": \\"${sd.userId}\\",\\"consignmentReference\\": \\"${sd.consignmentReference}\\",\\"transferringBodyName\\": \\"${sd.transferringBodyName}\\", \\"consignmentType\\": \\"${sd.consignmentType}\\", \\"exportBucket\\": \\"${sd.exportBucket}\\"}"""
-    } else if(failureCause.isDefined) s""", \\"failureCause\\":\\"${failureCause.get}\\" """ else """"""
+      val seriesName = sd.seriesName.map(s => s""",\\"seriesName\\":\\"$s\\"""").getOrElse("")
+      val totalFiles = sd.totalFiles.map(n => s""",\\"totalFiles\\":$n""").getOrElse("")
+      val totalClosedRecords = sd.totalClosedRecords.map(n => s""",\\"totalClosedRecords\\":$n""").getOrElse("")
+      s""", \\"successDetails\\":{\\"userId\\": \\"${sd.userId}\\",\\"consignmentReference\\": \\"${sd.consignmentReference}\\",\\"transferringBodyName\\": \\"${sd.transferringBodyName}\\", \\"consignmentType\\": \\"${sd.consignmentType}\\", \\"exportBucket\\": \\"${sd.exportBucket}\\"$seriesName$totalFiles$totalClosedRecords}"""
+    } else if (failureCause.isDefined) s""", \\"failureCause\\":\\"${failureCause.get}\\" """ else """"""
 
     s"""
        |{
@@ -242,9 +261,11 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
   private def expectedSlackMessage(exportStatusEvent: ExportStatusEvent): String = {
     val successDetails = exportStatusEvent.successDetails
     val failureCause = exportStatusEvent.failureCause
-    val exportOutputMessage = if(successDetails.isDefined) {
-      s"""\\n*User ID:* ${successDetails.get.userId}\\n*Consignment Reference:* ${successDetails.get.consignmentReference}\\n*Transferring Body Name:* ${successDetails.get.transferringBodyName}"""
-    } else if(failureCause.isDefined) s"""\\n*Cause:* ${failureCause.get}""" else """"""
+    val exportOutputMessage = if (successDetails.isDefined) {
+      val sd = successDetails.get
+      val closedRecords = if (sd.totalClosedRecords.exists(_ > 0)) "YES" else "NO"
+      s"""\\n*Consignment Reference:* ${sd.consignmentReference}\\n*Transferring Body:* ${sd.transferringBodyName}\\n*Series:* ${sd.seriesName.getOrElse("N/A")}\\n*User ID:* ${sd.userId}\\n*Number of Records:* ${sd.totalFiles.getOrElse("N/A")}\\n*Closed Records:* $closedRecords"""
+    } else if (failureCause.isDefined) s"""\\n*Cause:* ${failureCause.get}""" else """"""
 
     if (exportStatusEvent.success) {
       s"""{
@@ -252,7 +273,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
          |    "type" : "section",
          |    "text" : {
          |      "type" : "mrkdwn",
-         |      "text" : ":white_check_mark: Export *success* on *${exportStatusEvent.environment}!* \\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
+         |      "text" : ":white_check_mark: A consignment has been EXPORTED on *${exportStatusEvent.environment}!*\\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
          |    }
          |  } ]
          |}""".stripMargin
@@ -262,7 +283,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
          |    "type" : "section",
          |    "text" : {
          |      "type" : "mrkdwn",
-         |      "text" : ":x: Export *failure* on *${exportStatusEvent.environment}!* \\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
+         |      "text" : ":x: Export *failure* on *${exportStatusEvent.environment}!*\\n*Consignment ID:* ${exportStatusEvent.consignmentId}$exportOutputMessage"
          |    }
          |  } ]
          |}""".stripMargin
