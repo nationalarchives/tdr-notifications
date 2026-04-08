@@ -22,7 +22,11 @@ permissions:
   contents: write
 jobs:
   deploy:
+<<<<<<< HEAD
     uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_deploy.yml@link-to-changes # testing branch
+=======
+    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_deploy.yml@4cce7fa069b9dbecddbdacd9350f66adc50ac815 # v0.0.22
+>>>>>>> master
     with:
       lambda-name: notifications
       deployment-package: notifications.jar

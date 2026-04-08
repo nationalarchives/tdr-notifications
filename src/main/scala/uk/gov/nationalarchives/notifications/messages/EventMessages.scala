@@ -17,9 +17,11 @@ import uk.gov.nationalarchives.common.messages.Properties
 import uk.gov.nationalarchives.da.messages.bag.available
 import uk.gov.nationalarchives.da.messages.bag.available.{BagAvailable, ConsignmentType}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
+import uk.gov.nationalarchives.notifications.decoders.BackendCheckFailureDecoder.BackendCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.MalwareScanThreatFoundEventDecoder.MalwareScanThreatFoundEvent
@@ -458,7 +460,7 @@ object EventMessages {
     override def email(incomingEvent: DraftMetadataStepFunctionError, context: Unit): Option[Email] = None
 
     override def slack(incomingEvent: DraftMetadataStepFunctionError, context: Unit): Option[SlackMessage] = {
-      if (incomingEvent.environment == "prod") {
+      Option.when(incomingEvent.environment == "prod") {
         val messageList = List(
           ":warning: *DraftMetadata upload has failed for consignment*",
           s"*ConsignmentId* ${incomingEvent.consignmentId}",
@@ -466,9 +468,7 @@ object EventMessages {
           s"*Cause*: ${incomingEvent.cause}",
           s"*Error*: ${incomingEvent.metaDataError}"
         )
-        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
-      } else {
-        None
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
       }
     }
   }
@@ -574,6 +574,45 @@ object EventMessages {
                |:memo: <https://$region.console.aws.amazon.com/cloudwatch/home?region=$region#logsV2:log-groups/log-group/$encodedLogGroup/log-events/$encodedLogStream|View the logs on Cloudwatch>""".stripMargin
         )))
       ).some
+    }
+  }
+
+  implicit val fileCheckFailureEventMessages: Messages[FileCheckFailureEvent, Unit] = new Messages[FileCheckFailureEvent, Unit] {
+    override def context(event: FileCheckFailureEvent): IO[Unit] = IO.unit
+
+    override def slack(incomingEvent: FileCheckFailureEvent, context: Unit): Option[SlackMessage] = {
+      Option.when(!incomingEvent.isMockEvent) {
+        val messageList = List(
+          ":warning: *A user has experienced a File Check Failure*",
+          s"*Consignment Type*: ${incomingEvent.consignmentType}",
+          s"*Consignment Reference*: ${incomingEvent.consignmentReference}",
+          s"*Consignment ID*: ${incomingEvent.consignmentId}",
+          s"*Transferring Body*: ${incomingEvent.transferringBodyName}",
+          s"*UserID*: ${incomingEvent.userId}"
+        )
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
+      }
+    }
+  }
+
+  private def truncate(s: String, max: Int): String = Option(s).fold("") { str =>
+    if (str.length <= max) str else str.take(max - 3) + "..."
+  }
+
+  implicit val backendCheckFailureEventMessages: Messages[BackendCheckFailureEvent, Unit] = new Messages[BackendCheckFailureEvent, Unit] {
+    override def context(event: BackendCheckFailureEvent): IO[Unit] = IO.unit
+
+    override def slack(incomingEvent: BackendCheckFailureEvent, context: Unit): Option[SlackMessage] = {
+      val truncatedFailureCause = truncate(incomingEvent.failureCause, 50)
+
+      val messageList = List(
+        ":warning: *A user has experienced a step function Backend File Check Failure*",
+        s"*Consignment ID*: ${incomingEvent.consignmentId}",
+        s"*Environment*: ${incomingEvent.environment}",
+        s"*Failure Cause*: $truncatedFailureCause",
+        s"*Backend Checks Process*: ${incomingEvent.backEndChecksProcess}"
+      )
+      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
     }
   }
 }
