@@ -166,7 +166,7 @@ object EventMessages {
     }
 
     override def slack(incomingEvent: ExportStatusEvent, context: Unit): Option[SlackMessage] = {
-      if (!incomingEvent.success) {
+      if (true/*incomingEvent.environment != "intg" || !incomingEvent.success*/) {
 
         val exportInfoMessage = constructExportInfoMessage(incomingEvent)
 
