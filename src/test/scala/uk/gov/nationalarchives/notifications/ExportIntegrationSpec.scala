@@ -263,8 +263,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
     val failureCause = exportStatusEvent.failureCause
     val exportOutputMessage = if (successDetails.isDefined) {
       val sd = successDetails.get
-      val closedRecords = if (sd.totalClosedRecords.exists(_ > 0)) "YES" else "NO"
-      s"""\\n*Consignment Reference:* ${sd.consignmentReference}\\n*Transferring Body:* ${sd.transferringBodyName}\\n*Series:* ${sd.seriesName.getOrElse("N/A")}\\n*User ID:* ${sd.userId}\\n*Number of Records:* ${sd.totalFiles.getOrElse("N/A")}\\n*Closed Records:* $closedRecords"""
+      s"""\\n*Consignment Reference:* ${sd.consignmentReference}\\n*Transferring Body:* ${sd.transferringBodyName}\\n*Series:* ${sd.seriesName.getOrElse("N/A")}\\n*User ID:* ${sd.userId}\\n*Number of Records:* ${sd.totalFiles.getOrElse("N/A")}\\n*Closed Records:* ${sd.totalClosedRecords.getOrElse("N/A")}"""
     } else if (failureCause.isDefined) s"""\\n*Cause:* ${failureCause.get}""" else """"""
 
     if (exportStatusEvent.success) {

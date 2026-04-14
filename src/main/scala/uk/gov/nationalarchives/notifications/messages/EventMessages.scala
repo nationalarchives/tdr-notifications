@@ -188,13 +188,12 @@ object EventMessages {
     private def constructExportInfoMessage(incomingEvent: ExportStatusEvent): String = {
       if (incomingEvent.successDetails.isDefined) {
         val value = incomingEvent.successDetails.get
-        val closedRecords = if (value.totalClosedRecords.exists(_ > 0)) "YES" else "NO"
         s"\n*Consignment Reference:* ${value.consignmentReference}" +
           s"\n*Transferring Body:* ${value.transferringBodyName}" +
           s"\n*Series:* ${value.seriesName.getOrElse("N/A")}" +
           s"\n*User ID:* ${value.userId}" +
           s"\n*Number of Records:* ${value.totalFiles.getOrElse("N/A")}" +
-          s"\n*Closed Records:* $closedRecords"
+          s"\n*Closed Records:* ${value.totalClosedRecords.getOrElse("N/A")}"
       } else if (incomingEvent.failureCause.isDefined) {
         s"\n*Cause:* ${incomingEvent.failureCause.get}"
       } else ""

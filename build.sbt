@@ -21,6 +21,8 @@ lazy val root = (project in file("."))
       ssmUtils,
       typesafe,
       scalaTags,
+      awsSso,
+      awsSSoidc,
       typeSafeLogging,
       transformSchemas,
       notifyJavaClient,
