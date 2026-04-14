@@ -440,11 +440,12 @@ object EventMessages {
 
     override def slack(incomingEvent: StepFunctionError, context: Unit): Option[SlackMessage] = {
       if (incomingEvent.environment != "intg") {
+        val truncatedCause = truncate(incomingEvent.cause, 50)
         val messageList = List(
           ":warning: *Backend checks failure for consignment*",
           s"*ConsignmentId* ${incomingEvent.consignmentId}",
           s"*Environment* ${incomingEvent.environment}",
-          s"*Cause*: ${incomingEvent.cause}",
+          s"*Cause*: $truncatedCause",
           s"*Error*: ${incomingEvent.error}"
         )
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
