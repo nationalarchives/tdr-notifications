@@ -25,6 +25,4 @@ object Dependencies {
   lazy val elasticMq = "org.elasticmq" %% "elasticmq-server" % elasticMqVersion
   lazy val transformSchemas = "uk.gov.nationalarchives" % "da-transform-schemas" % "2.14"
   lazy val notifyJavaClient = "uk.gov.service.notify" % "notifications-java-client" % "6.0.0-RELEASE"
-  lazy val awsSso =   "software.amazon.awssdk" % "sso" % "2.27.24"
-  lazy val awsSSoidc = "software.amazon.awssdk" % "ssooidc" % "2.27.24"
 }
