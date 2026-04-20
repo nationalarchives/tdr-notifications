@@ -6,16 +6,19 @@ import uk.gov.nationalarchives.notifications.messages.EventMessages.ExportMessag
 
 object ExportStatusDecoder {
   case class ExportSuccessDetails(userId: UUID,
-                                  consignmentReference: String,
-                                  transferringBodyName: String,
-                                  consignmentType: String,
-                                  exportBucket: String) extends ExportMessage
+    consignmentReference: String,
+    transferringBodyName: String,
+    consignmentType: String,
+    exportBucket: String,
+    seriesName: Option[String],
+    totalClosedRecords: Option[Int],
+    totalFiles: Option[Int]) extends ExportMessage
   case class ExportStatusEvent(
-                                consignmentId: UUID,
-                                success: Boolean,
-                                environment: String,
-                                successDetails: Option[ExportSuccessDetails],
-                                failureCause: Option[String]) extends IncomingEvent {
+    consignmentId: UUID,
+    success: Boolean,
+    environment: String,
+    successDetails: Option[ExportSuccessDetails],
+    failureCause: Option[String]) extends IncomingEvent {
     def mockEvent: Boolean = {
       successDetails.exists(_.transferringBodyName.toUpperCase.contains("MOCK"))
     }
