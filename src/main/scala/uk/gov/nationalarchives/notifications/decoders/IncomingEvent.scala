@@ -32,7 +32,10 @@ object IncomingEvent {
     decodeSnsEvent[UsersDisabledEvent] or decodeSnsEvent[FileCheckFailureEvent]
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
-    messages <- c.downField("Records").as[List[SnsRecord]]
+    messages <- {
+      println(">>>>>>>>>>>>>>>>>" + c)
+      c.downField("Records").as[List[SnsRecord]]
+    }
     json <- parseSNSMessage(messages.head.Sns.Message)
     event <- json.as[T]
   } yield event

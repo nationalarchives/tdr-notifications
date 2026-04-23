@@ -39,6 +39,9 @@ object ScanDecoder {
   } yield ScanDetail(repositoryName, imageTags, imageDigest, findingSeverityCounts)
 
   val decodeScanEvent: Decoder[IncomingEvent] = (c: HCursor) => for {
-    detail <- c.downField("detail").as[ScanDetail]
+    detail <- {
+      println(">>>>>>>>>scan>>>>>>>>" + c)
+      c.downField("detail").as[ScanDetail]
+    }
   } yield ScanEvent(detail)
 }
