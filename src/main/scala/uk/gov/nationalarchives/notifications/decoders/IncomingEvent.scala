@@ -33,7 +33,7 @@ object IncomingEvent {
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- {
-      println(">>>>>>>>>>>>>>>>>" + c)
+      println(">>>>>>>>>>>>>>>>>" + c.value.asString)
       c.downField("Records").as[List[SnsRecord]]
     }
     json <- parseSNSMessage(messages.head.Sns.Message)
