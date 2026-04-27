@@ -40,7 +40,7 @@ object ScanDecoder {
 
   val decodeScanEvent: Decoder[IncomingEvent] = (c: HCursor) => for {
     detail <- {
-      println(">>>>>>>>>scan>>>>>>>>" + c.value.asString)
+      println(">>>>>>>>>scan>>>>>>>>" + c.value.toString())
       c.downField("detail").as[ScanDetail]
     }
   } yield ScanEvent(detail)
