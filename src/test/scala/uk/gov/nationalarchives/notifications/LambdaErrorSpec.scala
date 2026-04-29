@@ -1,5 +1,6 @@
 package uk.gov.nationalarchives.notifications
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.client.WireMock.{ok, post, urlEqualTo}
 import uk.gov.nationalarchives.notifications.EcrScanIntegrationSpec.scanEventInputText
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
@@ -14,7 +15,7 @@ class LambdaErrorSpec extends LambdaSpecUtils with MockEcrApi {
     ecrApiEndpoint.stubFor(post(urlEqualTo("/"))
       .willReturn(ok(highSeverityEcrApiResponse)))
 
-    val scanEvent = ScanEvent(ScanDetail("", List("latest"), "some-sha256-digest", ScanFindingCounts(10, 100, 1000, 10000, 1, 10)))
+    val scanEvent = ScanEvent(ScanDetail("", List("latest"), "some-sha256-digest", ScanFindingCounts(10, 100, 1000, 10000, 1, 10).some, "COMPLETE"))
     val stream = new java.io.ByteArrayInputStream(scanEventInputText(scanEvent).getBytes(java.nio.charset.StandardCharsets.UTF_8.name))
     wiremockSlackServer.resetAll()
     val exception = intercept[Exception] {

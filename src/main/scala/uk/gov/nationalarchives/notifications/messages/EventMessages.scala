@@ -111,34 +111,44 @@ object EventMessages {
     }
 
     override def context(event: ScanEvent): IO[ImageScanReport] = {
-      val repoName = event.detail.repositoryName
-      val ecrClient = ecr(URI.create(ConfigFactory.load.getString("ecr.endpoint")))
-      val ecrUtils: ECRUtils = ECRUtils(ecrClient)
-      val findingsResponse = ecrUtils.imageScanFindings(repoName, event.detail.imageDigest)
+//      if (event.detail.scanStatus != "COMPLETE") {
+//        logger.info("Scan status is not COMPLETE, skipping ECR API call and returning empty report")
+//        IO(ImageScanReport(List()))
+//      } else {
+        val repoName = event.detail.repositoryName
+        val ecrClient = ecr(URI.create(ConfigFactory.load.getString("ecr.endpoint")))
+        val ecrUtils: ECRUtils = ECRUtils(ecrClient)
+        val findingsResponse = ecrUtils.imageScanFindings(repoName, event.detail.imageDigest)
 
-      findingsResponse.map(response => {
-        val findings = response.imageScanFindings.findings.asScala.map(finding => {
-          Finding(finding.name, finding.severity)
-        }).toSeq
-        ImageScanReport(findings)
-      })
+        findingsResponse.map(response => {
+          val findings = response.imageScanFindings.findings.asScala.map(finding => {
+            Finding(finding.name, finding.severity)
+          }).toSeq
+          ImageScanReport(findings)
+        })
+//      }
     }
 
     override def slack(event: ScanEvent, report: ImageScanReport): Option[SlackMessage] = {
       val detail = event.detail
       val filteredReport = filterReport(report)
-      if (shouldSendSlackNotification(detail, filteredReport.findings)) {
-        val headerBlock = slackBlock(s"*ECR image scan complete on image ${detail.repositoryName} ${detail.tags.mkString(",")}*")
-
-        val criticalBlock = slackBlock(s"${filteredReport.criticalCount} critical severity vulnerabilities")
-        val highBlock = slackBlock(s"${filteredReport.highCount} high severity vulnerabilities")
-        val mediumBlock = slackBlock(s"${filteredReport.mediumCount} medium severity vulnerabilities")
-        val lowBlock = slackBlock(s"${filteredReport.lowCount} low severity vulnerabilities")
-        val undefinedBlock = slackBlock(s"${filteredReport.undefinedCount} undefined severity vulnerabilities")
-        val documentationBlock = slackBlock(ecrScanDocumentationMessage)
-        SlackMessage(List(headerBlock, criticalBlock, highBlock, mediumBlock, lowBlock, undefinedBlock, documentationBlock)).some
+      if (detail.scanStatus != "COMPLETE") {
+        val headerBlock = slackBlock(s"*ECR image scan ${detail.scanStatus} on image ${detail.repositoryName} ${detail.tags.mkString(",")}*")
+        SlackMessage(List(headerBlock)).some
       } else {
-        Option.empty
+        if (shouldSendSlackNotification(detail, filteredReport.findings)) {
+          val headerBlock = slackBlock(s"*ECR image scan complete on image ${detail.repositoryName} ${detail.tags.mkString(",")}*")
+
+          val criticalBlock = slackBlock(s"${filteredReport.criticalCount} critical severity vulnerabilities")
+          val highBlock = slackBlock(s"${filteredReport.highCount} high severity vulnerabilities")
+          val mediumBlock = slackBlock(s"${filteredReport.mediumCount} medium severity vulnerabilities")
+          val lowBlock = slackBlock(s"${filteredReport.lowCount} low severity vulnerabilities")
+          val undefinedBlock = slackBlock(s"${filteredReport.undefinedCount} undefined severity vulnerabilities")
+          val documentationBlock = slackBlock(ecrScanDocumentationMessage)
+          SlackMessage(List(headerBlock, criticalBlock, highBlock, mediumBlock, lowBlock, undefinedBlock, documentationBlock)).some
+        } else {
+          Option.empty
+        }
       }
     }
 
@@ -515,7 +525,7 @@ object EventMessages {
   implicit val snsNotifyMessage: Messages[ParameterStoreExpiryEvent, Unit] = new Messages[ParameterStoreExpiryEvent, Unit] {
     val githubAccessTokenParameterName = "/github_enterprise/access_token"
     val govukNotifyApiKeyParameterName = "/keycloak/govuk_notify/api_key"
-    val npmTokenParameterName          = "/npm_granular_token"
+    val npmTokenParameterName = "/npm_granular_token"
 
     val tokenParameters = List(githubAccessTokenParameterName, govukNotifyApiKeyParameterName, npmTokenParameterName)
 
@@ -557,7 +567,7 @@ object EventMessages {
       )
     }
   }
-  
+
   implicit val usersDisabledEventMessages: Messages[UsersDisabledEvent, Unit] = new Messages[UsersDisabledEvent, Unit] {
     override def context(event: UsersDisabledEvent): IO[Unit] = IO.unit
 
