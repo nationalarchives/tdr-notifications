@@ -111,10 +111,10 @@ object EventMessages {
     }
 
     override def context(event: ScanEvent): IO[ImageScanReport] = {
-//      if (event.detail.scanStatus != "COMPLETE") {
-//        logger.info("Scan status is not COMPLETE, skipping ECR API call and returning empty report")
-//        IO(ImageScanReport(List()))
-//      } else {
+      if (event.detail.scanStatus != "COMPLETE") {
+        logger.info(s"Scan status is ${event.detail.scanStatus} for ${event.detail.repositoryName}, skipping ECR API call to get image scan findings")
+        IO(ImageScanReport(List()))
+      } else {
         val repoName = event.detail.repositoryName
         val ecrClient = ecr(URI.create(ConfigFactory.load.getString("ecr.endpoint")))
         val ecrUtils: ECRUtils = ECRUtils(ecrClient)
@@ -126,7 +126,7 @@ object EventMessages {
           }).toSeq
           ImageScanReport(findings)
         })
-//      }
+      }
     }
 
     override def slack(event: ScanEvent, report: ImageScanReport): Option[SlackMessage] = {
