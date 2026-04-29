@@ -10,7 +10,8 @@ object ScanDecoder {
                          repositoryName: String,
                          tags: List[String],
                          imageDigest: String,
-                         findingSeverityCounts: ScanFindingCounts
+                         findingSeverityCounts: Option[ScanFindingCounts],
+                         scanStatus: String
                        )
 
   case class ScanFindingCounts(critical: Int, high: Int, medium: Int, low: Int, undefined: Int, informational: Int)
@@ -35,8 +36,9 @@ object ScanDecoder {
     repositoryName <- c.downField("repository-name").as[String]
     imageTags <- c.downField("image-tags").as[List[String]]
     imageDigest <- c.downField("image-digest").as[String]
-    findingSeverityCounts <- c.downField("finding-severity-counts").as[ScanFindingCounts]
-  } yield ScanDetail(repositoryName, imageTags, imageDigest, findingSeverityCounts)
+    scanStatus <- c.downField("scan-status").as[String]
+    findingSeverityCounts <- c.downField("finding-severity-counts").as[Option[ScanFindingCounts]]
+  } yield ScanDetail(repositoryName, imageTags, imageDigest, findingSeverityCounts, scanStatus)
 
   val decodeScanEvent: Decoder[IncomingEvent] = (c: HCursor) => for {
     detail <- c.downField("detail").as[ScanDetail]

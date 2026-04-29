@@ -1,7 +1,7 @@
 package uk.gov.nationalarchives.notifications
 
+import cats.implicits.catsSyntaxOptionId
 import com.github.tomakehurst.wiremock.client.WireMock._
-import org.scalatest.prop.TableFor8
 import uk.gov.nationalarchives.notifications.EcrScanIntegrationSpec.scanEventInputText
 import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, ScanEvent, ScanFindingCounts}
 
@@ -55,6 +55,12 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
       stubContext = stubEcrApiResponse(noVulnerabilitiesEvent.detail.imageDigest, noFindings)
     ),
     Event(
+      description = "an ECR scan of an image which fails",
+      input = scanEventInputText(ecrScanFailedEvent),
+      expectedOutput = ExpectedOutput(),
+      stubContext = stubEcrApiResponse(ecrScanFailedEvent.detail.imageDigest, ecrScanFailed)
+    ),
+    Event(
       description = "an ECR scan of an image with a non-deployment tag",
       input = scanEventInputText(otherTagEvent),
       expectedOutput = ExpectedOutput(),
@@ -82,22 +88,23 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
     )
   )
   
-  private lazy val mixedSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd1", mixedCounts))
-  private lazy val lowSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd2", lowSeverityCounts))
-  private lazy val mediumSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd2", mediumSeverityCounts))
-  private lazy val informationalEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "1234", informationalCounts))
-  private lazy val undefinedSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "1234", undefinedSeverityCounts))
-  private lazy val noVulnerabilitiesEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd3", emptyCounts))
-  private lazy val otherTagEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("anothertag"), "abcd4", emptyCounts))
-  private lazy val intgTagEmptyEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("intg"), "abcd5", zeroCounts))
+  private lazy val mixedSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd1", mixedCounts, "COMPLETE"))
+  private lazy val lowSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd2", lowSeverityCounts, "COMPLETE"))
+  private lazy val mediumSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd2", mediumSeverityCounts, "COMPLETE"))
+  private lazy val informationalEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "1234", informationalCounts, "COMPLETE"))
+  private lazy val undefinedSeverityEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "1234", undefinedSeverityCounts, "COMPLETE"))
+  private lazy val noVulnerabilitiesEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd3", emptyCounts, "COMPLETE"))
+  private lazy val otherTagEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("anothertag"), "abcd4", emptyCounts, "COMPLETE"))
+  private lazy val intgTagEmptyEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("intg"), "abcd5", zeroCounts, "COMPLETE"))
+  private lazy val ecrScanFailedEvent: ScanEvent = ScanEvent(ScanDetail("repo-name", List("latest"), "abcd6", None, "FAILED"))
 
-  private lazy val mixedCounts = ScanFindingCounts(10, 100, 1000, 10000, 10, 1)
-  private lazy val lowSeverityCounts = ScanFindingCounts(0, 0, 0, 10, 0, 0)
-  private lazy val mediumSeverityCounts = ScanFindingCounts(0, 0, 10, 0, 0, 0)
-  private lazy val informationalCounts = ScanFindingCounts(0, 0, 0, 0, 10, 0)
-  private lazy val undefinedSeverityCounts = ScanFindingCounts(0, 0, 0, 0, 10, 0)
-  private lazy val emptyCounts = ScanFindingCounts(0, 0, 0, 0, 0, 0)
-  private lazy val zeroCounts = ScanFindingCounts(0, 0, 0, 0, 0, 0)
+  private lazy val mixedCounts = ScanFindingCounts(10, 100, 1000, 10000, 10, 1).some
+  private lazy val lowSeverityCounts = ScanFindingCounts(0, 0, 0, 10, 0, 0).some
+  private lazy val mediumSeverityCounts = ScanFindingCounts(0, 0, 10, 0, 0, 0).some
+  private lazy val informationalCounts = ScanFindingCounts(0, 0, 0, 0, 10, 0).some
+  private lazy val undefinedSeverityCounts = ScanFindingCounts(0, 0, 0, 0, 10, 0).some
+  private lazy val emptyCounts = ScanFindingCounts(0, 0, 0, 0, 0, 0).some
+  private lazy val zeroCounts = ScanFindingCounts(0, 0, 0, 0, 0, 0).some
 
   private lazy val mixedSeverityFindings = Source.fromResource("ecr-findings/mixed-severity.json").getLines.mkString
   private lazy val mediumSeverityFindings = Source.fromResource("ecr-findings/medium-severity.json").getLines.mkString
@@ -105,6 +112,7 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
   private lazy val undefinedFindings = Source.fromResource("ecr-findings/undefined-severity.json").getLines.mkString
   private lazy val informationalFindings = Source.fromResource("ecr-findings/informational.json").getLines.mkString
   private lazy val noFindings = Source.fromResource("ecr-findings/no-findings.json").getLines.mkString
+  private lazy val ecrScanFailed = Source.fromResource("ecr-findings/ecr-scan-failed.json").getLines.mkString
   private lazy val findingsWithOnlyMutedVulnerability = Source.fromResource("ecr-findings/muted-vulnerability.json").getLines.mkString
   private lazy val findingsIncludingMutedVulnerability = Source.fromResource("ecr-findings/including-muted-vulnerability.json").getLines.mkString
 
@@ -171,11 +179,11 @@ class EcrScanIntegrationSpec extends LambdaIntegrationSpec with MockEcrApi {
 
 object EcrScanIntegrationSpec {
   private def getCounts(scanEvent: ScanEvent): (Int, Int, Int, Int, Int) = {
-    val critical = scanEvent.detail.findingSeverityCounts.critical
-    val high = scanEvent.detail.findingSeverityCounts.high
-    val medium = scanEvent.detail.findingSeverityCounts.medium
-    val low = scanEvent.detail.findingSeverityCounts.low
-    val undefined = scanEvent.detail.findingSeverityCounts.undefined
+    val critical = scanEvent.detail.findingSeverityCounts.map(_.critical).getOrElse(0)
+    val high = scanEvent.detail.findingSeverityCounts.map(_.high).getOrElse(0)
+    val medium = scanEvent.detail.findingSeverityCounts.map(_.medium).getOrElse(0)
+    val low = scanEvent.detail.findingSeverityCounts.map(_.low).getOrElse(0)
+    val undefined = scanEvent.detail.findingSeverityCounts.map(_.undefined).getOrElse(0)
     (critical, high, medium, low, undefined)
   }
 
