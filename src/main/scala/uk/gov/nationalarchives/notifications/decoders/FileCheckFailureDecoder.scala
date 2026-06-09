@@ -9,7 +9,8 @@ object FileCheckFailureDecoder {
                                     consignmentId: UUID,
                                     transferringBodyName: String,
                                     userId: UUID,
-                                    environment: String
+                                    environment: String,
+                                    resolutionPath: String
                                   ) extends IncomingEvent {
     val isMockEvent: Boolean = transferringBodyName.toUpperCase.contains("MOCK")
   }
