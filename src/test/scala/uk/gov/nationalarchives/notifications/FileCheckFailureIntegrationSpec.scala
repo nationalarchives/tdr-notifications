@@ -1,5 +1,7 @@
 package uk.gov.nationalarchives.notifications
 
+import uk.gov.nationalarchives.notifications.messages.EventMessages.GovUKEmailDetails
+
 class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
 
   private lazy val consignmentId = "c2e7e539-0410-4dbf-b96e-1e3871d868ad"
@@ -18,11 +20,27 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
         environment = "prod",
         resolutionPath = resolutionPath
       ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
             body = slackMessage("standard", "TDR-2025-ABC", consignmentId, "SomeTransferringBody", userId, resolutionPath),
             webhookUrl = "/webhook-transfers"
+          )
+        ),
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            templateId = "TestFileCheckFailureTemplateId",
+            userEmail = "tdr@nationalarchives.gov.uk",
+            personalisation = Map(
+              "consignmentType" -> "standard",
+              "consignmentReference" -> "TDR-2025-ABC",
+              "consignmentId" -> consignmentId,
+              "transferringBodyName" -> "SomeTransferringBody",
+              "userId" -> userId,
+              "resolutionPath" -> resolutionPath
+            ),
+            reference = s"TDR-2025-ABC-$userId"
           )
         )
       )
@@ -38,11 +56,27 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
         environment = "prod",
         resolutionPath = resolutionPath
       ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
             body = slackMessage("judgment", "TDR-2025-JDG", consignmentId, "SomeTransferringBody", userId, resolutionPath),
             webhookUrl = "/webhook-transfers"
+          )
+        ),
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            templateId = "TestFileCheckFailureTemplateId",
+            userEmail = "tdr@nationalarchives.gov.uk",
+            personalisation = Map(
+              "consignmentType" -> "judgment",
+              "consignmentReference" -> "TDR-2025-JDG",
+              "consignmentId" -> consignmentId,
+              "transferringBodyName" -> "SomeTransferringBody",
+              "userId" -> userId,
+              "resolutionPath" -> resolutionPath
+            ),
+            reference = s"TDR-2025-JDG-$userId"
           )
         )
       )
@@ -58,11 +92,27 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
         environment = "intg",
         resolutionPath = resolutionPath
       ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
             body = slackMessage("standard", "TDR-2025-DEF", consignmentId, "SomeTransferringBody", userId, resolutionPath),
             webhookUrl = "/webhook-releases"
+          )
+        ),
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            templateId = "TestFileCheckFailureTemplateId",
+            userEmail = "tdr@nationalarchives.gov.uk",
+            personalisation = Map(
+              "consignmentType" -> "standard",
+              "consignmentReference" -> "TDR-2025-DEF",
+              "consignmentId" -> consignmentId,
+              "transferringBodyName" -> "SomeTransferringBody",
+              "userId" -> userId,
+              "resolutionPath" -> resolutionPath
+            ),
+            reference = s"TDR-2025-DEF-$userId"
           )
         )
       )
@@ -93,11 +143,27 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
         environment = "intg",
         resolutionPath = resolutionPath
       ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
             body = slackMessage("judgment", "TDR-2025-JKL", consignmentId, "SomeTransferringBody", userId, resolutionPath),
             webhookUrl = "/webhook-releases"
+          )
+        ),
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            templateId = "TestFileCheckFailureTemplateId",
+            userEmail = "tdr@nationalarchives.gov.uk",
+            personalisation = Map(
+              "consignmentType" -> "judgment",
+              "consignmentReference" -> "TDR-2025-JKL",
+              "consignmentId" -> consignmentId,
+              "transferringBodyName" -> "SomeTransferringBody",
+              "userId" -> userId,
+              "resolutionPath" -> resolutionPath
+            ),
+            reference = s"TDR-2025-JKL-$userId"
           )
         )
       )
