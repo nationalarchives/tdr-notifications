@@ -604,6 +604,23 @@ object EventMessages {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
       }
     }
+
+    override def govUkNotifyEmail(incomingEvent: FileCheckFailureEvent, context: Unit): List[GovUKEmailDetails] =
+      Option.when(!incomingEvent.isMockEvent)(
+        GovUKEmailDetails(
+          templateId = eventConfig("gov_uk_notify.file_check_failure_template_id"),
+          userEmail = eventConfig("tdr_inbox_email_address"),
+          personalisation = Map(
+            "consignmentType" -> incomingEvent.consignmentType,
+            "consignmentReference" -> incomingEvent.consignmentReference,
+            "consignmentId" -> incomingEvent.consignmentId.toString,
+            "transferringBodyName" -> incomingEvent.transferringBodyName,
+            "userId" -> incomingEvent.userId.toString,
+            "resolutionPath" -> incomingEvent.resolutionPath
+          ),
+          reference = s"${incomingEvent.consignmentReference}-${incomingEvent.userId}"
+        )
+      ).toList
   }
 
   private def truncate(s: String, max: Int): String = Option(s).fold("") { str =>
