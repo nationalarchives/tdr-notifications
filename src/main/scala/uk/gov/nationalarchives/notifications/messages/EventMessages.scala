@@ -598,7 +598,8 @@ object EventMessages {
           s"*Consignment Reference*: ${incomingEvent.consignmentReference}",
           s"*Consignment ID*: ${incomingEvent.consignmentId}",
           s"*Transferring Body*: ${incomingEvent.transferringBodyName}",
-          s"*UserID*: ${incomingEvent.userId}"
+          s"*UserID*: ${incomingEvent.userId}",
+          s"*Resolution Path*: ${incomingEvent.resolutionPath}"
         )
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
       }
