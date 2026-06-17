@@ -24,7 +24,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("standard", "TDR-2025-ABC", consignmentId, "SomeTransferringBody", userId, resolutionPath),
+            body = slackMessage("standard", "TDR-2025-ABC", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath),
             webhookUrl = "/webhook-transfers"
           )
         ),
@@ -33,6 +33,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
             templateId = "TestFileCheckFailureTemplateId",
             userEmail = "tdr@nationalarchives.gov.uk",
             personalisation = Map(
+              "environment" -> "prod",
               "consignmentType" -> "standard",
               "consignmentReference" -> "TDR-2025-ABC",
               "consignmentId" -> consignmentId,
@@ -60,7 +61,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("judgment", "TDR-2025-JDG", consignmentId, "SomeTransferringBody", userId, resolutionPath),
+            body = slackMessage("judgment", "TDR-2025-JDG", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath),
             webhookUrl = "/webhook-transfers"
           )
         ),
@@ -69,6 +70,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
             templateId = "TestFileCheckFailureTemplateId",
             userEmail = "tdr@nationalarchives.gov.uk",
             personalisation = Map(
+              "environment" -> "prod",
               "consignmentType" -> "judgment",
               "consignmentReference" -> "TDR-2025-JDG",
               "consignmentId" -> consignmentId,
@@ -96,7 +98,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("standard", "TDR-2025-DEF", consignmentId, "SomeTransferringBody", userId, resolutionPath),
+            body = slackMessage("standard", "TDR-2025-DEF", consignmentId, "SomeTransferringBody", userId, "intg", resolutionPath),
             webhookUrl = "/webhook-releases"
           )
         ),
@@ -105,6 +107,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
             templateId = "TestFileCheckFailureTemplateId",
             userEmail = "tdr@nationalarchives.gov.uk",
             personalisation = Map(
+              "environment" -> "intg",
               "consignmentType" -> "standard",
               "consignmentReference" -> "TDR-2025-DEF",
               "consignmentId" -> consignmentId,
@@ -147,7 +150,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("judgment", "TDR-2025-JKL", consignmentId, "SomeTransferringBody", userId, resolutionPath),
+            body = slackMessage("judgment", "TDR-2025-JKL", consignmentId, "SomeTransferringBody", userId, "intg", resolutionPath),
             webhookUrl = "/webhook-releases"
           )
         ),
@@ -156,6 +159,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
             templateId = "TestFileCheckFailureTemplateId",
             userEmail = "tdr@nationalarchives.gov.uk",
             personalisation = Map(
+              "environment" -> "intg",
               "consignmentType" -> "judgment",
               "consignmentReference" -> "TDR-2025-JKL",
               "consignmentId" -> consignmentId,
@@ -185,13 +189,13 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
     )
   )
 
-  private def slackMessage(consignmentType: String, consignmentReference: String, consignmentId: String, transferringBodyName: String, userId: String, resolutionPath: String): String = {
+  private def slackMessage(consignmentType: String, consignmentReference: String, consignmentId: String, transferringBodyName: String, userId: String, environment: String, resolutionPath: String): String = {
     s"""{
        |  "blocks" : [ {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : ":warning: *A user has experienced a File Check Failure*\\n*Consignment Type*: $consignmentType\\n*Consignment Reference*: $consignmentReference\\n*Consignment ID*: $consignmentId\\n*Transferring Body*: $transferringBodyName\\n*UserID*: $userId\\n*Resolution Path*: $resolutionPath"
+       |      "text" : ":warning: *A user has experienced a File Check Failure*\\n*Environment*: $environment\\n*Consignment Type*: $consignmentType\\n*Consignment Reference*: $consignmentReference\\n*Consignment ID*: $consignmentId\\n*Transferring Body*: $transferringBodyName\\n*UserID*: $userId\\n*Resolution Path*: $resolutionPath"
        |    }
        |  } ]
        |}
