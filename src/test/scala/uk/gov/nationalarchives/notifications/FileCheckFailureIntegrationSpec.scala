@@ -1,5 +1,7 @@
 package uk.gov.nationalarchives.notifications
 
+import uk.gov.nationalarchives.notifications.messages.EventMessages.GovUKEmailDetails
+
 class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
 
   private lazy val consignmentId = "c2e7e539-0410-4dbf-b96e-1e3871d868ad"
@@ -18,11 +20,28 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
         environment = "prod",
         resolutionPath = resolutionPath
       ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("standard", "TDR-2025-ABC", consignmentId, "SomeTransferringBody", userId, resolutionPath),
+            body = slackMessage("standard", "TDR-2025-ABC", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath),
             webhookUrl = "/webhook-transfers"
+          )
+        ),
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            templateId = "TestFileCheckFailureTemplateId",
+            userEmail = "tdr@nationalarchives.gov.uk",
+            personalisation = Map(
+              "environment" -> "prod",
+              "consignmentType" -> "standard",
+              "consignmentReference" -> "TDR-2025-ABC",
+              "consignmentId" -> consignmentId,
+              "transferringBodyName" -> "SomeTransferringBody",
+              "userId" -> userId,
+              "resolutionPath" -> resolutionPath
+            ),
+            reference = s"TDR-2025-ABC-$userId"
           )
         )
       )
@@ -38,11 +57,28 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
         environment = "prod",
         resolutionPath = resolutionPath
       ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("judgment", "TDR-2025-JDG", consignmentId, "SomeTransferringBody", userId, resolutionPath),
+            body = slackMessage("judgment", "TDR-2025-JDG", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath),
             webhookUrl = "/webhook-transfers"
+          )
+        ),
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            templateId = "TestFileCheckFailureTemplateId",
+            userEmail = "tdr@nationalarchives.gov.uk",
+            personalisation = Map(
+              "environment" -> "prod",
+              "consignmentType" -> "judgment",
+              "consignmentReference" -> "TDR-2025-JDG",
+              "consignmentId" -> consignmentId,
+              "transferringBodyName" -> "SomeTransferringBody",
+              "userId" -> userId,
+              "resolutionPath" -> resolutionPath
+            ),
+            reference = s"TDR-2025-JDG-$userId"
           )
         )
       )
@@ -58,11 +94,28 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
         environment = "intg",
         resolutionPath = resolutionPath
       ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("standard", "TDR-2025-DEF", consignmentId, "SomeTransferringBody", userId, resolutionPath),
+            body = slackMessage("standard", "TDR-2025-DEF", consignmentId, "SomeTransferringBody", userId, "intg", resolutionPath),
             webhookUrl = "/webhook-releases"
+          )
+        ),
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            templateId = "TestFileCheckFailureTemplateId",
+            userEmail = "tdr@nationalarchives.gov.uk",
+            personalisation = Map(
+              "environment" -> "intg",
+              "consignmentType" -> "standard",
+              "consignmentReference" -> "TDR-2025-DEF",
+              "consignmentId" -> consignmentId,
+              "transferringBodyName" -> "SomeTransferringBody",
+              "userId" -> userId,
+              "resolutionPath" -> resolutionPath
+            ),
+            reference = s"TDR-2025-DEF-$userId"
           )
         )
       )
@@ -93,11 +146,28 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
         environment = "intg",
         resolutionPath = resolutionPath
       ),
+      stubContext = stubDummyGovUkNotifyEmailResponse,
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("judgment", "TDR-2025-JKL", consignmentId, "SomeTransferringBody", userId, resolutionPath),
+            body = slackMessage("judgment", "TDR-2025-JKL", consignmentId, "SomeTransferringBody", userId, "intg", resolutionPath),
             webhookUrl = "/webhook-releases"
+          )
+        ),
+        govUKEmail = Some(
+          GovUKEmailDetails(
+            templateId = "TestFileCheckFailureTemplateId",
+            userEmail = "tdr@nationalarchives.gov.uk",
+            personalisation = Map(
+              "environment" -> "intg",
+              "consignmentType" -> "judgment",
+              "consignmentReference" -> "TDR-2025-JKL",
+              "consignmentId" -> consignmentId,
+              "transferringBodyName" -> "SomeTransferringBody",
+              "userId" -> userId,
+              "resolutionPath" -> resolutionPath
+            ),
+            reference = s"TDR-2025-JKL-$userId"
           )
         )
       )
@@ -119,13 +189,13 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
     )
   )
 
-  private def slackMessage(consignmentType: String, consignmentReference: String, consignmentId: String, transferringBodyName: String, userId: String, resolutionPath: String): String = {
+  private def slackMessage(consignmentType: String, consignmentReference: String, consignmentId: String, transferringBodyName: String, userId: String, environment: String, resolutionPath: String): String = {
     s"""{
        |  "blocks" : [ {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : ":warning: *A user has experienced a File Check Failure*\\n*Consignment Type*: $consignmentType\\n*Consignment Reference*: $consignmentReference\\n*Consignment ID*: $consignmentId\\n*Transferring Body*: $transferringBodyName\\n*UserID*: $userId\\n*Resolution Path*: $resolutionPath"
+       |      "text" : ":warning: *A user has experienced a File Check Failure*\\n*Environment*: $environment\\n*Consignment Type*: $consignmentType\\n*Consignment Reference*: $consignmentReference\\n*Consignment ID*: $consignmentId\\n*Transferring Body*: $transferringBodyName\\n*UserID*: $userId\\n*Resolution Path*: $resolutionPath"
        |    }
        |  } ]
        |}
