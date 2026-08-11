@@ -72,6 +72,7 @@ object Messages {
     "gov_uk_notify.metadata_review_approved_template_id",
     "gov_uk_notify.upload_failed_template_id",
     "gov_uk_notify.upload_complete_template_id",
+    "gov_uk_notify.file_check_failure_template_id",
     "tdr_inbox_email_address"
   ).flatMap { configName =>
     Try(config.getString(configName)).toOption

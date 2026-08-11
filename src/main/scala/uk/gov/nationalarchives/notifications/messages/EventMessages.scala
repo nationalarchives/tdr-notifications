@@ -594,6 +594,7 @@ object EventMessages {
       Option.when(!incomingEvent.isMockEvent) {
         val messageList = List(
           ":warning: *A user has experienced a File Check Failure*",
+          s"*Environment*: ${incomingEvent.environment}",
           s"*Consignment Type*: ${incomingEvent.consignmentType}",
           s"*Consignment Reference*: ${incomingEvent.consignmentReference}",
           s"*Consignment ID*: ${incomingEvent.consignmentId}",
@@ -604,6 +605,24 @@ object EventMessages {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
       }
     }
+
+    override def govUkNotifyEmail(incomingEvent: FileCheckFailureEvent, context: Unit): List[GovUKEmailDetails] =
+      Option.when(!incomingEvent.isMockEvent)(
+        GovUKEmailDetails(
+          templateId = eventConfig("gov_uk_notify.file_check_failure_template_id"),
+          userEmail = eventConfig("tdr_inbox_email_address"),
+          personalisation = Map(
+            "environment" -> incomingEvent.environment,
+            "consignmentType" -> incomingEvent.consignmentType,
+            "consignmentReference" -> incomingEvent.consignmentReference,
+            "consignmentId" -> incomingEvent.consignmentId.toString,
+            "transferringBodyName" -> incomingEvent.transferringBodyName,
+            "userId" -> incomingEvent.userId.toString,
+            "resolutionPath" -> incomingEvent.resolutionPath
+          ),
+          reference = s"${incomingEvent.consignmentReference}-${incomingEvent.userId}"
+        )
+      ).toList
   }
 
   private def truncate(s: String, max: Int): String = Option(s).fold("") { str =>
