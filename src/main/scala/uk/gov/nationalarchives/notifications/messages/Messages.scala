@@ -57,7 +57,8 @@ object Messages {
     "slack.webhook.bau_url",
     "slack.webhook.tdr_transfers_url",
     "slack.webhook.tdr_releases_url",
-    "slack.webhook.tdr_dev_notifications_url"
+    "slack.webhook.tdr_dev_notifications_url",
+    "slack.webhook.tdr_admin_action_alert_url"
   )
   val eventConfig: Map[String, String] = List(
     "alerts.ecr-scan.mute",
@@ -166,7 +167,7 @@ object Messages {
       case ev: KeycloakEvent if ev.tdrEnv == "prod" => Seq(eventConfig("slack.webhook.tdr_url"))
       case ev: KeycloakEvent if ev.tdrEnv != "prod" => Seq(eventConfig("slack.webhook.bau_url"))
       case _: DraftMetadataStepFunctionError => Seq(eventConfig("slack.webhook.tdr_url"))
-      case ev: MetadataDownloadEvent => eventConfigForMetadataReview(ev.environment)
+      case _: MetadataDownloadEvent => Seq(eventConfig("slack.webhook.tdr_admin_action_alert_url"))
       case ev: MetadataReviewRequestEvent => eventConfigForMetadataReview(ev.environment)
       case ev: MetadataReviewSubmittedEvent => eventConfigForMetadataReview(ev.environment)
       case ev: UsersDisabledEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_url")) else Seq(eventConfig("slack.webhook.url"))

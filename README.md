@@ -17,6 +17,7 @@ Set these environment variables, either on the command line or in IntelliJ depen
 * `SLACK_JUDGMENT_WEBHOOK` This webhook publishes to the #da-tdr-prod-exports-judgments channel. This should only be used to send production judgment transfer notifications.
 * `SLACK_TDR_WEBHOOK` This webhook publishes to the #da-tdr channel. This is for priority notifications which need to be acted on quickly.
 * `SLACK_EXPORT_WEBHOOK` This webhook publishes to the #da-tdr-export-notifications channel. This is for all non-judgment export notifications for staging and production.
+* `SLACK_ADMIN_ACTION_ALERT_WEBHOOK` This webhook publishes to the #da-tdr-admin-action-alert channel. This is used for metadata download alerts.
 * `TO_EMAIL`: the email address that alerts should be sent to. For testing purposes, this should normally be your own
   email address rather than a team one.
 * `DA_EVENT_BUS`: this is the SNS topic where successful export messages are published. Need to ensure have permissions to publish to the SNS topic

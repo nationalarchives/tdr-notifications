@@ -20,7 +20,7 @@ class MetadataDownloadIntegrationSpec extends LambdaIntegrationSpec {
               consignmentId = "c140d49c-93d0-4345-8d71-c97ff28b947e",
               consignmentReference = "TDR-2024"
             ),
-            webhookUrl = "/webhook-transfers"
+            webhookUrl = "/webhook-admin_action_alert"
           )
         )
       )
