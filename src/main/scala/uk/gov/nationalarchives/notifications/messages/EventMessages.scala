@@ -25,6 +25,7 @@ import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.Fi
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.MalwareScanThreatFoundEventDecoder.MalwareScanThreatFoundEvent
+import uk.gov.nationalarchives.notifications.decoders.MetadataDownloadDecoder.MetadataDownloadEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewSubmittedDecoder.MetadataReviewSubmittedEvent
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
@@ -311,6 +312,24 @@ object EventMessages {
           reference = s"${transferCompleteEvent.consignmentReference}"
         )
       ) else List.empty)
+    }
+  }
+
+  implicit val metadataDownloadEventMessages: Messages[MetadataDownloadEvent, Unit] = new Messages[MetadataDownloadEvent, Unit] {
+    override def context(event: MetadataDownloadEvent): IO[Unit] = IO.unit
+
+    override def slack(incomingEvent: MetadataDownloadEvent, context: Unit): Option[SlackMessage] = {
+      Option.when(incomingEvent.environment == "prod") {
+        val messageList = List(
+          ":information_source: *Metadata file downloaded*",
+          s"*Environment*: ${incomingEvent.environment}",
+          s"*UserID*: ${incomingEvent.userId}",
+          s"*Username*: ${incomingEvent.userName}",
+          s"*Consignment ID*: ${incomingEvent.consignmentId}",
+          s"*Consignment Reference*: ${incomingEvent.consignmentReference}"
+        )
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
+      }
     }
   }
 
