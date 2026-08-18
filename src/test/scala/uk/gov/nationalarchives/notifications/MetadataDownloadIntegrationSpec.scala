@@ -8,6 +8,7 @@ class MetadataDownloadIntegrationSpec extends LambdaIntegrationSpec {
       input = metadataDownloadInputString(
         environment = "prod",
         userId = "22579624-3eb9-4453-9b41-dd53a58fcfe7",
+        userName = "TNA Username",
         consignmentId = "c140d49c-93d0-4345-8d71-c97ff28b947e",
         consignmentReference = "TDR-2024"
       ),
@@ -17,6 +18,7 @@ class MetadataDownloadIntegrationSpec extends LambdaIntegrationSpec {
             body = slackMessage(
               environment = "prod",
               userId = "22579624-3eb9-4453-9b41-dd53a58fcfe7",
+              userName = "TNA Username",
               consignmentId = "c140d49c-93d0-4345-8d71-c97ff28b947e",
               consignmentReference = "TDR-2024"
             ),
@@ -30,6 +32,7 @@ class MetadataDownloadIntegrationSpec extends LambdaIntegrationSpec {
       input = metadataDownloadInputString(
         environment = "intg",
         userId = "22579624-3eb9-4453-9b41-dd53a58fcfe7",
+        userName = "TNA Username",
         consignmentId = "c140d49c-93d0-4345-8d71-c97ff28b947e",
         consignmentReference = "TDR-2024"
       ),
@@ -39,25 +42,25 @@ class MetadataDownloadIntegrationSpec extends LambdaIntegrationSpec {
     )
   )
 
-  private def slackMessage(environment: String, userId: String, consignmentId: String, consignmentReference: String): String = {
+  private def slackMessage(environment: String, userId: String, userName: String, consignmentId: String, consignmentReference: String): String = {
     s"""{
        |  "blocks" : [ {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : ":information_source: *Metadata file downloaded*\\n*Environment*: $environment\\n*UserID*: $userId\\n*Consignment ID*: $consignmentId\\n*Consignment Reference*: $consignmentReference"
+       |      "text" : ":information_source: *Metadata file downloaded*\\n*Environment*: $environment\\n*UserID*: $userId\\n*Username*: $userName\\n*Consignment ID*: $consignmentId\\n*Consignment Reference*: $consignmentReference"
        |    }
        |  } ]
        |}
        |""".stripMargin
   }
 
-  private def metadataDownloadInputString(environment: String, userId: String, consignmentId: String, consignmentReference: String): String = {
+  private def metadataDownloadInputString(environment: String, userId: String, userName: String, consignmentId: String, consignmentReference: String): String = {
     s"""{
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"environment\\":\\"$environment\\",\\"userId\\":\\"$userId\\",\\"consignmentId\\":\\"$consignmentId\\",\\"consignmentReference\\":\\"$consignmentReference\\"}"
+       |       "Message": "{\\"environment\\":\\"$environment\\",\\"userId\\":\\"$userId\\",\\"userName\\":\\"$userName\\",\\"consignmentId\\":\\"$consignmentId\\",\\"consignmentReference\\":\\"$consignmentReference\\"}"
        |      }
        |    }
        |  ]}""".stripMargin

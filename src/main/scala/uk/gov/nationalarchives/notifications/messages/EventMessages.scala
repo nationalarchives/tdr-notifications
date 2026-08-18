@@ -324,6 +324,7 @@ object EventMessages {
           ":information_source: *Metadata file downloaded*",
           s"*Environment*: ${incomingEvent.environment}",
           s"*UserID*: ${incomingEvent.userId}",
+          s"*Username*: ${incomingEvent.userName}",
           s"*Consignment ID*: ${incomingEvent.consignmentId}",
           s"*Consignment Reference*: ${incomingEvent.consignmentReference}"
         )
