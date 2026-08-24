@@ -4,8 +4,7 @@ object EcsDeploymentStateChangeDecoder {
   case class EcsTaskContainer(
                                name: String,
                                image: String,
-                               exitCode: Int,
-                               reason: String
+                               exitCode: Int
                              )
 
   case class EcsDeploymentDetail(
