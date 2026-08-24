@@ -19,6 +19,7 @@ import uk.gov.nationalarchives.da.messages.bag.available.{BagAvailable, Consignm
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.BackendCheckFailureDecoder.BackendCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
+import uk.gov.nationalarchives.notifications.decoders.EcsDeploymentStateChangeDecoder.EcsDeploymentStateChangeEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
@@ -240,6 +241,15 @@ object EventMessages {
       } else {
         None
       }
+    }
+  }
+
+  implicit val ecsDeploymentStateChangeEventMessages: Messages[EcsDeploymentStateChangeEvent, Unit] = new Messages[EcsDeploymentStateChangeEvent, Unit] {
+    override def context(event: EcsDeploymentStateChangeEvent): IO[Unit] = IO.unit
+
+    override def slack(ecsDeploymentStateChangeEvent: EcsDeploymentStateChangeEvent, context: Unit): Option[SlackMessage] = {
+      logger.info(s"ECS Deployment State Change Event: $ecsDeploymentStateChangeEvent")
+      None
     }
   }
 
@@ -544,7 +554,7 @@ object EventMessages {
   implicit val snsNotifyMessage: Messages[ParameterStoreExpiryEvent, Unit] = new Messages[ParameterStoreExpiryEvent, Unit] {
     val githubAccessTokenParameterName = "/github_enterprise/access_token"
     val govukNotifyApiKeyParameterName = "/keycloak/govuk_notify/api_key"
-    val npmTokenParameterName          = "/npm_granular_token"
+    val npmTokenParameterName = "/npm_granular_token"
 
     val tokenParameters: List[String] = List(githubAccessTokenParameterName, govukNotifyApiKeyParameterName, npmTokenParameterName)
 
@@ -586,7 +596,7 @@ object EventMessages {
       )
     }
   }
-  
+
   implicit val usersDisabledEventMessages: Messages[UsersDisabledEvent, Unit] = new Messages[UsersDisabledEvent, Unit] {
     override def context(event: UsersDisabledEvent): IO[Unit] = IO.unit
 

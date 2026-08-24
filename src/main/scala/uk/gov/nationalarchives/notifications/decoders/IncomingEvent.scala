@@ -7,6 +7,7 @@ import io.circe.{Decoder, DecodingFailure, HCursor, Json}
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.BackendCheckFailureDecoder.BackendCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
+import uk.gov.nationalarchives.notifications.decoders.EcsDeploymentStateChangeDecoder.EcsDeploymentStateChangeEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
@@ -30,7 +31,8 @@ object IncomingEvent {
     decodeSnsEvent[CloudwatchAlarmEvent] or decodeSnsEvent[ParameterStoreExpiryEvent] or decodeStepFunctionError or
     decodeSnsEvent[TransferCompleteEvent] or decodeSnsEvent[MetadataReviewRequestEvent] or decodeSnsEvent[MetadataReviewSubmittedEvent] or
     decodeSnsEvent[DraftMetadataStepFunctionError] or decodeSnsEvent[MalwareScanThreatFoundEvent] or decodeSnsEvent[UploadEvent] or
-    decodeSnsEvent[UsersDisabledEvent] or decodeSnsEvent[FileCheckFailureEvent] or decodeSnsEvent[MetadataDownloadEvent]
+    decodeSnsEvent[UsersDisabledEvent] or decodeSnsEvent[FileCheckFailureEvent] or decodeSnsEvent[MetadataDownloadEvent] or
+    decodeSnsEvent[EcsDeploymentStateChangeEvent]
 
   def decodeSnsEvent[T <: IncomingEvent]()(implicit decoder: Decoder[T]): Decoder[IncomingEvent] = (c: HCursor) => for {
     messages <- c.downField("Records").as[List[SnsRecord]]
