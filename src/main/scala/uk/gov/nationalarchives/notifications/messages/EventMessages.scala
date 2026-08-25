@@ -255,7 +255,14 @@ object EventMessages {
         s"*Container status*: ${container.map(_.name).getOrElse("")} *${event.detail.lastStatus}* with exit code *${container.flatMap(_.exitCode).getOrElse("Unknown")}*",
         s"*Stopped reason*: ${event.detail.stoppedReason.getOrElse("")}",
       )
-      SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
+      container match {
+        case Some(c) if c.exitCode.contains(143) && event.detail.taskArn.contains("prod") =>
+          // Send a Slack message for prod only if the container has exited with 143 (graceful shutdown warning due to scaling activity)
+          SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
+        case Some(c) if !c.exitCode.contains(143) =>
+          SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
+        case _ => None
+      }
     }
   }
 

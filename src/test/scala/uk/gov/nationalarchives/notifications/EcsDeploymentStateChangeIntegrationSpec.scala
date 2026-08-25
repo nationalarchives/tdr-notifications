@@ -60,18 +60,44 @@ class EcsDeploymentStateChangeIntegrationSpec extends LambdaIntegrationSpec {
         exitCode = None
       ),
       expectedOutput = ExpectedOutput(
+        slackMessage = None
+      )
+    ),
+    Event(
+      description = "an ECS deployment state change with exit code 143 on prod",
+      input = ecsDeploymentStateChangeInput(
+        taskArn = "arn:aws:ecs:eu-west-2:123456789012:task/backend_prod/abcdef1234567892",
+        lastStatus = "STOPPED",
+        stoppedReason = Some("Scaling activity in progress"),
+        containerName = "backend",
+        exitCode = Some(143)
+      ),
+      expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
             body = expectedSlackMessage(
-              taskArn = "arn:aws:ecs:eu-west-2:123456789012:task/backend_prod/abcdef1234567891",
+              taskArn = "arn:aws:ecs:eu-west-2:123456789012:task/backend_prod/abcdef1234567892",
               lastStatus = "STOPPED",
-              stoppedReason = Some("Task stopped by deployment"),
+              stoppedReason = Some("Scaling activity in progress"),
               containerName = "backend",
-              exitCode = None
+              exitCode = Some(143)
             ),
             webhookUrl = "/webhook-url"
           )
         )
+      )
+    ),
+    Event(
+      description = "an ECS deployment state change with exit code 143 on non-prod",
+      input = ecsDeploymentStateChangeInput(
+        taskArn = "arn:aws:ecs:eu-west-2:123456789012:task/backend_intg/abcdef1234567893",
+        lastStatus = "STOPPED",
+        stoppedReason = Some("Scaling activity in progress"),
+        containerName = "backend",
+        exitCode = Some(143)
+      ),
+      expectedOutput = ExpectedOutput(
+        slackMessage = None
       )
     )
   )
