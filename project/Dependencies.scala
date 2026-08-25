@@ -1,9 +1,9 @@
 import sbt._
 
 object Dependencies {
-  private val circeVersion = "0.14.15"
+  private val circeVersion = "0.14.16"
   private val sttpClient3Version = "3.11.0"
-  private val awsUtilsVersion = "0.1.336"
+  private val awsUtilsVersion = "0.1.339"
   private val elasticMqVersion = "1.7.1"
   
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClient3Version
@@ -24,5 +24,5 @@ object Dependencies {
   lazy val typeSafeLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6"
   lazy val elasticMq = "org.elasticmq" %% "elasticmq-server" % elasticMqVersion
   lazy val transformSchemas = "uk.gov.nationalarchives" % "da-transform-schemas" % "2.14"
-  lazy val notifyJavaClient = "uk.gov.service.notify" % "notifications-java-client" % "6.0.0-RELEASE"
+  lazy val notifyJavaClient = "uk.gov.service.notify" % "notifications-java-client" % "6.0.1-RELEASE"
 }
