@@ -16,8 +16,8 @@ import uk.gov.nationalarchives.common.messages.Producer.TDR
 import uk.gov.nationalarchives.common.messages.Properties
 import uk.gov.nationalarchives.da.messages.bag.available
 import uk.gov.nationalarchives.da.messages.bag.available.{BagAvailable, ConsignmentType}
-import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.BackendCheckFailureDecoder.BackendCheckFailureEvent
+import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.EcsDeploymentStateChangeDecoder.EcsDeploymentStateChangeEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder._
@@ -247,14 +247,13 @@ object EventMessages {
   implicit val ecsDeploymentStateChangeEventMessages: Messages[EcsDeploymentStateChangeEvent, Unit] = new Messages[EcsDeploymentStateChangeEvent, Unit] {
     override def context(event: EcsDeploymentStateChangeEvent): IO[Unit] = IO.unit
 
-    override def slack(ecsDeploymentStateChangeEvent: EcsDeploymentStateChangeEvent, context: Unit): Option[SlackMessage] = {
-      println(s"ECS Deployment State Change Event: $ecsDeploymentStateChangeEvent")
-      val container = ecsDeploymentStateChangeEvent.detail.containers.find(_.exitCode.isDefined)
+    override def slack(event: EcsDeploymentStateChangeEvent, context: Unit): Option[SlackMessage] = {
+      val container = event.detail.containers.find(_.exitCode.isDefined)
       val messageList = List(
         s":red_circle: *ECS Deployment State Change Event*",
-        s"*Task*: ...${ecsDeploymentStateChangeEvent.detail.taskArn.split("task").last}",
-        s"*Container status*: ${container.getOrElse("")} ${ecsDeploymentStateChangeEvent.detail.lastStatus} with exit code ${container.flatMap(_.exitCode).get}",
-        s"*StoppedReason*: ${ecsDeploymentStateChangeEvent.detail.stoppedReason.getOrElse("")}",
+        s"*Task*: ...${event.detail.taskArn.split("task").last}",
+        s"*Container status*: ${container.map(_.name).getOrElse("")} *${event.detail.lastStatus}* with exit code *${container.flatMap(_.exitCode).getOrElse("Unknown")}*",
+        s"*StoppedReason*: ${event.detail.stoppedReason.getOrElse("")}",
       )
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
     }

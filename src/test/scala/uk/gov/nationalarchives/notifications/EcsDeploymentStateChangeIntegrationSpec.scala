@@ -9,8 +9,7 @@ class EcsDeploymentStateChangeIntegrationSpec extends LambdaIntegrationSpec {
         lastStatus = "STOPPED",
         stoppedReason = Some("Essential container in task exited"),
         containerName = "frontend",
-        exitCode = 255,
-        containerReason = Some("OutOfMemoryError")
+        exitCode = Some(255)
       ),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
@@ -20,8 +19,7 @@ class EcsDeploymentStateChangeIntegrationSpec extends LambdaIntegrationSpec {
               lastStatus = "STOPPED",
               stoppedReason = Some("Essential container in task exited"),
               containerName = "frontend",
-              exitCode = 255,
-              containerReason = Some("OutOfMemoryError")
+              exitCode = Some(255)
             ),
             webhookUrl = "/webhook-url"
           )
@@ -35,8 +33,7 @@ class EcsDeploymentStateChangeIntegrationSpec extends LambdaIntegrationSpec {
         lastStatus = "FAILED",
         stoppedReason = None,
         containerName = "backend",
-        exitCode = 137,
-        containerReason = None
+        exitCode = Some(137)
       ),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
@@ -46,8 +43,31 @@ class EcsDeploymentStateChangeIntegrationSpec extends LambdaIntegrationSpec {
               lastStatus = "FAILED",
               stoppedReason = None,
               containerName = "backend",
-              exitCode = 137,
-              containerReason = None
+              exitCode = Some(137)
+            ),
+            webhookUrl = "/webhook-url"
+          )
+        )
+      )
+    ),
+    Event(
+      description = "an ECS deployment state change without an exit code",
+      input = ecsDeploymentStateChangeInput(
+        taskArn = "arn:aws:ecs:eu-west-2:123456789012:task/backend_prod/abcdef1234567891",
+        lastStatus = "STOPPED",
+        stoppedReason = Some("Task stopped by deployment"),
+        containerName = "backend",
+        exitCode = None
+      ),
+      expectedOutput = ExpectedOutput(
+        slackMessage = Some(
+          SlackMessage(
+            body = expectedSlackMessage(
+              taskArn = "arn:aws:ecs:eu-west-2:123456789012:task/backend_prod/abcdef1234567891",
+              lastStatus = "STOPPED",
+              stoppedReason = Some("Task stopped by deployment"),
+              containerName = "backend",
+              exitCode = None
             ),
             webhookUrl = "/webhook-url"
           )
@@ -61,17 +81,16 @@ class EcsDeploymentStateChangeIntegrationSpec extends LambdaIntegrationSpec {
     lastStatus: String,
     stoppedReason: Option[String],
     containerName: String,
-    exitCode: Int,
-    containerReason: Option[String]
+    exitCode: Option[Int]
   ): String = {
     val stoppedReasonJson = stoppedReason.map(reason => s"\\\"stoppedReason\\\":\\\"$reason\\\",").getOrElse("")
-    val containerReasonJson = containerReason.map(reason => s",\\\"reason\\\":\\\"$reason\\\"").getOrElse("")
+    val exitCodeJson = exitCode.map(code => s",\\\"exitCode\\\":$code").getOrElse("")
 
     s"""{
        |  "Records": [
        |    {
        |      "Sns": {
-       |        "Message": "{\\\"detail-type\\\":\\\"ECS Task State Change\\\",\\\"detail\\\":{\\\"taskArn\\\":\\\"$taskArn\\\",\\\"lastStatus\\\":\\\"$lastStatus\\\",$stoppedReasonJson\\\"containers\\\":[{\\\"name\\\":\\\"$containerName\\\",\\\"exitCode\\\":$exitCode$containerReasonJson}]}}"
+       |        "Message": "{\\\"detail-type\\\":\\\"ECS Task State Change\\\",\\\"detail\\\":{\\\"taskArn\\\":\\\"$taskArn\\\",\\\"lastStatus\\\":\\\"$lastStatus\\\",$stoppedReasonJson\\\"containers\\\":[{\\\"name\\\":\\\"$containerName\\\"$exitCodeJson}]}}"
        |      }
        |    }
        |  ]
@@ -84,18 +103,17 @@ class EcsDeploymentStateChangeIntegrationSpec extends LambdaIntegrationSpec {
     lastStatus: String,
     stoppedReason: Option[String],
     containerName: String,
-    exitCode: Int,
-    containerReason: Option[String]
+    exitCode: Option[Int]
   ): String = {
-    val containerReasonText = containerReason.map(reason => s"Some($reason)").getOrElse("None")
-    val containerText = s"EcsTaskContainer($containerName,Some($exitCode),$containerReasonText)"
+    val exitCodeText = exitCode.getOrElse("Unknown")
+    val containerNameText = Option.when(exitCode.isDefined)(containerName).getOrElse("")
 
     s"""{
        |  "blocks" : [ {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : ":red_circle: *ECS Deployment State Change Event*\\n*Task*: ...${taskArn.split("task").last}\\n*Container status*: $containerText $lastStatus with exit code $exitCode\\n*StoppedReason*: ${stoppedReason.getOrElse("")}"
+       |      "text" : ":red_circle: *ECS Deployment State Change Event*\\n*Task*: ...${taskArn.split("task").last}\\n*Container status*: $containerNameText *$lastStatus* with exit code *$exitCodeText*\\n*StoppedReason*: ${stoppedReason.getOrElse("")}"
        |    }
        |  } ]
        |}
