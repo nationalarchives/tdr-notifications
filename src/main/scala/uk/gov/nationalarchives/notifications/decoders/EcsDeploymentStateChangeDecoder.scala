@@ -24,8 +24,6 @@ object EcsDeploymentStateChangeDecoder {
                                             account: Option[String],
                                             time: Option[String],
                                             region: Option[String],
-                                            resources: Option[String],
                                             detail: Option[EcsDeploymentDetail]
                                           ) extends IncomingEvent
 }
-
