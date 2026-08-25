@@ -249,10 +249,12 @@ object EventMessages {
 
     override def slack(ecsDeploymentStateChangeEvent: EcsDeploymentStateChangeEvent, context: Unit): Option[SlackMessage] = {
       println(s"ECS Deployment State Change Event: $ecsDeploymentStateChangeEvent")
+      val container = ecsDeploymentStateChangeEvent.detail.containers.find(_.exitCode.isDefined)
       val messageList = List(
-        s":warning: *ECS Deployment State Change Event*",
-        s"*Last status*: ${ecsDeploymentStateChangeEvent.detail.flatMap(_.lastStatus).getOrElse("")}",
-        s"*Exit code*: ${ecsDeploymentStateChangeEvent.detail.flatMap(_.containers.flatMap(_.head.exitCode)).getOrElse("")}",
+        s":red_circle: *ECS Deployment State Change Event*",
+        s"*Task*: ...${ecsDeploymentStateChangeEvent.detail.taskArn.split("task").last}",
+        s"*Container status*: ${container.getOrElse("")} ${ecsDeploymentStateChangeEvent.detail.lastStatus} with exit code ${container.flatMap(_.exitCode).get}",
+        s"*StoppedReason*: ${ecsDeploymentStateChangeEvent.detail.stoppedReason.getOrElse("")}",
       )
       SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))).some
     }
