@@ -131,7 +131,7 @@ class EcsDeploymentStateChangeIntegrationSpec extends LambdaIntegrationSpec {
                                     containerName: String,
                                     exitCode: Option[Int]
                                   ): String = {
-    val exitCodeText = exitCode.getOrElse("Unknown")
+    val exitCodeText = exitCode.map(_.toString).getOrElse("Unknown")
     val containerNameText = Option.when(exitCode.isDefined)(containerName).getOrElse("")
 
     s"""{
