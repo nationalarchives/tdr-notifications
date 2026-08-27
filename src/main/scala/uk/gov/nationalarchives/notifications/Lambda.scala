@@ -7,6 +7,7 @@ import io.circe.parser.decode
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.BackendCheckFailureDecoder.BackendCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
+import uk.gov.nationalarchives.notifications.decoders.EcsDeploymentStateChangeDecoder.EcsDeploymentStateChangeEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
@@ -48,6 +49,7 @@ class Lambda {
       case usersDisabledEvent: UsersDisabledEvent                        => sendMessages(usersDisabledEvent)
       case fileCheckFailureEvent: FileCheckFailureEvent                  => sendMessages(fileCheckFailureEvent)
       case backendCheckFailureEvent: BackendCheckFailureEvent            => sendMessages(backendCheckFailureEvent)
+      case ecsDeploymentStateChangeEvent: EcsDeploymentStateChangeEvent  => sendMessages(ecsDeploymentStateChangeEvent)
     }).flatten
       .unsafeRunSync()
   }
