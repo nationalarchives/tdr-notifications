@@ -16,9 +16,10 @@ import uk.gov.nationalarchives.common.messages.Producer.TDR
 import uk.gov.nationalarchives.common.messages.Properties
 import uk.gov.nationalarchives.da.messages.bag.available
 import uk.gov.nationalarchives.da.messages.bag.available.{BagAvailable, ConsignmentType}
-import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.BackendCheckFailureDecoder.BackendCheckFailureEvent
+import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
+import uk.gov.nationalarchives.notifications.decoders.EcsDeploymentStateChangeDecoder.{EcsDeploymentDetail, EcsDeploymentStateChangeEvent, EcsTaskContainer}
 import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder._
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
@@ -239,6 +240,28 @@ object EventMessages {
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", s":warning: Keycloak Event ${keycloakEvent.tdrEnv}: ${keycloakEvent.message}")))).some
       } else {
         None
+      }
+    }
+  }
+
+  implicit val ecsDeploymentStateChangeEventMessages: Messages[EcsDeploymentStateChangeEvent, Unit] = new Messages[EcsDeploymentStateChangeEvent, Unit] {
+    override def context(event: EcsDeploymentStateChangeEvent): IO[Unit] = IO.unit
+
+    override def slack(event: EcsDeploymentStateChangeEvent, context: Unit): Option[SlackMessage] = {
+      val messageList = (container: EcsTaskContainer, detail: EcsDeploymentDetail) => List(
+        s":red_circle: *ECS Deployment State Change Event*",
+        s"*Task*: ...${event.detail.taskArn.split("task").last}",
+        s"*Container status*: ${container.name} *${detail.lastStatus}* with exit code *${container.exitCode.getOrElse("Unknown")}*",
+        s"*Stopped reason*: ${detail.stoppedReason.getOrElse("")}",
+      )
+      val container = event.detail.containers.find(_.exitCode.isDefined)
+      container match {
+        case Some(c) if c.exitCode.contains(143) && event.detail.taskArn.contains("prod") =>
+          // Send a Slack message for prod only if the container has exited with 143 (graceful shutdown warning due to scaling activity)
+          SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList(c, event.detail).mkString("\n"))))).some
+        case Some(c) if !c.exitCode.contains(143) =>
+          SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList(c, event.detail).mkString("\n"))))).some
+        case _ => None
       }
     }
   }
@@ -586,7 +609,7 @@ object EventMessages {
       )
     }
   }
-  
+
   implicit val usersDisabledEventMessages: Messages[UsersDisabledEvent, Unit] = new Messages[UsersDisabledEvent, Unit] {
     override def context(event: UsersDisabledEvent): IO[Unit] = IO.unit
 
