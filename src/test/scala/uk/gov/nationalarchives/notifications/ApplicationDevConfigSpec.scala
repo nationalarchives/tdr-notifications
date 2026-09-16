@@ -4,6 +4,8 @@ import com.typesafe.config.{Config, ConfigException, ConfigFactory}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import scala.jdk.CollectionConverters._
+
 class ApplicationDevConfigSpec extends AnyFlatSpec with Matchers {
   private val devConfigValues = Map(
     "GOV_UK_NOTIFY_API_KEY" -> "dev-gov-uk-notify-api-key",
@@ -42,7 +44,7 @@ class ApplicationDevConfigSpec extends AnyFlatSpec with Matchers {
   }
 
   private def resolveDevConfig(values: Map[String, String] = Map.empty): Config = {
-    val providedValues = ConfigFactory.parseString(values.map { case (key, value) => s"""$key = "$value"""" }.mkString("\n"))
+    val providedValues = ConfigFactory.parseMap(values.asJava)
 
     providedValues
       .withFallback(ConfigFactory.parseResources("application.dev.conf"))
