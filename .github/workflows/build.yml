@@ -9,7 +9,7 @@ jobs:
     permissions:
       id-token: write
       contents: write
-    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_build.yml@f318ce8a5d99c08b1235663f97fdb1b35844674e # v.0.0.39
+    uses: nationalarchives/tdr-github-actions/.github/workflows/lambda_build.yml@f4d7086babd2c5156dd483d445e4500a603d8dc4 # v.0.0.42
     with:
       lambda-name: notifications
       repo-name: tdr-notifications
@@ -26,7 +26,7 @@ jobs:
       actions: write
       contents: read
     steps:
-      - uses: actions/checkout@9c091bb21b7c1c1d1991bb908d89e4e9dddfe3e0 # v7.0.0
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
       - run: gh workflow run deploy.yml -f environment=intg -f to-deploy=$NEXT_VERSION

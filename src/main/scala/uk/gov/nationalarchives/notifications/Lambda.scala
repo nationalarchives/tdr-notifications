@@ -7,11 +7,13 @@ import io.circe.parser.decode
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.BackendCheckFailureDecoder.BackendCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
+import uk.gov.nationalarchives.notifications.decoders.EcsDeploymentStateChangeDecoder.EcsDeploymentStateChangeEvent
 import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
 import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
 import uk.gov.nationalarchives.notifications.decoders.MalwareScanThreatFoundEventDecoder.MalwareScanThreatFoundEvent
+import uk.gov.nationalarchives.notifications.decoders.MetadataDownloadDecoder.MetadataDownloadEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewSubmittedDecoder.MetadataReviewSubmittedEvent
 import uk.gov.nationalarchives.notifications.decoders.ParameterStoreExpiryEventDecoder.ParameterStoreExpiryEvent
@@ -39,6 +41,7 @@ class Lambda {
       case malwareScanNotificationEvent: MalwareScanThreatFoundEvent     => sendMessages(malwareScanNotificationEvent)
       case stepFunctionError: StepFunctionError                          => sendMessages(stepFunctionError)
       case transferCompleteEvent: TransferCompleteEvent                  => sendMessages(transferCompleteEvent)
+      case metadataDownloadEvent: MetadataDownloadEvent                  => sendMessages(metadataDownloadEvent)
       case metadataReviewRequestEvent: MetadataReviewRequestEvent        => sendMessages(metadataReviewRequestEvent)
       case metadataReviewSubmittedEvent: MetadataReviewSubmittedEvent    => sendMessages(metadataReviewSubmittedEvent)
       case draftMetadataStepFunctionError:DraftMetadataStepFunctionError => sendMessages(draftMetadataStepFunctionError)
@@ -46,6 +49,7 @@ class Lambda {
       case usersDisabledEvent: UsersDisabledEvent                        => sendMessages(usersDisabledEvent)
       case fileCheckFailureEvent: FileCheckFailureEvent                  => sendMessages(fileCheckFailureEvent)
       case backendCheckFailureEvent: BackendCheckFailureEvent            => sendMessages(backendCheckFailureEvent)
+      case ecsDeploymentStateChangeEvent: EcsDeploymentStateChangeEvent  => sendMessages(ecsDeploymentStateChangeEvent)
     }).flatten
       .unsafeRunSync()
   }
