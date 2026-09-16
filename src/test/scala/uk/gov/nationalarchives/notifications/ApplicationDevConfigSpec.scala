@@ -42,8 +42,8 @@ class ApplicationDevConfigSpec extends AnyFlatSpec with Matchers {
   private def resolveDevConfig(values: Map[String, String] = Map.empty): Config = {
     val providedValues = ConfigFactory.parseString(values.map { case (key, value) => s"""$key = "$value"""" }.mkString("\n"))
 
-    ConfigFactory.parseResources("application.dev.conf")
-      .withFallback(providedValues)
+    providedValues
+      .withFallback(ConfigFactory.parseResources("application.dev.conf"))
       .withFallback(ConfigFactory.parseResources("application.conf"))
       .resolve()
   }
