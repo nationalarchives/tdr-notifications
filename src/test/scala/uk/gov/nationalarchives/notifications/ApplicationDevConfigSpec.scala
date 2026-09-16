@@ -17,12 +17,12 @@ class ApplicationDevConfigSpec extends AnyFlatSpec with Matchers {
     "FILE_CHECK_FAILURE_TEMPLATE_ID" -> "file-check-failure-template-id"
   )
 
-  "application.dev.conf" should "fail to resolve when the dev template ids are missing" in {
+  "application.dev.conf" should "require the file check failure template id" in {
     val exception = intercept[ConfigException.UnresolvedSubstitution] {
-      resolveDevConfig()
+      resolveDevConfig(devTemplateIds - "FILE_CHECK_FAILURE_TEMPLATE_ID")
     }
 
-    exception.getMessage should include("TEMPLATE_ID")
+    exception.getMessage should include("FILE_CHECK_FAILURE_TEMPLATE_ID")
   }
 
   it should "resolve when all dev template ids are provided" in {
