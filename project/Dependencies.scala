@@ -5,6 +5,22 @@ object Dependencies {
   private val sttpClient3Version = "3.11.0"
   private val awsUtilsVersion = "0.1.339"
   private val elasticMqVersion = "1.7.1"
+  private val nettyVersion = "4.1.137.Final"
+
+  lazy val nettyOverrides: Seq[ModuleID] = Seq(
+    "netty-buffer",
+    "netty-codec",
+    "netty-codec-http",
+    "netty-codec-http2",
+    "netty-codec-socks",
+    "netty-common",
+    "netty-handler",
+    "netty-handler-proxy",
+    "netty-resolver",
+    "netty-transport",
+    "netty-transport-classes-epoll",
+    "netty-transport-native-unix-common"
+  ).map("io.netty" % _ % nettyVersion)
   
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClient3Version
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpClient3Version
