@@ -39,6 +39,6 @@ object Dependencies {
   lazy val typesafeConfig = "com.typesafe" % "config" % "1.4.9"
   lazy val typeSafeLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6"
   lazy val elasticMq = "org.elasticmq" %% "elasticmq-server" % elasticMqVersion
-  lazy val transformSchemas = "uk.gov.nationalarchives" % "da-transform-schemas" % "2.14"
+  lazy val transformSchemas = "uk.gov.nationalarchives" % "da-transform-schemas" % "2.15"
   lazy val notifyJavaClient = "uk.gov.service.notify" % "notifications-java-client" % "6.2.0-RELEASE"
 }

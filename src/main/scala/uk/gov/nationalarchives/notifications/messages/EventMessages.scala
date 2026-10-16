@@ -14,14 +14,13 @@ import uk.gov.nationalarchives.aws.utils.ses.SESUtils
 import uk.gov.nationalarchives.aws.utils.ses.SESUtils.Email
 import uk.gov.nationalarchives.common.messages.Producer.TDR
 import uk.gov.nationalarchives.common.messages.Properties
-import uk.gov.nationalarchives.da.messages.bag.available
-import uk.gov.nationalarchives.da.messages.bag.available.{BagAvailable, ConsignmentType}
+import uk.gov.nationalarchives.da.messages.bag.available.{BagAvailable, ConsignmentType, Parameters}
 import uk.gov.nationalarchives.notifications.decoders.BackendCheckFailureDecoder.BackendCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.CloudwatchAlarmDecoder.CloudwatchAlarmEvent
 import uk.gov.nationalarchives.notifications.decoders.DraftMetadataStepFunctionErrorDecoder.DraftMetadataStepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.EcsDeploymentStateChangeDecoder.{EcsDeploymentDetail, EcsDeploymentStateChangeEvent, EcsTaskContainer}
 import uk.gov.nationalarchives.notifications.decoders.ExportNotificationDecoder._
-import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.ExportStatusEvent
+import uk.gov.nationalarchives.notifications.decoders.ExportStatusDecoder.{ExportStatusEvent, ExportSuccessDetails}
 import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
 import uk.gov.nationalarchives.notifications.decoders.GenericMessageDecoder.GenericMessagesEvent
 import uk.gov.nationalarchives.notifications.decoders.KeycloakEventDecoder.KeycloakEvent
@@ -220,7 +219,7 @@ object EventMessages {
 
         val consignmentType = exportMessage.consignmentType
         val producer = Producer(incomingEvent.environment, `type` = consignmentType)
-        Some(generateSnsExportMessageBody(bucketName, consignmentRef, producer))
+        Some(generateSnsExportMessageBody(bucketName, consignmentRef, producer, exportMessage))
       } else {
         None
       }
@@ -546,7 +545,7 @@ object EventMessages {
 
   private def generateSnsExportMessageBody(bucketName: String,
                                            consignmentRef: String,
-                                           producer: Producer): SnsMessageDetails = {
+                                           producer: Producer, exportMessage: ExportSuccessDetails): SnsMessageDetails = {
     val topicArn = eventConfig("sns.topic.da_event_bus_arn")
     val originator = "TDR"
     val function = "tdr-export-process"
@@ -557,7 +556,7 @@ object EventMessages {
     }
 
     val properties = Properties(classOf[BagAvailable].getCanonicalName, Timestamp.from(now).toString, function, TDR, UUID.randomUUID().toString, None)
-    val parameter = available.Parameters(consignmentRef, consignmentType, Some(originator), bucketName, s"$consignmentRef$tarExtension", s"$consignmentRef$sh256256Extension")
+    val parameter = Parameters(consignmentRef, consignmentType, Some(originator), exportMessage.seriesName.map(name => Seq(name)), Seq(exportMessage.transferringBodyName), bucketName, s"$consignmentRef$tarExtension", s"$consignmentRef$sh256256Extension")
 
     val messageBody = ExportEventNotification(properties, parameter).asJson.printWith(Printer.noSpaces)
 
