@@ -21,7 +21,14 @@ object Dependencies {
     "netty-transport-classes-epoll",
     "netty-transport-native-unix-common"
   ).map("io.netty" % _ % nettyVersion)
-  
+
+  // Transitive via sttp async-http-client-backend; override to fix GHSA-jmqq-x5g9-9p2w (fixed in 2.16.1)
+  private val asyncHttpClientVersion = "2.16.1"
+  lazy val asyncHttpClientOverrides: Seq[ModuleID] = Seq(
+    "async-http-client",
+    "async-http-client-netty-utils"
+  ).map("org.asynchttpclient" % _ % asyncHttpClientVersion)
+
   lazy val sttp = "com.softwaremill.sttp.client3" %% "async-http-client-backend-cats" % sttpClient3Version
   lazy val sttpCirce = "com.softwaremill.sttp.client3" %% "circe" % sttpClient3Version
   lazy val circeCore = "io.circe" %% "circe-core" % circeVersion
