@@ -1,9 +1,9 @@
-import sbt._
+import sbt.*
 
 object Dependencies {
-  private val circeVersion = "0.14.16"
+  private val circeVersion = "0.14.17"
   private val sttpClient3Version = "3.11.0"
-  private val awsUtilsVersion = "0.1.339"
+  private val awsUtilsVersion = "0.1.341"
   private val elasticMqVersion = "1.7.1"
   private val nettyVersion = "4.1.137.Final"
 
@@ -22,7 +22,6 @@ object Dependencies {
     "netty-transport-native-unix-common"
   ).map("io.netty" % _ % nettyVersion)
 
-  // Transitive via sttp async-http-client-backend; override to fix GHSA-jmqq-x5g9-9p2w (fixed in 2.16.1)
   private val asyncHttpClientVersion = "2.16.1"
   lazy val asyncHttpClientOverrides: Seq[ModuleID] = Seq(
     "async-http-client",
@@ -47,5 +46,5 @@ object Dependencies {
   lazy val typeSafeLogging = "com.typesafe.scala-logging" %% "scala-logging" % "3.9.6"
   lazy val elasticMq = "org.elasticmq" %% "elasticmq-server" % elasticMqVersion
   lazy val transformSchemas = "uk.gov.nationalarchives" % "da-transform-schemas" % "2.15"
-  lazy val notifyJavaClient = "uk.gov.service.notify" % "notifications-java-client" % "6.2.0-RELEASE"
+  lazy val notifyJavaClient = "uk.gov.service.notify" % "notifications-java-client" % "6.2.1-RELEASE"
 }
