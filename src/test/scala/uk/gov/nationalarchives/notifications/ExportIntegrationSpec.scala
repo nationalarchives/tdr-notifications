@@ -297,7 +297,7 @@ class ExportIntegrationSpec extends LambdaIntegrationSpec {
       val bucket: String = successDetails.exportBucket
       val environment: String = exportStatusEvent.environment
 
-      Some(SnsExpectedMessageDetails(consignmentRef, consignmentType, bucket, environment))
+      Some(SnsExpectedMessageDetails(consignmentRef, consignmentType, successDetails.seriesName, successDetails.transferringBodyName, bucket, environment))
 
     } else None
   }
