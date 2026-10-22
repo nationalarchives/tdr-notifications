@@ -5,7 +5,7 @@ object Dependencies {
   private val sttpClient3Version = "3.11.0"
   private val awsUtilsVersion = "0.1.341"
   private val elasticMqVersion = "1.7.1"
-  private val nettyVersion = "4.1.137.Final"
+  private val nettyVersion = "4.1.139.Final"
 
   lazy val nettyOverrides: Seq[ModuleID] = Seq(
     "netty-buffer",
@@ -22,7 +22,7 @@ object Dependencies {
     "netty-transport-native-unix-common"
   ).map("io.netty" % _ % nettyVersion)
 
-  private val asyncHttpClientVersion = "2.16.1"
+  private val asyncHttpClientVersion = "3.0.14"
   lazy val asyncHttpClientOverrides: Seq[ModuleID] = Seq(
     "async-http-client",
     "async-http-client-netty-utils"
