@@ -22,7 +22,7 @@ object Dependencies {
     "netty-transport-native-unix-common"
   ).map("io.netty" % _ % nettyVersion)
 
-  private val asyncHttpClientVersion = "2.16.1"
+  private val asyncHttpClientVersion = "3.0.14"
   lazy val asyncHttpClientOverrides: Seq[ModuleID] = Seq(
     "async-http-client",
     "async-http-client-netty-utils"
