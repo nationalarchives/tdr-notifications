@@ -633,6 +633,13 @@ object EventMessages {
 
     override def slack(incomingEvent: FileCheckFailureEvent, context: Unit): Option[SlackMessage] = {
       Option.when(!incomingEvent.isMockEvent) {
+        val hostname = incomingEvent.environment match {
+          case "prod" => "tdr.nationalarchives.gov.uk"
+          case "intg" => "tdr-integration.nationalarchives.gov.uk"
+          case "dev"  => "tdr-developemnt.nationalarchives.gov.uk"
+          case environment => s"tdr-$environment.nationalarchives.gov.uk"
+        }
+        val errorsDownload = s"https://$hostname/admin/file-checks-failures/${incomingEvent.consignmentId}/${incomingEvent.consignmentReference}"
         val messageList = List(
           ":warning: *A user has experienced a File Check Failure*",
           s"*Environment*: ${incomingEvent.environment}",
@@ -641,7 +648,8 @@ object EventMessages {
           s"*Consignment ID*: ${incomingEvent.consignmentId}",
           s"*Transferring Body*: ${incomingEvent.transferringBodyName}",
           s"*UserID*: ${incomingEvent.userId}",
-          s"*Resolution Path*: ${incomingEvent.resolutionPath}"
+          s"*Resolution Path*: ${incomingEvent.resolutionPath}",
+          s"<$errorsDownload|View error report>"
         )
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
       }

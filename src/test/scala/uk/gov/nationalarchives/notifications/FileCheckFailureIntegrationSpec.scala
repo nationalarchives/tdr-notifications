@@ -1,6 +1,10 @@
 package uk.gov.nationalarchives.notifications
 
+import uk.gov.nationalarchives.notifications.decoders.FileCheckFailureDecoder.FileCheckFailureEvent
+import uk.gov.nationalarchives.notifications.messages.EventMessages.fileCheckFailureEventMessages
 import uk.gov.nationalarchives.notifications.messages.EventMessages.GovUKEmailDetails
+
+import java.util.UUID
 
 class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
 
@@ -24,7 +28,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("standard", "TDR-2025-ABC", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath),
+            body = slackMessage("standard", "TDR-2025-ABC", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath, "tdr.nationalarchives.gov.uk"),
             webhookUrl = "/webhook-transfers"
           )
         ),
@@ -61,7 +65,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("judgment", "TDR-2025-JDG", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath),
+            body = slackMessage("judgment", "TDR-2025-JDG", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath, "tdr.nationalarchives.gov.uk"),
             webhookUrl = "/webhook-transfers"
           )
         ),
@@ -98,7 +102,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("standard", "TDR-2025-DEF", consignmentId, "SomeTransferringBody", userId, "intg", resolutionPath),
+            body = slackMessage("standard", "TDR-2025-DEF", consignmentId, "SomeTransferringBody", userId, "intg", resolutionPath, "tdr-integration.nationalarchives.gov.uk"),
             webhookUrl = "/webhook-releases"
           )
         ),
@@ -150,7 +154,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("judgment", "TDR-2025-JKL", consignmentId, "SomeTransferringBody", userId, "intg", resolutionPath),
+            body = slackMessage("judgment", "TDR-2025-JKL", consignmentId, "SomeTransferringBody", userId, "intg", resolutionPath, "tdr-integration.nationalarchives.gov.uk"),
             webhookUrl = "/webhook-releases"
           )
         ),
@@ -189,13 +193,36 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
     )
   )
 
-  private def slackMessage(consignmentType: String, consignmentReference: String, consignmentId: String, transferringBodyName: String, userId: String, environment: String, resolutionPath: String): String = {
+  Seq(
+    "integration" -> "tdr-integration.nationalarchives.gov.uk",
+    "staging" -> "tdr-staging.nationalarchives.gov.uk"
+  ).foreach { case (environment, hostname) =>
+    "the file check failure slack message" should s"include the errors download link for $environment" in {
+      val event = FileCheckFailureEvent(
+        consignmentType = "standard",
+        consignmentReference = "TDR-2025-ABC",
+        consignmentId = UUID.fromString(consignmentId),
+        transferringBodyName = "SomeTransferringBody",
+        userId = UUID.fromString(userId),
+        environment = environment,
+        resolutionPath = resolutionPath
+      )
+
+      val message = fileCheckFailureEventMessages.slack(event, ())
+
+      message.map(_.blocks.head.text.text) shouldBe Some(
+        s":warning: *A user has experienced a File Check Failure*\n*Environment*: $environment\n*Consignment Type*: standard\n*Consignment Reference*: TDR-2025-ABC\n*Consignment ID*: $consignmentId\n*Transferring Body*: SomeTransferringBody\n*UserID*: $userId\n*Resolution Path*: $resolutionPath\n<https://$hostname/admin/file-checks-failures/$consignmentId/TDR-2025-ABC|View error report>"
+      )
+    }
+  }
+
+  private def slackMessage(consignmentType: String, consignmentReference: String, consignmentId: String, transferringBodyName: String, userId: String, environment: String, resolutionPath: String, hostname: String): String = {
     s"""{
        |  "blocks" : [ {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : ":warning: *A user has experienced a File Check Failure*\\n*Environment*: $environment\\n*Consignment Type*: $consignmentType\\n*Consignment Reference*: $consignmentReference\\n*Consignment ID*: $consignmentId\\n*Transferring Body*: $transferringBodyName\\n*UserID*: $userId\\n*Resolution Path*: $resolutionPath"
+       |      "text" : ":warning: *A user has experienced a File Check Failure*\\n*Environment*: $environment\\n*Consignment Type*: $consignmentType\\n*Consignment Reference*: $consignmentReference\\n*Consignment ID*: $consignmentId\\n*Transferring Body*: $transferringBodyName\\n*UserID*: $userId\\n*Resolution Path*: $resolutionPath\\n<https://$hostname/admin/file-checks-failures/$consignmentId/$consignmentReference|View error report>"
        |    }
        |  } ]
        |}

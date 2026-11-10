@@ -15,4 +15,3 @@ object FileCheckFailureDecoder {
     val isMockEvent: Boolean = transferringBodyName.toUpperCase.contains("MOCK")
   }
 }
-
