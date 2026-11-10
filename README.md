@@ -14,6 +14,9 @@ This project is for sending slack/email/SQS messages in response to events. It s
 
 ## Run locally
 
+When the Lambda runs with `ENVIRONMENT=dev`, both SES and GOV.UK Notify emails are
+disabled, including internal emails. Slack notifications and SNS messages remain enabled.
+
 Set these environment variables, either on the command line or in IntelliJ depending on how you want to run the app:
 
 * `SLACK_WEBHOOK`: the webhook URL of a Slack app. You can [create a new app][Slack-app] (steps 1-3) in Slack for testing purposes.

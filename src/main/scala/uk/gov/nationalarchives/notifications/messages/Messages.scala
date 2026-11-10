@@ -81,11 +81,13 @@ object Messages {
       .map(configValue => configName -> kmsUtils.decryptValue(configValue))
   }.toMap ++ slackWebhooks.map(configName => configName -> ssmUtils.getParameterValue(config.getString(configName))).toMap
 
-  def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T)(implicit messages: Messages[T, TContext]): IO[String] = {
+  def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T, environment: String = env)(implicit messages: Messages[T, TContext]): IO[String] = {
     for {
       context <- messages.context(incomingEvent)
-      result <- (sendEmailMessage(incomingEvent, context) |+| sendSlackMessage(incomingEvent, context)
-        |+| sendSNSMessage(incomingEvent, context) |+| sendGovUkNotifyEmailMessage(incomingEvent, context))
+      result <- (Option.when(environment != "dev")(sendEmailMessage(incomingEvent, context)).flatten
+        |+| sendSlackMessage(incomingEvent, context)
+        |+| sendSNSMessage(incomingEvent, context)
+        |+| Option.when(environment != "dev")(sendGovUkNotifyEmailMessage(incomingEvent, context)).flatten)
         .getOrElse(IO.pure("No messages have been sent"))
     } yield result
   }
