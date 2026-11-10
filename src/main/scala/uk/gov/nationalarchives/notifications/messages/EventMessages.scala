@@ -636,7 +636,7 @@ object EventMessages {
         val hostname = incomingEvent.environment match {
           case "prod" => "tdr.nationalarchives.gov.uk"
           case "intg" => "tdr-integration.nationalarchives.gov.uk"
-          case "dev"  => "tdr-developemnt.nationalarchives.gov.uk"
+          case "dev"  => "tdr-development.nationalarchives.gov.uk"
           case environment => s"tdr-$environment.nationalarchives.gov.uk"
         }
         val errorsDownload = s"https://$hostname/admin/file-checks-failures/${incomingEvent.consignmentId}/${incomingEvent.consignmentReference}"
