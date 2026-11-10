@@ -639,7 +639,7 @@ object EventMessages {
           case "dev"  => "tdr-development.nationalarchives.gov.uk"
           case environment => s"tdr-$environment.nationalarchives.gov.uk"
         }
-        val errorsDownload = s"https://$hostname/admin/file-checks-failures/${incomingEvent.consignmentId}/${incomingEvent.consignmentReference}"
+        val errorsDownload = s"https://$hostname/admin/file-checks-failures/${incomingEvent.consignmentId}"
         val messageList = List(
           ":warning: *A user has experienced a File Check Failure*",
           s"*Environment*: ${incomingEvent.environment}",

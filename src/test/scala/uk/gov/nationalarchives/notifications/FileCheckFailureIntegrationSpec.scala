@@ -194,6 +194,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
   )
 
   Seq(
+    "dev" -> "tdr-development.nationalarchives.gov.uk",
     "integration" -> "tdr-integration.nationalarchives.gov.uk",
     "staging" -> "tdr-staging.nationalarchives.gov.uk"
   ).foreach { case (environment, hostname) =>
@@ -211,7 +212,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       val message = fileCheckFailureEventMessages.slack(event, ())
 
       message.map(_.blocks.head.text.text) shouldBe Some(
-        s":warning: *A user has experienced a File Check Failure*\n*Environment*: $environment\n*Consignment Type*: standard\n*Consignment Reference*: TDR-2025-ABC\n*Consignment ID*: $consignmentId\n*Transferring Body*: SomeTransferringBody\n*UserID*: $userId\n*Resolution Path*: $resolutionPath\n<https://$hostname/admin/file-checks-failures/$consignmentId/TDR-2025-ABC|View error report>"
+        s":warning: *A user has experienced a File Check Failure*\n*Environment*: $environment\n*Consignment Type*: standard\n*Consignment Reference*: TDR-2025-ABC\n*Consignment ID*: $consignmentId\n*Transferring Body*: SomeTransferringBody\n*UserID*: $userId\n*Resolution Path*: $resolutionPath\n<https://$hostname/admin/file-checks-failures/$consignmentId|View error report>"
       )
     }
   }
@@ -222,7 +223,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : ":warning: *A user has experienced a File Check Failure*\\n*Environment*: $environment\\n*Consignment Type*: $consignmentType\\n*Consignment Reference*: $consignmentReference\\n*Consignment ID*: $consignmentId\\n*Transferring Body*: $transferringBodyName\\n*UserID*: $userId\\n*Resolution Path*: $resolutionPath\\n<https://$hostname/admin/file-checks-failures/$consignmentId/$consignmentReference|View error report>"
+       |      "text" : ":warning: *A user has experienced a File Check Failure*\\n*Environment*: $environment\\n*Consignment Type*: $consignmentType\\n*Consignment Reference*: $consignmentReference\\n*Consignment ID*: $consignmentId\\n*Transferring Body*: $transferringBodyName\\n*UserID*: $userId\\n*Resolution Path*: $resolutionPath\\n<https://$hostname/admin/file-checks-failures/$consignmentId|View error report>"
        |    }
        |  } ]
        |}
