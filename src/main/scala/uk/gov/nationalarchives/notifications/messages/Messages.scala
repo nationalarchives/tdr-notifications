@@ -82,12 +82,14 @@ object Messages {
   }.toMap ++ slackWebhooks.map(configName => configName -> ssmUtils.getParameterValue(config.getString(configName))).toMap
 
   def sendMessages[T <: IncomingEvent, TContext](incomingEvent: T, environment: String = env)(implicit messages: Messages[T, TContext]): IO[String] = {
+    val sendEmails = environment != "dev"
     for {
       context <- messages.context(incomingEvent)
-      result <- (Option.when(environment != "dev")(sendEmailMessage(incomingEvent, context)).flatten
+      result <- (Option.when(sendEmails)(
+        sendEmailMessage(incomingEvent, context) |+| sendGovUkNotifyEmailMessage(incomingEvent, context)
+      ).flatten
         |+| sendSlackMessage(incomingEvent, context)
-        |+| sendSNSMessage(incomingEvent, context)
-        |+| Option.when(environment != "dev")(sendGovUkNotifyEmailMessage(incomingEvent, context)).flatten)
+        |+| sendSNSMessage(incomingEvent, context))
         .getOrElse(IO.pure("No messages have been sent"))
     } yield result
   }

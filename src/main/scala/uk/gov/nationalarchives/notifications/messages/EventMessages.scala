@@ -103,9 +103,6 @@ object EventMessages {
     private def shouldSendSlackNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
       includesReleaseTags(detail.tags) && includesRelevantFindings(findings, allFindingLevels)
 
-    private def shouldSendEmailNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
-      includesReleaseTags(detail.tags) && includesRelevantFindings(findings, highAndCriticalFindingLevels)
-
     private def filterReport(report: ImageScanReport): ImageScanReport = {
       val filteredFindings = report.findings.filterNot(finding => mutedVulnerabilities.contains(finding.name))
       report.copy(findings = filteredFindings)
@@ -637,6 +634,7 @@ object EventMessages {
           case "prod" => "tdr.nationalarchives.gov.uk"
           case "intg" => "tdr-integration.nationalarchives.gov.uk"
           case "dev"  => "tdr-development.nationalarchives.gov.uk"
+          case "staging" => "tdr-staging.nationalarchives.gov.uk"
           case environment => s"tdr-$environment.nationalarchives.gov.uk"
         }
         val errorsDownload = s"https://$hostname/admin/file-checks-failures/${incomingEvent.consignmentId}"
