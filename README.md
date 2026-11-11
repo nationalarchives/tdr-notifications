@@ -7,9 +7,9 @@ This project is for sending slack/email/SQS messages in response to events. It s
 * Consignment export results. When the consignment export task finishes, a Slack message is sent with details of whether
   the export succeeded or failed. A message is also sent, to a Digital Archiving SNS topic for other Digital Archiving services to pick up and act upon.
 * Generic message event. This allows a service to send message text which is sent directly to Slack with no other processing.
-* File check failure events. Slack notifications include a "View error report" link built from the event's `environment`
-  and `consignmentId`; The link uses `https://tdr-{environment}.nationalarchives.gov.uk/admin/file-checks-failures/{consignmentId}`,
-  mapping `intg` to `integration`, `dev` to `development`, `staging` to `staging` and using `https://tdr.nationalarchives.gov.uk` for `prod`.
+* File check failure events. Slack notifications include a "View error report" link built from the active environment's
+  `baseUrl` configuration and the event's `consignmentId`. The `baseUrl` is set in each environment-specific config
+  (`application.dev.conf`, `application.intg.conf`, `application.staging.conf` and `application.prod.conf`).
 
 ## Run locally
 

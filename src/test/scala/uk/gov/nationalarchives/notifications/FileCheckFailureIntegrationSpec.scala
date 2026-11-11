@@ -28,7 +28,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("standard", "TDR-2025-ABC", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath, "tdr.nationalarchives.gov.uk"),
+            body = slackMessage("standard", "TDR-2025-ABC", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath, "tdr-integration.nationalarchives.gov.uk"),
             webhookUrl = "/webhook-transfers"
           )
         ),
@@ -65,7 +65,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("judgment", "TDR-2025-JDG", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath, "tdr.nationalarchives.gov.uk"),
+            body = slackMessage("judgment", "TDR-2025-JDG", consignmentId, "SomeTransferringBody", userId, "prod", resolutionPath, "tdr-integration.nationalarchives.gov.uk"),
             webhookUrl = "/webhook-transfers"
           )
         ),
@@ -193,11 +193,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
     )
   )
 
-  Seq(
-    "dev" -> "tdr-development.nationalarchives.gov.uk",
-    "integration" -> "tdr-integration.nationalarchives.gov.uk",
-    "staging" -> "tdr-staging.nationalarchives.gov.uk"
-  ).foreach { case (environment, hostname) =>
+  Seq("dev", "integration", "staging").foreach { environment =>
     "the file check failure slack message" should s"include the errors download link for $environment" in {
       val event = FileCheckFailureEvent(
         consignmentType = "standard",
@@ -212,7 +208,7 @@ class FileCheckFailureIntegrationSpec extends LambdaIntegrationSpec {
       val message = fileCheckFailureEventMessages.slack(event, ())
 
       message.map(_.blocks.head.text.text) shouldBe Some(
-        s":warning: *A user has experienced a File Check Failure*\n*Environment*: $environment\n*Consignment Type*: standard\n*Consignment Reference*: TDR-2025-ABC\n*Consignment ID*: $consignmentId\n*Transferring Body*: SomeTransferringBody\n*UserID*: $userId\n*Resolution Path*: $resolutionPath\n<https://$hostname/admin/file-checks-failures/$consignmentId|View error report>"
+        s":warning: *A user has experienced a File Check Failure*\n*Environment*: $environment\n*Consignment Type*: standard\n*Consignment Reference*: TDR-2025-ABC\n*Consignment ID*: $consignmentId\n*Transferring Body*: SomeTransferringBody\n*UserID*: $userId\n*Resolution Path*: $resolutionPath\n<https://tdr-integration.nationalarchives.gov.uk/admin/file-checks-failures/$consignmentId|View error report>"
       )
     }
   }
