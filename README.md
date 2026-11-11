@@ -7,8 +7,14 @@ This project is for sending slack/email/SQS messages in response to events. It s
 * Consignment export results. When the consignment export task finishes, a Slack message is sent with details of whether
   the export succeeded or failed. A message is also sent, to a Digital Archiving SNS topic for other Digital Archiving services to pick up and act upon.
 * Generic message event. This allows a service to send message text which is sent directly to Slack with no other processing.
+* File check failure events. Slack notifications include a "View error report" link built from the active environment's
+  `baseUrl` configuration and the event's `consignmentId`. The `baseUrl` is set in each environment-specific config
+  (`application.dev.conf`, `application.intg.conf`, `application.staging.conf` and `application.prod.conf`).
 
 ## Run locally
+
+When the Lambda runs with `ENVIRONMENT=dev`, both SES and GOV.UK Notify emails are
+disabled, including internal emails. Slack notifications and SNS messages remain enabled.
 
 Set these environment variables, either on the command line or in IntelliJ depending on how you want to run the app:
 

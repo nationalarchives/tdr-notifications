@@ -103,9 +103,6 @@ object EventMessages {
     private def shouldSendSlackNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
       includesReleaseTags(detail.tags) && includesRelevantFindings(findings, allFindingLevels)
 
-    private def shouldSendEmailNotification(detail: ScanDetail, findings: Seq[Finding]): Boolean =
-      includesReleaseTags(detail.tags) && includesRelevantFindings(findings, highAndCriticalFindingLevels)
-
     private def filterReport(report: ImageScanReport): ImageScanReport = {
       val filteredFindings = report.findings.filterNot(finding => mutedVulnerabilities.contains(finding.name))
       report.copy(findings = filteredFindings)
@@ -633,6 +630,7 @@ object EventMessages {
 
     override def slack(incomingEvent: FileCheckFailureEvent, context: Unit): Option[SlackMessage] = {
       Option.when(!incomingEvent.isMockEvent) {
+        val errorsDownload = s"${Messages.config.getString("baseUrl")}/admin/file-checks-failures/${incomingEvent.consignmentId}"
         val messageList = List(
           ":warning: *A user has experienced a File Check Failure*",
           s"*Environment*: ${incomingEvent.environment}",
@@ -641,7 +639,8 @@ object EventMessages {
           s"*Consignment ID*: ${incomingEvent.consignmentId}",
           s"*Transferring Body*: ${incomingEvent.transferringBodyName}",
           s"*UserID*: ${incomingEvent.userId}",
-          s"*Resolution Path*: ${incomingEvent.resolutionPath}"
+          s"*Resolution Path*: ${incomingEvent.resolutionPath}",
+          s"<$errorsDownload|View error report>"
         )
         SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
       }
