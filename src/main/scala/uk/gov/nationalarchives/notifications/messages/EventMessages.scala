@@ -33,6 +33,7 @@ import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.{ScanDetail, S
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransferCompleteEventDecoder.TransferCompleteEvent
 import uk.gov.nationalarchives.notifications.decoders.UploadEventDecoder.UploadEvent
+import uk.gov.nationalarchives.notifications.decoders.UploadFailedDecoder.UploadFailedEvent
 import uk.gov.nationalarchives.notifications.decoders.UsersDisabledEventDecoder.UsersDisabledEvent
 import uk.gov.nationalarchives.notifications.messages.Messages.eventConfig
 
@@ -622,6 +623,24 @@ object EventMessages {
                |:memo: <https://$region.console.aws.amazon.com/cloudwatch/home?region=$region#logsV2:log-groups/log-group/$encodedLogGroup/log-events/$encodedLogStream|View the logs on Cloudwatch>""".stripMargin
         )))
       ).some
+    }
+  }
+
+  implicit val uploadFailedEventMessages: Messages[UploadFailedEvent, Unit] = new Messages[UploadFailedEvent, Unit] {
+    override def context(event: UploadFailedEvent): IO[Unit] = IO.unit
+
+    override def slack(incomingEvent: UploadFailedEvent, context: Unit): Option[SlackMessage] = {
+      val messageList = List(
+        ":warning: *A user has experienced an Upload Failure*",
+        s"*Environment*: ${incomingEvent.environment}",
+        s"*Consignment Reference*: ${incomingEvent.consignmentReference}",
+        s"*Consignment ID*: ${incomingEvent.consignmentId}",
+        s"*Transferring Body*: ${incomingEvent.transferringBodyName.getOrElse("N/A")}",
+        s"*Series*: ${incomingEvent.seriesName.getOrElse("N/A")}",
+        s"*UserID*: ${incomingEvent.userId}",
+        s"*Error Message*: ${incomingEvent.errorMessage.getOrElse("Not provided")}"
+      )
+      Some(SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))))
     }
   }
 
