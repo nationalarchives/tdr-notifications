@@ -632,6 +632,7 @@ object EventMessages {
     override def slack(incomingEvent: UploadFailedEvent, context: Unit): Option[SlackMessage] = {
       val messageList = List(
         ":warning: *A user has experienced an Upload Failure*",
+        s"*Environment*: ${incomingEvent.environment}",
         s"*Consignment Reference*: ${incomingEvent.consignmentReference}",
         s"*Consignment ID*: ${incomingEvent.consignmentId}",
         s"*Transferring Body*: ${incomingEvent.transferringBodyName.getOrElse("N/A")}",

@@ -12,7 +12,7 @@ class UploadFailedIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("Mock Body", "MOCK1", "TimeoutError: Request timed out"),
+            body = slackMessage("prod", "Mock Body", "MOCK1", "TimeoutError: Request timed out"),
             webhookUrl = "/webhook-transfers"
           )
         )
@@ -24,7 +24,7 @@ class UploadFailedIntegrationSpec extends LambdaIntegrationSpec {
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("N/A", "N/A", "Not provided"),
+            body = slackMessage("intg", "N/A", "N/A", "Not provided"),
             webhookUrl = "/webhook-releases"
           )
         )
@@ -32,13 +32,13 @@ class UploadFailedIntegrationSpec extends LambdaIntegrationSpec {
     )
   )
 
-  private def slackMessage(transferringBody: String, series: String, error: String): String = {
+  private def slackMessage(environment: String, transferringBody: String, series: String, error: String): String = {
     s"""{
        |  "blocks" : [ {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : ":warning: *A user has experienced an Upload Failure*\\n*Consignment Reference*: TDR-2024\\n*Consignment ID*: $consignmentId\\n*Transferring Body*: $transferringBody\\n*Series*: $series\\n*UserID*: $userId\\n*Error Message*: $error"
+       |      "text" : ":warning: *A user has experienced an Upload Failure*\\n*Environment*: $environment\\n*Consignment Reference*: TDR-2024\\n*Consignment ID*: $consignmentId\\n*Transferring Body*: $transferringBody\\n*Series*: $series\\n*UserID*: $userId\\n*Error Message*: $error"
        |    }
        |  } ]
        |}
