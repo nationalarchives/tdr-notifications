@@ -630,13 +630,12 @@ object EventMessages {
     override def context(event: UploadFailedEvent): IO[Unit] = IO.unit
 
     override def slack(incomingEvent: UploadFailedEvent, context: Unit): Option[SlackMessage] = {
-      val consignmentType = if (incomingEvent.isJudgmentUser) "judgment" else "standard"
       val messageList = List(
         ":warning: *A user has experienced an Upload Failure*",
         s"*Environment*: ${incomingEvent.environment}",
-        s"*Consignment Type*: $consignmentType",
         s"*Consignment Reference*: ${incomingEvent.consignmentReference}",
         s"*Consignment ID*: ${incomingEvent.consignmentId}",
+        s"*Series*: ${incomingEvent.seriesName.getOrElse("N/A")}",
         s"*UserID*: ${incomingEvent.userId}",
         s"*Error*: ${incomingEvent.errorMessage.getOrElse("Not provided")}"
       )
