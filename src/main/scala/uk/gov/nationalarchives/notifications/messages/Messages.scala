@@ -24,6 +24,7 @@ import uk.gov.nationalarchives.notifications.decoders.MetadataDownloadDecoder.Me
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewRequestDecoder.MetadataReviewRequestEvent
 import uk.gov.nationalarchives.notifications.decoders.MetadataReviewSubmittedDecoder.MetadataReviewSubmittedEvent
 import uk.gov.nationalarchives.notifications.decoders.UploadEventDecoder.UploadEvent
+import uk.gov.nationalarchives.notifications.decoders.UploadFailedDecoder.UploadFailedEvent
 import uk.gov.nationalarchives.notifications.decoders.UsersDisabledEventDecoder.UsersDisabledEvent
 import uk.gov.nationalarchives.notifications.messages.EventMessages.{GovUKEmailDetails, SlackMessage, SnsMessageDetails}
 import uk.gov.service.notify.NotificationClient
@@ -178,6 +179,7 @@ object Messages {
       case ev: UploadEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_url")) else Seq(eventConfig("slack.webhook.tdr_dev_notifications_url"))
       case ev: FileCheckFailureEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_transfers_url")) else Seq(eventConfig("slack.webhook.tdr_releases_url"))
       case ev: BackendCheckFailureEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_transfers_url")) else Seq(eventConfig("slack.webhook.tdr_releases_url"))
+      case ev: UploadFailedEvent => if (ev.environment == "prod") Seq(eventConfig("slack.webhook.tdr_transfers_url")) else Seq(eventConfig("slack.webhook.tdr_releases_url"))
       case _ => Seq(eventConfig("slack.webhook.url"))
     }
   }
