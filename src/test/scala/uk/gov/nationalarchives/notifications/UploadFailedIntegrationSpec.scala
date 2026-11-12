@@ -8,11 +8,11 @@ class UploadFailedIntegrationSpec extends LambdaIntegrationSpec {
   override lazy val events: Seq[Event] = Seq(
     Event(
       description = "An upload failed event on prod",
-      input = uploadFailedInputString("prod", Some("MOCK1"), Some("TimeoutError: Request timed out")),
+      input = uploadFailedInputString("prod", Some("Mock Body"), Some("MOCK1"), Some("TimeoutError: Request timed out")),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("prod", "MOCK1", "TimeoutError: Request timed out"),
+            body = slackMessage("Mock Body", "MOCK1", "TimeoutError: Request timed out"),
             webhookUrl = "/webhook-transfers"
           )
         )
@@ -20,11 +20,11 @@ class UploadFailedIntegrationSpec extends LambdaIntegrationSpec {
     ),
     Event(
       description = "An upload failed event on non-prod without an error message",
-      input = uploadFailedInputString("intg", None, None),
+      input = uploadFailedInputString("intg", None, None, None),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("intg", "N/A", "Not provided"),
+            body = slackMessage("N/A", "N/A", "Not provided"),
             webhookUrl = "/webhook-releases"
           )
         )
@@ -32,27 +32,28 @@ class UploadFailedIntegrationSpec extends LambdaIntegrationSpec {
     )
   )
 
-  private def slackMessage(environment: String, series: String, error: String): String = {
+  private def slackMessage(transferringBody: String, series: String, error: String): String = {
     s"""{
        |  "blocks" : [ {
        |    "type" : "section",
        |    "text" : {
        |      "type" : "mrkdwn",
-       |      "text" : ":warning: *A user has experienced an Upload Failure*\\n*Environment*: $environment\\n*Consignment Reference*: TDR-2024\\n*Consignment ID*: $consignmentId\\n*Series*: $series\\n*UserID*: $userId\\n*Error*: $error"
+       |      "text" : ":warning: *A user has experienced an Upload Failure*\\n*Consignment Reference*: TDR-2024\\n*Consignment ID*: $consignmentId\\n*Transferring Body*: $transferringBody\\n*Series*: $series\\n*UserID*: $userId\\n*Error Message*: $error"
        |    }
        |  } ]
        |}
        |""".stripMargin
   }
 
-  private def uploadFailedInputString(environment: String, seriesName: Option[String], errorMessage: Option[String]): String = {
+  private def uploadFailedInputString(environment: String, transferringBodyName: Option[String], seriesName: Option[String], errorMessage: Option[String]): String = {
+    val transferringBody = transferringBodyName.map(t => s"""\\"$t\\"""").getOrElse("null")
     val series = seriesName.map(s => s"""\\"$s\\"""").getOrElse("null")
     val error = errorMessage.map(e => s"""\\"$e\\"""").getOrElse("null")
     s"""{
        | "Records": [
        |   {
        |     "Sns": {
-       |       "Message": "{\\"environment\\":\\"$environment\\",\\"consignmentReference\\":\\"TDR-2024\\",\\"consignmentId\\":\\"$consignmentId\\",\\"seriesName\\":$series,\\"userId\\":\\"$userId\\",\\"errorMessage\\":$error}"
+       |       "Message": "{\\"environment\\":\\"$environment\\",\\"consignmentReference\\":\\"TDR-2024\\",\\"consignmentId\\":\\"$consignmentId\\",\\"transferringBodyName\\":$transferringBody,\\"seriesName\\":$series,\\"userId\\":\\"$userId\\",\\"errorMessage\\":$error}"
        |      }
        |    }
        |  ]}""".stripMargin
