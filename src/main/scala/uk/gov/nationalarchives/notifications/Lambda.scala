@@ -21,6 +21,7 @@ import uk.gov.nationalarchives.notifications.decoders.ScanDecoder.ScanEvent
 import uk.gov.nationalarchives.notifications.decoders.StepFunctionErrorDecoder.StepFunctionError
 import uk.gov.nationalarchives.notifications.decoders.TransferCompleteEventDecoder.TransferCompleteEvent
 import uk.gov.nationalarchives.notifications.decoders.UploadEventDecoder.UploadEvent
+import uk.gov.nationalarchives.notifications.decoders.UploadFailedDecoder.UploadFailedEvent
 import uk.gov.nationalarchives.notifications.decoders.UsersDisabledEventDecoder.UsersDisabledEvent
 import uk.gov.nationalarchives.notifications.decoders._
 import uk.gov.nationalarchives.notifications.messages.EventMessages._
@@ -50,6 +51,7 @@ class Lambda {
       case fileCheckFailureEvent: FileCheckFailureEvent                  => sendMessages(fileCheckFailureEvent)
       case backendCheckFailureEvent: BackendCheckFailureEvent            => sendMessages(backendCheckFailureEvent)
       case ecsDeploymentStateChangeEvent: EcsDeploymentStateChangeEvent  => sendMessages(ecsDeploymentStateChangeEvent)
+      case uploadFailedEvent: UploadFailedEvent                          => sendMessages(uploadFailedEvent)
     }).flatten
       .unsafeRunSync()
   }
