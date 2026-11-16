@@ -8,11 +8,11 @@ class UploadFailedIntegrationSpec extends LambdaIntegrationSpec {
   override lazy val events: Seq[Event] = Seq(
     Event(
       description = "An upload failed event on prod",
-      input = uploadFailedInputString("prod", Some("Mock Body"), Some("MOCK1"), Some("TimeoutError: Request timed out")),
+      input = uploadFailedInputString("prod", Some("Real Body"), Some("MOCK1"), Some("TimeoutError: Request timed out")),
       expectedOutput = ExpectedOutput(
         slackMessage = Some(
           SlackMessage(
-            body = slackMessage("prod", "Mock Body", "MOCK1", "TimeoutError: Request timed out"),
+            body = slackMessage("prod", "Real Body", "MOCK1", "TimeoutError: Request timed out"),
             webhookUrl = "/webhook-transfers"
           )
         )
@@ -29,6 +29,16 @@ class UploadFailedIntegrationSpec extends LambdaIntegrationSpec {
           )
         )
       )
+    ),
+    Event(
+      description = "An upload failed event for a mock transferring body on prod",
+      input = uploadFailedInputString("prod", Some("Mock 1 Department"), Some("Series"), Some("Timeout")),
+      expectedOutput = ExpectedOutput()
+    ),
+    Event(
+      description = "An upload failed event for a mixed-case mock transferring body on non-prod",
+      input = uploadFailedInputString("intg", Some("Department mOcK"), None, None),
+      expectedOutput = ExpectedOutput()
     )
   )
 

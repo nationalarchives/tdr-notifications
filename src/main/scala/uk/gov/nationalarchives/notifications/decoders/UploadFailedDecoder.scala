@@ -9,5 +9,7 @@ object UploadFailedDecoder {
       seriesName: Option[String],
       userId: String,
       errorMessage: Option[String]
-  ) extends IncomingEvent
+  ) extends IncomingEvent {
+    val isMockEvent: Boolean = transferringBodyName.exists(_.toUpperCase.contains("MOCK"))
+  }
 }

@@ -630,17 +630,19 @@ object EventMessages {
     override def context(event: UploadFailedEvent): IO[Unit] = IO.unit
 
     override def slack(incomingEvent: UploadFailedEvent, context: Unit): Option[SlackMessage] = {
-      val messageList = List(
-        ":warning: *A user has experienced an Upload Failure*",
-        s"*Environment*: ${incomingEvent.environment}",
-        s"*Consignment Reference*: ${incomingEvent.consignmentReference}",
-        s"*Consignment ID*: ${incomingEvent.consignmentId}",
-        s"*Transferring Body*: ${incomingEvent.transferringBodyName.getOrElse("N/A")}",
-        s"*Series*: ${incomingEvent.seriesName.getOrElse("N/A")}",
-        s"*UserID*: ${incomingEvent.userId}",
-        s"*Error Message*: ${incomingEvent.errorMessage.getOrElse("Not provided")}"
-      )
-      Some(SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n"))))))
+      Option.when(!incomingEvent.isMockEvent) {
+        val messageList = List(
+          ":warning: *A user has experienced an Upload Failure*",
+          s"*Environment*: ${incomingEvent.environment}",
+          s"*Consignment Reference*: ${incomingEvent.consignmentReference}",
+          s"*Consignment ID*: ${incomingEvent.consignmentId}",
+          s"*Transferring Body*: ${incomingEvent.transferringBodyName.getOrElse("N/A")}",
+          s"*Series*: ${incomingEvent.seriesName.getOrElse("N/A")}",
+          s"*UserID*: ${incomingEvent.userId}",
+          s"*Error Message*: ${incomingEvent.errorMessage.getOrElse("Not provided")}"
+        )
+        SlackMessage(List(SlackBlock("section", SlackText("mrkdwn", messageList.mkString("\n")))))
+      }
     }
   }
 
