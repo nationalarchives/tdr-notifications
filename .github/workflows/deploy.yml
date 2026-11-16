@@ -12,6 +12,7 @@ on:
           - prod
           - mgmt
           - dev
+          - drdev
         default: 'intg'
       to-deploy:
         description: 'Version to deploy'
